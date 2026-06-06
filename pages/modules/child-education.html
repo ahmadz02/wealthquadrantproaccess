@@ -326,6 +326,7 @@
         <input type="number" v-model.number="currentSystemYear" min="2020" max="2100">
         <button class="period-btn" @click="incrementYear" title="Next Year">+</button>
       </div>
+      <button class="btn-reset-data" @click="saveEducationToSupabase" style="border-color:var(--green); color:var(--green); margin-left:8px;">Save Data</button>
     </div>
 
     <!-- ── APPLICATION SHELL ── -->
@@ -843,7 +844,7 @@
   </div>
 
   <script>
-    const STORAGE_KEY = 'nurturefund_children_education_planner_v1';
+    const EDUCATION_MODULE_NAME = 'education';
 
     const { createApp, ref, computed, watch, onMounted, nextTick } = Vue;
 
@@ -886,31 +887,30 @@
 
         const children = ref([]);
 
-        // Load data on startup
-        onMounted(() => {
-          const stored = localStorage.getItem(STORAGE_KEY);
-          if (stored) {
-            try {
-              const parsed = JSON.parse(stored);
-              children.value = parsed.children || defaultChildren;
-              currentSystemYear.value = parsed.currentSystemYear || 2026;
-            } catch (e) {
-              children.value = defaultChildren;
+        // Load latest saved data from Supabase on startup.
+        onMounted(async () => {
+          children.value = JSON.parse(JSON.stringify(defaultChildren));
+          try {
+            if (window.WQPStore) {
+              const clientEmail = window.WQPStore.getClientEmailFromUrl();
+              if (clientEmail) {
+                const saved = await window.WQPStore.loadModule(clientEmail, EDUCATION_MODULE_NAME);
+                if (saved) {
+                  children.value = saved.children || children.value;
+                  currentSystemYear.value = saved.currentSystemYear || 2026;
+                }
+              }
             }
-          } else {
-            children.value = defaultChildren;
+          } catch (error) {
+            console.warn('Unable to load Education data from Supabase:', error);
           }
           nextTick(() => {
             lucide.createIcons();
           });
         });
 
-        // Sync to local storage whenever reactive state updates
+        // Re-render icons whenever reactive state updates. Data is saved only when Save Data is clicked.
         watch([children, currentSystemYear], () => {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify({
-            children: children.value,
-            currentSystemYear: currentSystemYear.value
-          }));
           nextTick(() => {
             lucide.createIcons();
           });
@@ -1082,6 +1082,24 @@
           }
         };
 
+
+        const saveEducationToSupabase = async () => {
+          try {
+            if (!window.WQPStore) throw new Error('Supabase store is not ready.');
+            const clientEmail = window.WQPStore.getClientEmailFromUrl();
+            if (!clientEmail) throw new Error('Client email missing from URL. Open this module from the Planning Dashboard.');
+            await window.WQPStore.saveModule(clientEmail, EDUCATION_MODULE_NAME, {
+              children: children.value,
+              currentSystemYear: currentSystemYear.value,
+              savedAt: new Date().toISOString()
+            });
+            alert('Education Planning data saved to Supabase.');
+          } catch (error) {
+            console.error(error);
+            alert('Unable to save Education Planning data: ' + error.message);
+          }
+        };
+
         const resetToDefaults = () => {
           if (confirm('Are you sure you want to reset all planner data to original sandbox defaults? This overwrites current input.')) {
             children.value = JSON.parse(JSON.stringify(defaultChildren));
@@ -1149,6 +1167,7 @@
           incrementYear,
           decrementYear,
           resetToDefaults,
+          saveEducationToSupabase,
           printDashboard,
           getCardThemeClass,
           getCardThemeColor,

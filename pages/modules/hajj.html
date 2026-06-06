@@ -243,9 +243,12 @@
       </div>
     </div>
     
-    <div class="pill-nav">
-      <button class="pill-btn active" onclick="switchPage('planner')">Planner</button>
-      <button class="pill-btn" onclick="switchPage('quickguide')">Quick Guide</button>
+    <div style="display:flex; align-items:center; gap:10px;">
+      <div class="pill-nav">
+        <button class="pill-btn active" onclick="switchPage('planner')">Planner</button>
+        <button class="pill-btn" onclick="switchPage('quickguide')">Quick Guide</button>
+      </div>
+      <button class="btn-reset-data" onclick="saveHajjToSupabase()" style="border-color:var(--green); color:var(--green);">Save Data</button>
     </div>
   </div>
 
@@ -562,10 +565,79 @@
     let hasExistingFund = true;
     const currentYearDefault = 2026;
 
-    // Run projections instantly on bootstrap
-    window.onload = function() {
+    const HAJJ_MODULE_NAME = 'hajj';
+
+    // Run projections instantly on bootstrap and retrieve latest saved module data.
+    window.onload = async function() {
+      await loadHajjFromSupabase();
       calculateProjections();
     };
+
+
+
+    function collectHajjModuleData() {
+      const fields = {};
+      document.querySelectorAll('input, select, textarea').forEach((el) => {
+        const key = el.id || el.name;
+        if (!key) return;
+        if (el.type === 'checkbox' || el.type === 'radio') fields[key] = el.checked;
+        else fields[key] = el.value;
+      });
+      return {
+        fields,
+        hasExistingFund,
+        savedAt: new Date().toISOString()
+      };
+    }
+
+    function applyHajjModuleData(data) {
+      if (!data || typeof data !== 'object') return;
+      const fields = data.fields || {};
+      Object.entries(fields).forEach(([key, value]) => {
+        const el = document.getElementById(key) || document.querySelector(`[name="${CSS.escape(key)}"]`);
+        if (!el) return;
+        if (el.type === 'checkbox' || el.type === 'radio') el.checked = Boolean(value);
+        else el.value = value;
+      });
+      if (typeof data.hasExistingFund === 'boolean') {
+        hasExistingFund = data.hasExistingFund;
+        const btnYes = document.getElementById('toggle-yes');
+        const btnNo = document.getElementById('toggle-no');
+        const card = document.getElementById('fundAllocationCard');
+        if (btnYes && btnNo && card) {
+          if (hasExistingFund) {
+            btnYes.classList.add('active'); btnNo.classList.remove('active'); card.style.display = 'block';
+          } else {
+            btnYes.classList.remove('active'); btnNo.classList.add('active'); card.style.display = 'none';
+          }
+        }
+      }
+    }
+
+    async function loadHajjFromSupabase() {
+      try {
+        if (!window.WQPStore) return;
+        const clientEmail = window.WQPStore.getClientEmailFromUrl();
+        if (!clientEmail) return;
+        const data = await window.WQPStore.loadModule(clientEmail, HAJJ_MODULE_NAME);
+        applyHajjModuleData(data);
+      } catch (error) {
+        console.warn('Unable to load Hajj data from Supabase:', error);
+      }
+    }
+
+    async function saveHajjToSupabase() {
+      try {
+        if (!window.WQPStore) throw new Error('Supabase store is not ready.');
+        const clientEmail = window.WQPStore.getClientEmailFromUrl();
+        if (!clientEmail) throw new Error('Client email missing from URL. Open this module from the Planning Dashboard.');
+        await window.WQPStore.saveModule(clientEmail, HAJJ_MODULE_NAME, collectHajjModuleData());
+        alert('Hajj Planning data saved to Supabase.');
+      } catch (error) {
+        console.error(error);
+        alert('Unable to save Hajj Planning data: ' + error.message);
+      }
+    }
 
     // Tab Switching System
     function switchPage(pageId) {

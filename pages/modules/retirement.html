@@ -382,6 +382,9 @@
 
     <!-- Global Actions -->
     <div class="seg-hdr-actions">
+      <button class="btn-reset-data" onclick="saveRetirementToSupabase()" style="margin-right:8px; border-color:var(--green); color:var(--green);">
+        Save Data
+      </button>
       <button class="btn-reset-data" onclick="resetAllData()">
         <svg style="width:11px; height:11px; vertical-align:middle; margin-right:3px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8M21 3v5h-5M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16M3 21v-5h5"/></svg>
         Reset Form
@@ -1102,16 +1105,12 @@
       { name: "Private Retirement Scheme (PRS)", amount: 45000 }
     ];
 
-    // Initialize application
-    window.onload = function() {
-      // Load saved commentary if exists
-      if (localStorage.getItem("proretire_commentary")) {
-        document.getElementById("inp-commentary").value = localStorage.getItem("proretire_commentary");
-      }
-      
-      // Seed initial custom funds
+    const RETIREMENT_MODULE_NAME = 'retirement';
+
+    // Initialize application and retrieve latest saved module data from Supabase.
+    window.onload = async function() {
+      await loadRetirementFromSupabase();
       renderCustomFunds();
-      // Run calculations
       triggerCalculations();
     };
 
@@ -1516,12 +1515,68 @@
       switchPage('analysis');
     }
 
-    // Commentary Sync and LocalStorage auto-save
+
+
+    function collectRetirementModuleData() {
+      const fields = {};
+      document.querySelectorAll('input, select, textarea').forEach((el) => {
+        const key = el.id || el.name;
+        if (!key) return;
+        if (el.type === 'checkbox' || el.type === 'radio') fields[key] = el.checked;
+        else fields[key] = el.value;
+      });
+      return {
+        fields,
+        customFunds,
+        savedAt: new Date().toISOString()
+      };
+    }
+
+    function applyRetirementModuleData(data) {
+      if (!data || typeof data !== 'object') return;
+      if (Array.isArray(data.customFunds)) {
+        customFunds = data.customFunds;
+      }
+      const fields = data.fields || {};
+      Object.entries(fields).forEach(([key, value]) => {
+        const el = document.getElementById(key) || document.querySelector(`[name="${CSS.escape(key)}"]`);
+        if (!el) return;
+        if (el.type === 'checkbox' || el.type === 'radio') el.checked = Boolean(value);
+        else el.value = value;
+      });
+      saveAndCountCommentary();
+    }
+
+    async function loadRetirementFromSupabase() {
+      try {
+        if (!window.WQPStore) return;
+        const clientEmail = window.WQPStore.getClientEmailFromUrl();
+        if (!clientEmail) return;
+        const data = await window.WQPStore.loadModule(clientEmail, RETIREMENT_MODULE_NAME);
+        applyRetirementModuleData(data);
+      } catch (error) {
+        console.warn('Unable to load Retirement data from Supabase:', error);
+      }
+    }
+
+    async function saveRetirementToSupabase() {
+      try {
+        if (!window.WQPStore) throw new Error('Supabase store is not ready.');
+        const clientEmail = window.WQPStore.getClientEmailFromUrl();
+        if (!clientEmail) throw new Error('Client email missing from URL. Open this module from the Planning Dashboard.');
+        await window.WQPStore.saveModule(clientEmail, RETIREMENT_MODULE_NAME, collectRetirementModuleData());
+        alert('Retirement Planning data saved to Supabase.');
+      } catch (error) {
+        console.error(error);
+        alert('Unable to save Retirement Planning data: ' + error.message);
+      }
+    }
+
+    // Commentary character counter
     function saveAndCountCommentary() {
       const text = document.getElementById("inp-commentary").value;
       document.getElementById("comm-char-cnt").innerText = `${text.length} / 1000 characters`;
       document.getElementById("lbl-commentary-print").innerText = text;
-      localStorage.setItem("proretire_commentary", text);
     }
 
     // Reset Form to initial state
@@ -1548,7 +1603,6 @@
       ];
 
       document.getElementById("inp-commentary").value = "";
-      localStorage.removeItem("proretire_commentary");
 
       renderCustomFunds();
       togglePVPercentUI();
