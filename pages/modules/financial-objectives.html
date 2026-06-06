@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Financial Objectives</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../assets/css/styles.css" />
+  <style>
+    .objective-shell { min-height:100vh; background:var(--bg); }
+    .objective-main { max-width:1100px; margin:0 auto; padding:2rem; }
+    .objective-header { display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; margin-bottom:1.75rem; flex-wrap:wrap; }
+    .objective-title { font-size:28px; font-weight:300; letter-spacing:-.03em; }
+    .objective-sub { font-size:13px; color:var(--text3); margin-top:4px; }
+    .objective-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--rl); margin-bottom:1rem; overflow:hidden; box-shadow:var(--shadow); }
+    .objective-card-head { display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:14px 16px; border-bottom:1px solid var(--border); }
+    .objective-card-left { display:flex; align-items:center; gap:10px; }
+    .objective-icon { width:30px; height:30px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:13px; flex-shrink:0; }
+    .objective-card-title { font-size:14px; font-weight:500; }
+    .objective-card-sub { font-size:11px; color:var(--text3); margin-top:1px; }
+    .objective-count { font-family:'DM Mono',monospace; font-size:12px; color:var(--text2); white-space:nowrap; }
+    .objective-body { padding:14px 16px 16px; }
+    .objective-grid-head, .objective-row { display:grid; grid-template-columns:52px minmax(220px,1fr) 180px 170px 34px; gap:8px; align-items:center; }
+    .objective-grid-head { padding:0 0 8px; border-bottom:1px solid var(--border); margin-bottom:8px; }
+    .objective-grid-head div { font-size:10px; font-weight:500; letter-spacing:.08em; text-transform:uppercase; color:var(--text3); }
+    .objective-row { margin-bottom:7px; animation:fi .15s ease; }
+    .objective-no { height:34px; border:1px solid var(--border); border-radius:var(--r); background:var(--surface2); display:flex; align-items:center; justify-content:center; font-family:'DM Mono',monospace; font-size:12px; color:var(--text2); }
+    .objective-actions { display:flex; justify-content:space-between; gap:.75rem; margin-top:12px; flex-wrap:wrap; }
+    .objective-note { font-size:11px; color:var(--text3); align-self:center; }
+    .save-wrap { display:flex; justify-content:flex-end; padding-top:1rem; border-top:1px solid var(--border); margin-top:1.5rem; }
+    .save-status { font-size:12px; color:var(--green); margin-right:12px; align-self:center; display:none; }
+    .save-status.show { display:inline-flex; }
+    .inp-t.amount { font-family:'DM Mono',monospace; text-align:right; }
+    @media(max-width:820px){
+      .objective-main { padding:1rem; }
+      .objective-grid-head { display:none; }
+      .objective-row { grid-template-columns:44px 1fr 34px; background:var(--surface2); border:1px solid var(--border); border-radius:var(--r); padding:8px; }
+      .objective-row .inp-t { grid-column:2 / 3; }
+      .objective-row .amount, .objective-row input[type="date"] { grid-column:1 / 4; }
+      .objective-row .btn-rm { grid-column:3 / 4; grid-row:1 / 2; }
+    }
+  </style>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../../assets/js/supabase-client.js"></script>
+  <script src="../../assets/js/supabase-store.js"></script>
+  <script src="../../assets/js/auth-guard.js"></script>
+</head>
+<body>
+  <div class="objective-shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M5 17L10 12L13 15L19 8" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div>
+          <div class="brand-name">Wealth Quadrant Pro Access</div>
+          <div class="brand-sub">Financial Planning Form</div>
+        </div>
+      </div>
+      <div class="pill-nav">
+        <button class="pill-btn active" type="button">Objectives</button>
+      </div>
+    </header>
+
+    <main class="objective-main">
+      <section class="objective-header">
+        <div>
+          <div class="seg-tag t2">Financial Objectives</div>
+          <h1 class="objective-title">Client Financial Objectives</h1>
+          <p class="objective-sub">List the client’s short, medium and long term financial goals with target amount and expected due date.</p>
+        </div>
+        <div class="seg-tot-box">
+          <div class="tot-label">Total Objectives</div>
+          <div class="tot-val" id="totalObjectives">0</div>
+        </div>
+      </section>
+
+      <form id="objectivesForm">
+        <section class="objective-card" data-section="short">
+          <div class="objective-card-head">
+            <div class="objective-card-left">
+              <div class="objective-icon ci1">S</div>
+              <div>
+                <div class="objective-card-title">Short Term Financial Objectives</div>
+                <div class="objective-card-sub">Target to achieve within 3 years</div>
+              </div>
+            </div>
+            <div class="objective-count"><span id="shortCount">0</span>/5 listed</div>
+          </div>
+          <div class="objective-body">
+            <div class="objective-grid-head"><div>#</div><div>Financial Objective</div><div>Amount Related</div><div>Due Expected</div><div></div></div>
+            <div class="objective-rows" id="shortRows"></div>
+            <div class="objective-actions">
+              <button class="btn-add" type="button" onclick="addObjective('short')">+ Add Short Term Objective</button>
+              <span class="objective-note">Maximum 5 objectives</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="objective-card" data-section="medium">
+          <div class="objective-card-head">
+            <div class="objective-card-left">
+              <div class="objective-icon ci2">M</div>
+              <div>
+                <div class="objective-card-title">Medium Term Financial Objectives</div>
+                <div class="objective-card-sub">Target to achieve within 3–7 years</div>
+              </div>
+            </div>
+            <div class="objective-count"><span id="mediumCount">0</span>/5 listed</div>
+          </div>
+          <div class="objective-body">
+            <div class="objective-grid-head"><div>#</div><div>Financial Objective</div><div>Amount Related</div><div>Due Expected</div><div></div></div>
+            <div class="objective-rows" id="mediumRows"></div>
+            <div class="objective-actions">
+              <button class="btn-add" type="button" onclick="addObjective('medium')">+ Add Medium Term Objective</button>
+              <span class="objective-note">Maximum 5 objectives</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="objective-card" data-section="long">
+          <div class="objective-card-head">
+            <div class="objective-card-left">
+              <div class="objective-icon ci3">L</div>
+              <div>
+                <div class="objective-card-title">Long Term Financial Objectives</div>
+                <div class="objective-card-sub">Target to achieve beyond 7 years</div>
+              </div>
+            </div>
+            <div class="objective-count"><span id="longCount">0</span>/5 listed</div>
+          </div>
+          <div class="objective-body">
+            <div class="objective-grid-head"><div>#</div><div>Financial Objective</div><div>Amount Related</div><div>Due Expected</div><div></div></div>
+            <div class="objective-rows" id="longRows"></div>
+            <div class="objective-actions">
+              <button class="btn-add" type="button" onclick="addObjective('long')">+ Add Long Term Objective</button>
+              <span class="objective-note">Maximum 5 objectives</span>
+            </div>
+          </div>
+        </section>
+
+        <div class="save-wrap">
+          <span class="save-status" id="saveStatus">Objectives saved to Supabase.</span>
+          <button class="btn-nav btn-pri" type="submit">Save Objectives</button>
+          <button class="btn-nav" type="button" onclick="window.print()">Print PDF</button>
+        </div>
+      </form>
+    </main>
+  </div>
+
+  <script>
+    const maxRows = 5;
+    // Financial Objectives storage mode: Supabase client_modules.module_name = 'financial_objectives'
+    const sections = ['short', 'medium', 'long'];
+
+    function addObjective(section, data = {}) {
+      const rows = document.getElementById(`${section}Rows`);
+      if (rows.children.length >= maxRows) return;
+
+      const row = document.createElement('div');
+      row.className = 'objective-row';
+      row.innerHTML = `
+        <div class="objective-no"></div>
+        <input class="inp-t" type="text" name="${section}_objective[]" placeholder="e.g. Emergency fund, house deposit, education fund" value="${escapeHtml(data.objective || '')}">
+        <div class="pfx-wrap">
+          <span class="pfx">RM</span>
+          <input class="inp pl amount" type="number" min="0" step="0.01" name="${section}_amount[]" placeholder="0.00" value="${escapeHtml(data.amount || '')}">
+        </div>
+        <input class="inp-t" type="date" name="${section}_due[]" value="${escapeHtml(data.due || '')}">
+        <button class="btn-rm" type="button" aria-label="Remove objective" onclick="removeObjective(this, '${section}')">×</button>
+      `;
+      rows.appendChild(row);
+      updateCounts();
+    }
+
+    function removeObjective(button, section) {
+      button.closest('.objective-row').remove();
+      updateCounts();
+    }
+
+    function updateCounts() {
+      let total = 0;
+      sections.forEach(section => {
+        const rows = document.getElementById(`${section}Rows`);
+        [...rows.children].forEach((row, index) => row.querySelector('.objective-no').textContent = index + 1);
+        const count = rows.children.length;
+        total += count;
+        document.getElementById(`${section}Count`).textContent = count;
+        const addBtn = document.querySelector(`[data-section="${section}"] .btn-add`);
+        addBtn.disabled = count >= maxRows;
+        addBtn.style.opacity = count >= maxRows ? '.45' : '1';
+        addBtn.style.cursor = count >= maxRows ? 'not-allowed' : 'pointer';
+      });
+      document.getElementById('totalObjectives').textContent = total;
+    }
+
+    function getSectionData(section) {
+      return [...document.getElementById(`${section}Rows`).children].map(row => ({
+        objective: row.querySelector(`[name="${section}_objective[]"]`).value.trim(),
+        amount: row.querySelector(`[name="${section}_amount[]"]`).value,
+        due: row.querySelector(`[name="${section}_due[]"]`).value
+      })).filter(item => item.objective || item.amount || item.due);
+    }
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>'"]/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
+    }
+
+    document.getElementById('objectivesForm').addEventListener('submit', async event => {
+      event.preventDefault();
+      const clientEmail = WQPStore.getClientEmailFromUrl();
+      if (!clientEmail) {
+        alert('Client email not found. Please open this module from the Client Planning Page.');
+        return;
+      }
+      const payload = {
+        shortTerm: getSectionData('short'),
+        mediumTerm: getSectionData('medium'),
+        longTerm: getSectionData('long'),
+        savedAt: new Date().toISOString()
+      };
+      try {
+        await WQPStore.saveModule(clientEmail, 'financial_objectives', payload);
+        const status = document.getElementById('saveStatus');
+        status.classList.add('show');
+        setTimeout(() => status.classList.remove('show'), 2200);
+      } catch (error) {
+        console.error('Unable to save financial objectives:', error);
+        alert('Unable to save objectives. Please check Supabase setup.');
+      }
+    });
+
+    async function loadSavedObjectives() {
+      const clientEmail = WQPStore.getClientEmailFromUrl();
+      if (!clientEmail) {
+        sections.forEach(section => addObjective(section));
+        updateCounts();
+        return;
+      }
+      try {
+        const data = await WQPStore.loadModule(clientEmail, 'financial_objectives');
+        if (!data) {
+          sections.forEach(section => addObjective(section));
+          updateCounts();
+          return;
+        }
+        (data.shortTerm || []).slice(0, maxRows).forEach(item => addObjective('short', item));
+        (data.mediumTerm || []).slice(0, maxRows).forEach(item => addObjective('medium', item));
+        (data.longTerm || []).slice(0, maxRows).forEach(item => addObjective('long', item));
+        sections.forEach(section => { if (!document.getElementById(`${section}Rows`).children.length) addObjective(section); });
+      } catch (error) {
+        console.error('Unable to load financial objectives:', error);
+        sections.forEach(section => addObjective(section));
+      }
+      updateCounts();
+    }
+
+    loadSavedObjectives();
+  </script>
+</body>
+</html>

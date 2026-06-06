@@ -1,0 +1,1595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Retirement Planning System</title>
+  <!-- Load DM Sans and DM Mono fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap" rel="stylesheet">
+  
+  <!-- MathJax for rendering the requested LaTeX formulas -->
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']]
+      }
+    };
+  </script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #f7f6f2; --surface: #fff; --surface2: #f2f0eb;
+      --border: #e2dfd8; --border-strong: #c8c4bb;
+      --text: #1a1916; --text2: #6b6860; --text3: #a09d98;
+      --green: #1a6b47; --green-bg: #edf7f2;
+      --blue: #1a4a6b; --blue-bg: #edf3f7;
+      --red: #6b1a1a; --red-bg: #f7eded;
+      --gold: #6b4e1a; --gold-bg: #f7f2ed;
+      --orange: #b85c00; --amber: #c97a1a;
+      --r: 6px; --rl: 10px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); font-size:14px; line-height:1.5; min-height:100vh; }
+
+    /* ── TOPBAR ── */
+    .topbar { background:var(--surface); border-bottom:1px solid var(--border); padding:0 1.5rem; display:flex; align-items:center; justify-content:space-between; height:56px; position:sticky; top:0; z-index:200; }
+    .brand { display:flex; align-items:center; gap:10px; }
+    .brand-mark { width:28px; height:28px; background:var(--text); border-radius:6px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .brand-mark svg { width:14px; height:14px; fill: #fff; }
+    .brand-name { font-size:14px; font-weight:500; letter-spacing:-0.01em; }
+    .brand-sub { font-size:12px; color:var(--text3); margin-left:2px; }
+    .pill-nav { display:flex; background:var(--surface2); border-radius:20px; padding:3px; gap:2px; }
+    .pill-btn { padding:5px 16px; border-radius:16px; border:none; background:transparent; font-size:12px; font-family:'DM Sans',sans-serif; color:var(--text2); cursor:pointer; font-weight:400; transition:all .15s; }
+    .pill-btn.active { background:var(--surface); color:var(--text); font-weight:500; box-shadow:0 1px 2px rgba(0,0,0,.08); }
+
+    /* ── PAGE SHELLS ── */
+    .page { display:none; }
+    .page.active { display:flex; min-height:calc(100vh - 56px); }
+
+    /* ── ENTRY LAYOUT ── */
+    .sidebar { width:260px; flex-shrink:0; background:var(--surface); border-right:1px solid var(--border); position:sticky; top:56px; height:calc(100vh - 56px); overflow-y:auto; padding:1.25rem 0; }
+    .main-area { flex:1; padding:2rem; overflow-y:auto; min-width:0; }
+
+    /* sidebar nav */
+    .sb-label { font-size:10px; font-weight:500; letter-spacing:.08em; text-transform:uppercase; color:var(--text3); padding:0 1.25rem; margin-bottom:.5rem; }
+    .sb-item { display:flex; align-items:center; gap:10px; padding:9px 1.25rem; cursor:pointer; border-left:2px solid transparent; transition:all .12s; font-size:13px; color:var(--text2); text-decoration:none; }
+    .sb-item:hover { background:var(--surface2); color:var(--text); }
+    .sb-item.active { border-left-color:var(--text); color:var(--text); font-weight:500; background:var(--surface2); }
+    .sb-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+    .d1 { background:var(--green); } .d2 { background:var(--blue); } .d3 { background:var(--gold); } .d4 { background:var(--text3); }
+
+    /* progress */
+    .prog-wrap { padding:1.25rem 1.25rem .75rem; }
+    .prog-top { display:flex; justify-content:space-between; font-size:11px; color:var(--text3); margin-bottom:6px; }
+    .prog-track { height:3px; background:var(--surface2); border-radius:2px; overflow:hidden; }
+    .prog-fill { height:100%; background:var(--text); border-radius:2px; width:0%; transition:width .4s; }
+
+    /* per-segment sidebar summaries */
+    .seg-sum { display:none; margin:0 1rem .75rem; }
+    .seg-sum.on { display:block; }
+    .ss-head { color:#fff; font-size:10px; font-weight:500; letter-spacing:.06em; text-transform:uppercase; padding:6px 10px; border-radius:var(--r) var(--r) 0 0; }
+    .ss-body { background:var(--surface2); border-radius:0 0 var(--r) var(--r); padding:8px 10px; border:1px solid var(--border); border-top:none; }
+    .ss-row { display:flex; justify-content:space-between; align-items:baseline; padding:3px 0; font-size:11px; color:var(--text2); border-bottom:1px solid var(--border); }
+    .ss-row:last-child { border-bottom:none; }
+    .ss-row.neg { color:var(--red); }
+    .ss-v { font-family:'DM Mono',monospace; font-size:11px; color:var(--text); }
+    .ss-b { font-weight:500; }
+    .ss-div { height:1px; background:var(--border-strong); margin:5px 0; }
+    .ss-tot { display:flex; justify-content:space-between; align-items:baseline; padding:3px 0; font-size:11px; font-weight:500; }
+    .positive { color:var(--green); } .negative { color:var(--red); } .neutral { color:var(--blue); } .warning { color:var(--amber); }
+
+    /* ── SEGMENT CONTENT ── */
+    .segment { display:none; }
+    .segment.active { display:block; }
+    .seg-hdr { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:1.75rem; }
+    .seg-tag { display:inline-flex; align-items:center; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:500; margin-bottom:6px; }
+    .t1{background:var(--green-bg);color:var(--green);} .t2{background:var(--blue-bg);color:var(--blue);} .t3{background:var(--gold-bg);color:var(--gold);} .t4{background:var(--surface2);color:var(--text2);}
+    .seg-title { font-size:22px; font-weight:300; letter-spacing:-.03em; }
+    .seg-desc { font-size:13px; color:var(--text3); margin-top:4px; }
+    .seg-tot-box { text-align:right; background:var(--surface2); border-radius:var(--rl); padding:10px 16px; }
+    .tot-label { font-size:11px; color:var(--text3); }
+    .tot-val { font-size:20px; font-weight:500; font-family:'DM Mono',monospace; letter-spacing:-.03em; }
+
+    /* cards */
+    .card { background:var(--surface); border:1px solid var(--border); border-radius:var(--rl); margin-bottom:1rem; overflow:hidden; box-shadow:var(--shadow); }
+    .ch { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; cursor:pointer; user-select:none; border-bottom:1px solid transparent; transition:background .12s; }
+    .ch:hover { background:var(--surface2); }
+    .ch.open { border-bottom-color:var(--border); }
+    .ch-left { display:flex; align-items:center; gap:10px; }
+    .ci { width:28px; height:28px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:13px; flex-shrink:0; }
+    .ci1{background:var(--green-bg); color:var(--green);} .ci2{background:var(--blue-bg); color:var(--blue);} .ci3{background:var(--gold-bg); color:var(--gold);} .ci-r{background:var(--red-bg); color:var(--red);} .ci-g{background:var(--surface2); color:var(--text2);}
+    .ch-title { font-size:13px; font-weight:500; }
+    .ch-sub { font-size:11px; color:var(--text3); margin-top:1px; }
+    .ch-right { display:flex; align-items:center; gap:10px; }
+    .ch-sum { font-family:'DM Mono',monospace; font-size:13px; color:var(--text2); }
+    .chev { width:16px; height:16px; color:var(--text3); transition:transform .2s; flex-shrink:0; }
+    .chev.open { transform:rotate(180deg); }
+    .cb { display:none; padding:14px 16px; }
+    .cb.open { display:block; }
+
+    /* fields */
+    .f-static { display:grid; grid-template-columns:260px 1fr ; gap:12px; align-items:center; padding:10px 0; border-bottom:1px solid var(--border); }
+    .f-static:last-of-type { border-bottom:none; }
+    .f-label { font-size:13px; }
+    .f-sub { font-size:11px; color:var(--text3); margin-top: 2px; }
+    .pfx-wrap { position:relative; }
+    .pfx { position:absolute; left:10px; top:50%; transform:translateY(-50%); font-size:12px; color:var(--text3); pointer-events:none; }
+    .inp { width:100%; height:34px; border:1px solid var(--border); border-radius:var(--r); padding:0 10px; font-size:13px; font-family:'DM Mono',monospace; color:var(--text); background:var(--surface); text-align:right; transition:border-color .12s; }
+    .inp:focus { outline:none; border-color:var(--text); }
+    .inp.pl { padding-left:26px; text-align:left; }
+    .inp-t { height:34px; border:1px solid var(--border); border-radius:var(--r); padding:0 10px; font-size:13px; font-family:'DM Sans',sans-serif; color:var(--text); background:var(--surface); width:100%; transition:border-color .12s; }
+    .inp-t:focus { outline:none; border-color:var(--text); }
+    .exp-rows { margin-top:10px; }
+    .exp-row { display:grid; grid-template-columns:1fr 160px 30px; gap:6px; align-items:center; margin-bottom:6px; animation:fi .15s ease; }
+    .exp-row-4 { display:grid; grid-template-columns:130px 1fr 150px 30px; gap:6px; align-items:center; margin-bottom:6px; animation:fi .15s ease; }
+    @keyframes fi { from{opacity:0;transform:translateY(-4px)} to{opacity:1;transform:translateY(0)} }
+    .btn-rm { width:28px; height:28px; border:1px solid var(--border); border-radius:var(--r); background:transparent; cursor:pointer; color:var(--text3); display:flex; align-items:center; justify-content:center; font-size:16px; transition:all .12s; }
+    .btn-rm:hover { border-color:var(--red); color:var(--red); background:var(--red-bg); }
+    .btn-add { display:flex; align-items:center; gap:6px; padding:6px 10px; border:1px dashed var(--border-strong); border-radius:var(--r); background:transparent; font-size:12px; font-family:'DM Sans',sans-serif; color:var(--text3); cursor:pointer; margin-top:4px; width:100%; transition:all .12s; }
+    .btn-add:hover { border-color:var(--text); color:var(--text2); background:var(--surface2); }
+    .ded-section { margin-top:1.5rem; padding-top:1.25rem; border-top:1px dashed var(--border); }
+    .ded-lbl { font-size:11px; font-weight:500; letter-spacing:.06em; text-transform:uppercase; color:var(--red); margin-bottom:.75rem; }
+    .age-input{text-align:left;}
+
+    /* nav buttons */
+    .seg-nav { display:flex; justify-content:space-between; align-items:center; margin-top:2rem; padding-top:1.5rem; border-top:1px solid var(--border); }
+    .btn-nav { display:flex; align-items:center; gap:6px; padding:9px 18px; border:1px solid var(--border); border-radius:var(--r); background:transparent; font-size:13px; font-family:'DM Sans',sans-serif; color:var(--text2); cursor:pointer; transition:all .12s; }
+    .btn-nav:hover { border-color:var(--text); color:var(--text); }
+    .btn-pri { background:var(--text); color:#fff; border-color:var(--text); }
+    .btn-pri:hover { background:#333; }
+
+    /* ── ANALYSIS PAGE ── */
+    #page-analysis .main-area { max-width:1100px; margin:0 auto; }
+    .a-header { margin-bottom:1.75rem; }
+    .a-title { font-size:28px; font-weight:300; letter-spacing:-.03em; }
+    .a-sub { font-size:13px; color:var(--text3); margin-top:4px; }
+    .sec-title { font-size:10px; font-weight:500; letter-spacing:.08em; text-transform:uppercase; color:var(--text3); margin-bottom:.75rem; margin-top:1.5rem; }
+
+    /* quadrant */
+    .quad-grid { display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:10px; margin-bottom:1rem; }
+    .quad-card { border-radius:var(--rl); overflow:hidden; border:1px solid var(--border); cursor:pointer; transition:transform .15s, box-shadow .15s; }
+    .quad-card:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(0,0,0,.1); }
+    .quad-card:active { transform:translateY(0); box-shadow:none; }
+    .q-hint { font-size:10px; color:rgba(255,255,255,.7); font-style:italic; float:right; font-weight:400; letter-spacing:0; }
+    .q-head { padding:8px 12px; font-size:11px; font-weight:500; letter-spacing:.05em; text-transform:uppercase; color:#fff; }
+    .qg{background:#1a6b47;} .qr{background:#8b2020;} .qb{background:#1a4a6b;} .qo{background:#b85c00;}
+    .q-body { background:var(--surface); padding:10px 12px; }
+    .q-row { display:flex; justify-content:space-between; padding:4px 0; font-size:12px; color:var(--text2); border-bottom:1px solid var(--surface2); }
+    .q-row:last-child { border-bottom:none; }
+    .q-val { font-family:'DM Mono',monospace; font-size:12px; font-weight:500; color:var(--text); }
+    .q-div { height:1px; background:var(--border); margin:6px 0; }
+    .q-foot { display:flex; justify-content:space-between; padding:4px 0 0; font-size:12px; font-weight:500; }
+    .q-fv { font-family:'DM Mono',monospace; font-size:13px; font-weight:500; }
+
+    /* matrix */
+    .mx-grid { display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:10px; margin-bottom:1.5rem; }
+    .mx-item { background:var(--surface); border:1px solid var(--border); border-radius:var(--rl); padding:1rem 1.25rem; }
+    .mx-lbl { font-size:11px; color:var(--text3); letter-spacing:.03em; margin-bottom:3px; }
+    .mx-fml { font-size:10px; color:var(--text3); opacity:.7; margin-bottom:8px; font-style:italic; }
+    .mx-val { font-size:22px; font-weight:500; font-family:'DM Mono',monospace; letter-spacing:-.03em; }
+    .mx-sub { font-size:11px; color:var(--text3); margin-top:3px; }
+
+    /* kpi strip */
+    .kpi-grid { display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:10px; margin-bottom:1.5rem; }
+    .kpi { background:var(--surface); border:1px solid var(--border); border-radius:var(--rl); padding:1rem 1.25rem; }
+    .kpi-lbl { font-size:11px; color:var(--text3); letter-spacing:.03em; margin-bottom:6px; }
+    .kpi-val { font-size:20px; font-weight:500; font-family:'DM Mono',monospace; letter-spacing:-.03em; }
+    .kpi-sub { font-size:11px; color:var(--text3); margin-top:4px; }
+
+    /* analysis cards */
+    .a-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--rl); padding:1.25rem; margin-bottom:1rem; }
+    .a-card-title { font-size:13px; font-weight:500; margin-bottom:1rem; display:flex; align-items:center; gap:8px; }
+    .a-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+    .two-col { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem; }
+    .chart-wrap { position:relative; }
+    .bar-list { display:flex; flex-direction:column; gap:10px; }
+    .bar-item-top { display:flex; justify-content:space-between; margin-bottom:5px; font-size:12px; }
+    .bar-lbl { color:var(--text2); }
+    .bar-val { font-family:'DM Mono',monospace; font-weight:500; }
+    .bar-track { height:6px; background:var(--surface2); border-radius:4px; overflow:hidden; }
+    .bar-fill { height:100%; border-radius:4px; transition:width .8s; }
+    .bk-table { width:100%; border-collapse:collapse; }
+    .bk-table th { font-size:11px; font-weight:500; color:var(--text3); text-align:left; padding:0 0 8px; border-bottom:1px solid var(--border); }
+    .bk-table th:last-child { text-align:right; }
+    .bk-table td { padding:8px 0; font-size:13px; border-bottom:1px solid var(--surface2); vertical-align:middle; }
+    .bk-table td:last-child { text-align:right; font-family:'DM Mono',monospace; font-weight:500; }
+    .bk-table tr:last-child td { border-bottom:none; }
+    .cat-badge { display:inline-flex; align-items:center; gap:5px; }
+    .cat-dot { width:6px; height:6px; border-radius:50%; }
+    .ratio-item { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+    .ratio-lbl { font-size:12px; color:var(--text2); width:130px; flex-shrink:0; }
+    .ratio-track { flex:1; background:var(--surface2); height:8px; border-radius:4px; overflow:hidden; }
+    .ratio-fill { height:100%; border-radius:4px; }
+    .ratio-pct { font-size:12px; font-family:'DM Mono',monospace; width:42px; text-align:right; }
+    .health-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; }
+    .h-item { background:var(--surface2); border-radius:var(--r); padding:10px 12px; }
+    .h-score { font-size:18px; font-weight:500; font-family:'DM Mono',monospace; margin-bottom:2px; }
+    .h-lbl { font-size:11px; color:var(--text3); }
+    .h-tag { font-size:10px; font-weight:500; padding:2px 8px; border-radius:10px; margin-top:6px; display:inline-block; }
+    .tg{background:var(--green-bg);color:var(--green);} .tw{background:#fff8e8;color:var(--amber);} .tb{background:var(--red-bg);color:var(--red);}
+    .nw-val { font-size:32px; font-weight:300; font-family:'DM Mono',monospace; letter-spacing:-.04em; }
+
+    .empty-state { text-align:center; padding:4rem 1rem; color:var(--text3); }
+    .empty-state a { color:var(--blue); text-decoration:none; font-weight:500; cursor:pointer; }
+
+    /* net worth duo */
+    .nw-duo-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:.5rem; }
+    .nw-card { background:var(--surface2); border:1px solid var(--border); border-radius:var(--rl); padding:1rem 1.25rem; }
+    .nw-card-lbl { font-size:12px; font-weight:500; color:var(--text2); margin-bottom:3px; display:flex; align-items:center; gap:6px; }
+    .nw-card-fml { font-size:11px; color:var(--text3); font-style:italic; margin-bottom:10px; }
+    .nw-card-val { font-size:24px; font-weight:500; font-family:'DM Mono',monospace; letter-spacing:-.03em; }
+    .nw-epf-tag { font-size:10px; font-weight:500; padding:2px 7px; border-radius:10px; }
+    .with-epf { background:#e8f5ee; color:#1a6b47; }
+    .no-epf   { background:#f5ede8; color:#8b3a1a; }
+
+    /* group blocks */
+    .grp-block { background:var(--surface); border:1px solid var(--border); border-radius:var(--rl); padding:1.25rem 1.5rem; margin-bottom:1.25rem; }
+    .grp-label { font-size:11px; font-weight:500; letter-spacing:.1em; text-transform:uppercase; color:var(--text3); margin-bottom:1rem; margin-top:1.25rem; padding-bottom:.5rem; border-bottom:1px solid var(--border); }
+    .grp-block .grp-label { margin-top:0; }
+    .grp-sub { font-size:12px; font-weight:500; color:var(--text2); margin-bottom:.6rem; margin-top:1.25rem; display:flex; align-items:center; gap:6px; }
+    .grp-sub::before { content:''; display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--text3); flex-shrink:0; }
+
+    /* financial health table */
+    .fh-grid { display:flex; flex-direction:column; gap:0; border:1px solid var(--border); border-radius:var(--rl); overflow:hidden; }
+    .fh-row { display:grid; grid-template-columns:1fr 140px; align-items:start; padding:14px 14px; border-bottom:1px solid var(--surface2); background:var(--surface); gap:12px; }
+    .fh-row:last-child { border-bottom:none; }
+    .fh-row:nth-child(even) { background:#fafaf8; }
+    .fh-name { font-size:13px; font-weight:500; color:var(--text); margin-bottom:1px; }
+    .fh-fml { font-size:11px; color:var(--text3); font-style:italic; }
+    .fh-bench { font-size:10px; color:var(--amber); margin-top:1px; }
+    .fh-right { display:flex; flex-direction:column; align-items:flex-end; gap:3px; }
+    .fh-val { font-family:'DM Mono',monospace; font-size:15px; font-weight:500; }
+
+    .kpi-val.surplus { color:#1a6b47; font-weight:700; }
+    .kpi-val.deficit { color:#8b2020; font-weight:700; }
+    
+    /* commentary */
+    .commentary-wrap { margin-top:8px; }
+    .commentary-lbl { font-size:10px; font-weight:500; letter-spacing:.05em; text-transform:uppercase; color:var(--text3); margin-bottom:4px; display:flex; align-items:center; gap:4px; }
+    .commentary-char { font-weight:400; letter-spacing:0; text-transform:none; margin-left:auto; }
+    .commentary-box { width:100%; border:1px solid var(--border); border-radius:var(--r); padding:8px 10px; font-size:12px; font-family:'DM Sans',sans-serif; color:var(--text); background:var(--surface2); resize:vertical; line-height:1.5; transition:border-color .12s; }
+    .commentary-box:focus { outline:none; border-color:var(--text); background:var(--surface); }
+    .commentary-box::placeholder { color:var(--text3); }
+    .commentary-print { display:none; font-size:11px; color:var(--text2); font-style:italic; margin-top:6px; white-space:pre-wrap; }
+    
+    /* Reset buttons */
+    .btn-reset-seg { display:inline-flex; align-items:center; gap:5px; padding:5px 12px; border:1px solid var(--border); border-radius:var(--r); background:transparent; font-size:11px; font-family:'DM Sans',sans-serif; color:var(--text3); cursor:pointer; transition:all .12s; }
+    .btn-reset-seg:hover { border-color:#c0392b; color:#c0392b; background:#fff5f5; }
+    .btn-reset-data { display:inline-flex; align-items:center; gap:4px; padding:4px 9px; border:1px solid var(--border); border-radius:var(--r); background:transparent; font-size:11px; font-family:'DM Sans',sans-serif; color:var(--text3); cursor:pointer; transition:all .12s; margin-left:6px; }
+    .btn-reset-data:hover { border-color:#c0392b; color:#c0392b; background:#fff5f5; }
+    .seg-hdr-actions { display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+
+    /* Commentary box style override */
+    .commentary-block { margin-bottom:1.25rem; }
+    .commentary-box { width:100%; min-height:100px; border:1px solid var(--border); border-radius:var(--rl); padding:12px 14px; font-size:13px; font-family:'DM Sans',sans-serif; color:var(--text); background:var(--surface); resize:vertical; line-height:1.6; transition:border-color .12s; }
+    .commentary-box:focus { outline:none; border-color:var(--text); }
+    .commentary-box::placeholder { color:var(--text3); }
+    .commentary-lbl { font-size:11px; font-weight:500; letter-spacing:.06em; text-transform:uppercase; color:var(--text3); margin-bottom:6px; display:flex; align-items:center; gap:6px; }
+    .commentary-char { font-size:10px; color:var(--text3); margin-left:auto; font-weight:400; letter-spacing:0; text-transform:none; }
+
+    /* Formula display block */
+    .formula-card {
+      background: var(--surface2);
+      border-radius: var(--r);
+      padding: 12px;
+      margin: 10px 0;
+      font-size: 12px;
+      overflow-x: auto;
+      border-left: 3px solid var(--blue);
+    }
+    .math-title {
+      font-weight: 500;
+      color: var(--text2);
+      font-size: 11px;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    /* Print styles */
+    @media print {
+      * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
+      body { background:#f7f6f2 !important; margin:0; }
+      .topbar, .sidebar, #page-entry, .btn-pdf, .pdf-overlay,
+      .btn-reset-seg, .btn-reset-data, .seg-nav, .commentary-box,
+      .commentary-lbl, .commentary-char, .pill-nav { display:none !important; }
+      #page-analysis { display:block !important; min-height:auto !important; }
+      #page-analysis .main-area { padding:12px !important; max-width:100% !important; }
+      .page.active { display:block !important; }
+      /* Print commentary text in place of textarea */
+      .commentary-print { display:block !important; }
+      /* Prevent frames splitting across pages */
+      .grp-block { break-inside:avoid; page-break-inside:avoid; margin-bottom:10px !important; padding:12px !important; border:1px solid #e2dfd8 !important; border-radius:8px !important; }
+      .quad-grid, .quad-card { break-inside:avoid; page-break-inside:avoid; }
+      .fh-row { break-inside:avoid; page-break-inside:avoid; }
+      .a-card { break-inside:avoid; page-break-inside:avoid; margin-bottom:8px !important; }
+      .nw-duo-grid { break-inside:avoid; page-break-inside:avoid; }
+      .kpi-grid { grid-template-columns:repeat(4,1fr) !important; break-inside:avoid; }
+      .two-col { break-inside:avoid; }
+      .chart-wrap { break-inside:avoid; }
+      .a-header { break-after:avoid; }
+      .grp-label { break-after:avoid; font-size:9px !important; }
+    }
+
+    /* Print button — replaces PDF btn */
+    .btn-pdf { display:inline-flex; align-items:center; gap:7px; padding:8px 18px; background:var(--text); color:#fff; border:none; border-radius:var(--r); font-size:13px; font-family:'DM Sans',sans-serif; font-weight:500; cursor:pointer; transition:opacity .15s; white-space:nowrap; flex-shrink:0; }
+    .btn-pdf:hover { opacity:.85; }
+    .a-header { display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; margin-bottom:1.75rem; flex-wrap:wrap; }
+    .a-header-left .a-title { font-size:28px; font-weight:300; letter-spacing:-.03em; }
+    .a-header-left .a-sub { font-size:13px; color:var(--text3); margin-top:4px; }
+    .pdf-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:9999; align-items:center; justify-content:center; }
+    .pdf-overlay.show { display:flex; }
+    .pdf-box { background:var(--surface); border-radius:var(--rl); padding:1.5rem 2rem; text-align:center; min-width:240px; box-shadow:0 8px 32px rgba(0,0,0,.18); }
+    .pdf-box p { font-size:13px; color:var(--text2); margin-top:8px; }
+    .pdf-spinner { width:32px; height:32px; border:3px solid var(--border); border-top-color:var(--text); border-radius:50%; animation:spin .7s linear infinite; margin:0 auto 8px; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+
+    @media(max-width:760px){
+      .sidebar{display:none;}
+      .kpi-grid,.mx-grid,.quad-grid{grid-template-columns:1fr 1fr;}
+      .two-col{grid-template-columns:1fr;}
+      .fh-row{grid-template-columns:1fr;}
+      .topbar{height:auto;min-height:56px;gap:10px;flex-wrap:wrap;padding:.75rem 1rem}
+      .pill-nav{order:2}
+    }
+
+    @media(max-width:480px){
+      .kpi-grid,.mx-grid,.quad-grid{grid-template-columns:1fr;}
+      .nw-duo-grid{grid-template-columns:1fr;}
+    }
+
+    /* Additional custom action plan classes */
+    .ap-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+    .ap-item:last-child { border-bottom: none; }
+    .ap-icon { display: flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; color: #fff; font-size: 11px; flex-shrink: 0; margin-top: 2px; }
+    .ap-icon.check { background: var(--green); }
+    .ap-icon.alert { background: var(--orange); }
+    .ap-text { font-size: 12.5px; color: var(--text2); }
+    .ap-text strong { color: var(--text); }
+  </style>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../../assets/js/supabase-client.js"></script>
+  <script src="../../assets/js/supabase-store.js"></script>
+  <script src="../../assets/js/auth-guard.js"></script>
+</head>
+<body>
+
+  <!-- ── TOPBAR ── -->
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+        </svg>
+      </div>
+      <div>
+        <span class="brand-name">ProRetire Plan™</span>
+        <span class="brand-sub">EPF & Gap Analyzer</span>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="pill-nav">
+      <button class="pill-btn active" id="btn-tab-entry" onclick="switchPage('entry')">Inputs & Modeling</button>
+      <button class="pill-btn" id="btn-tab-analysis" onclick="switchPage('analysis')">Retirement Gap Analysis</button>
+    </div>
+
+    <!-- Global Actions -->
+    <div class="seg-hdr-actions">
+      <button class="btn-reset-data" onclick="resetAllData()">
+        <svg style="width:11px; height:11px; vertical-align:middle; margin-right:3px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8M21 3v5h-5M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16M3 21v-5h5"/></svg>
+        Reset Form
+      </button>
+    </div>
+  </header>
+
+  <!-- ── PAGE 1: ENTRY LAYOUT ── -->
+  <div id="page-entry" class="page active">
+    <!-- Sidebar navigation & dynamic summary -->
+    <aside class="sidebar">
+      <div class="prog-wrap">
+        <div class="prog-top">
+          <span>Profile Progress</span>
+          <span id="prog-pct">60%</span>
+        </div>
+        <div class="prog-track">
+          <div class="prog-fill" id="prog-fill" style="width: 60%;"></div>
+        </div>
+      </div>
+
+      <div class="sb-label">Input Sections</div>
+      <a href="javascript:void(0)" class="sb-item active" id="nav-seg-1" onclick="switchSegment(1)">
+        <span class="sb-dot d1"></span>
+        1. Income & Fund Needs
+      </a>
+      <a href="javascript:void(0)" class="sb-item" id="nav-seg-2" onclick="switchSegment(2)">
+        <span class="sb-dot d2"></span>
+        2. EPF Growth Projection
+      </a>
+      <a href="javascript:void(0)" class="sb-item" id="nav-seg-3" onclick="switchSegment(3)">
+        <span class="sb-dot d3"></span>
+        3. Other Assets & Gap
+      </a>
+
+      <!-- Segment Dynamic Summaries inside Sidebar -->
+      <div style="margin-top: 20px;"></div>
+      <div class="sb-label">Live Calculation Preview</div>
+      
+      <!-- Preview Segment 1 -->
+      <div class="seg-sum on" id="sum-seg-1">
+        <div class="ss-head qg">Needs Summary</div>
+        <div class="ss-body">
+          <div class="ss-row">
+            <span>Inflation adjusted:</span>
+            <span class="ss-v" id="lbl-inflation-rate">3.00%</span>
+          </div>
+          <div class="ss-row">
+            <span>1st Yr Needs (FV):</span>
+            <span class="ss-v ss-b text-blue" id="lbl-yr1-fv">RM 0.00</span>
+          </div>
+          <div class="ss-div"></div>
+          <div class="ss-tot">
+            <span>Fund Needed:</span>
+            <span class="ss-v ss-b positive" id="lbl-fund-needed">RM 0.00</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Preview Segment 2 -->
+      <div class="seg-sum on" id="sum-seg-2">
+        <div class="ss-head qb">EPF Projection</div>
+        <div class="ss-body">
+          <div class="ss-row">
+            <span>Years to Retire:</span>
+            <span class="ss-v" id="lbl-epf-years">25 yrs</span>
+          </div>
+          <div class="ss-row">
+            <span>Annual Salary:</span>
+            <span class="ss-v" id="lbl-epf-salary">RM 60,000</span>
+          </div>
+          <div class="ss-div"></div>
+          <div class="ss-tot">
+            <span>Projected EPF:</span>
+            <span class="ss-v ss-b neutral" id="lbl-projected-epf">RM 0.00</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Preview Segment 3 -->
+      <div class="seg-sum on" id="sum-seg-3">
+        <div class="ss-head qo">Gap Status</div>
+        <div class="ss-body">
+          <div class="ss-row">
+            <span>Total Expected:</span>
+            <span class="ss-v" id="lbl-total-available">RM 0.00</span>
+          </div>
+          <div class="ss-row">
+            <span>Total Needed:</span>
+            <span class="ss-v" id="lbl-total-needed-side">RM 0.00</span>
+          </div>
+          <div class="ss-div"></div>
+          <div class="ss-tot">
+            <span>Calculated Gap:</span>
+            <span class="ss-v ss-b" id="lbl-current-gap">RM 0.00</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area with segments -->
+    <main class="main-area">
+      
+      <!-- SEGMENT 1: Income Needs & Fund Needed -->
+      <section class="segment active" id="segment-1">
+        <div class="seg-hdr">
+          <div>
+            <span class="seg-tag t1">Section 1</span>
+            <h1 class="seg-title">Retirement Income &amp; Fund Needs</h1>
+            <p class="seg-desc">Estimate the future cost of your lifestyle at retirement using financial math models.</p>
+          </div>
+          <div class="seg-tot-box">
+            <span class="tot-label">Est. Year 1 Needs (FV)</span>
+            <div class="tot-val" id="val-hdr-y1-needs">RM 0.00</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="ch open">
+            <div class="ch-left">
+              <div class="ci ci1">1A</div>
+              <div>
+                <span class="ch-title">Demographics &amp; Timing Setup</span>
+                <span class="ch-sub">Required timelines for calculations</span>
+              </div>
+            </div>
+          </div>
+          <div class="cb open">
+            <div class="f-static">
+              <div>
+                <span class="f-label">Current Age</span>
+                <span class="f-sub">Your current age (years)</span>
+              </div>
+              <div>
+                <input type="number" class="inp" id="inp-current-age" min="18" max="100" value="30" oninput="triggerCalculations()">
+              </div>
+            </div>
+
+            <div class="f-static">
+              <div>
+                <span class="f-label">Retirement Age for EPF Withdrawal</span>
+                <span class="f-sub">Age you plan to retire (must be between 55 to 60)</span>
+              </div>
+              <div>
+                <input type="number" class="inp" id="inp-retirement-age" min="55" max="60" value="55" oninput="triggerCalculations()">
+              </div>
+            </div>
+
+            <div class="f-static">
+              <div>
+                <span class="f-label">Life Expectancy</span>
+                <span class="f-sub">Expected lifespan (years)</span>
+              </div>
+              <div>
+                <input type="number" class="inp" id="inp-life-expectancy" min="60" max="120" value="80" oninput="triggerCalculations()">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="ch open">
+            <div class="ch-left">
+              <div class="ci ci1">1B</div>
+              <div>
+                <span class="ch-title">Current Income &amp; Expenses Settings</span>
+                <span class="ch-sub">Used to determine future purchasing needs</span>
+              </div>
+            </div>
+          </div>
+          <div class="cb open">
+            <div class="f-static">
+              <div>
+                <span class="f-label">Current Annual Salary (RM)</span>
+                <span class="f-sub">Base gross yearly salary</span>
+              </div>
+              <div class="pfx-wrap">
+                <span class="pfx">RM</span>
+                <input type="number" class="inp pl" id="inp-annual-salary" min="0" value="60000" oninput="triggerCalculations()">
+              </div>
+            </div>
+
+            <div class="f-static">
+              <div>
+                <span class="f-label">Current Annual Expenses (RM)</span>
+                <span class="f-sub">Your total estimated yearly outflows today</span>
+              </div>
+              <div class="pfx-wrap">
+                <span class="pfx">RM</span>
+                <input type="number" class="inp pl" id="inp-annual-expenses" min="0" value="36000" oninput="triggerCalculations()">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="ch open">
+            <div class="ch-left">
+              <div class="ci ci1">1C</div>
+              <div>
+                <span class="ch-title">1st Year Income Need Formula Options</span>
+                <span class="ch-sub">Define Present Value (PV) and inflation rates</span>
+              </div>
+            </div>
+          </div>
+          <div class="cb open">
+            <div class="f-static">
+              <div>
+                <span class="f-label">Present Value (PV) Foundation Selection</span>
+                <span class="f-sub">Choose how to anchor your retirement cost base</span>
+              </div>
+              <div>
+                <select class="inp-t" id="sel-pv-type" onchange="togglePVPercentUI(); triggerCalculations();" style="font-size:12.5px;">
+                  <option value="percentage">Percentage of Current Annual Salary</option>
+                  <option value="expenses">Current Annual Expenses</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="f-static" id="row-pv-percentage">
+              <div>
+                <span class="f-label">Income Replacement Target (%)</span>
+                <span class="f-sub">Expected retirement expenses (30% to 100%)</span>
+              </div>
+              <div class="pfx-wrap">
+                <span class="pfx">%</span>
+                <input type="number" class="inp pl" id="inp-salary-pct" min="30" max="100" value="70" oninput="triggerCalculations()">
+              </div>
+            </div>
+
+            <div class="f-static">
+              <div>
+                <span class="f-label">Inflation Rate Pre-Retirement (%)</span>
+                <span class="f-sub">Used to project today's dollar to retirement day</span>
+              </div>
+              <div class="pfx-wrap">
+                <span class="pfx">%</span>
+                <input type="number" class="inp pl" id="inp-inflation-pre" step="0.1" value="3.0" oninput="triggerCalculations()">
+              </div>
+            </div>
+
+            <div class="f-static">
+              <div>
+                <span class="f-label">Inflation Rate After-Retirement (%)</span>
+                <span class="f-sub">Cost increase during retirement years</span>
+              </div>
+              <div class="pfx-wrap">
+                <span class="pfx">%</span>
+                <input type="number" class="inp pl" id="inp-inflation-post" step="0.1" value="3.0" oninput="triggerCalculations()">
+              </div>
+            </div>
+
+            <div class="formula-card">
+              <div class="math-title">Calculated Using Future Value Formulation</div>
+              $$FV = PV \times (1 + i_{\text{pre}})^{n}$$
+              <p style="margin-top:4px; font-size:11px; color:var(--text2);">
+                Where <strong>PV</strong> = <span id="eq-pv-source">70% x RM 60,000 = RM 42,000</span>, 
+                <strong>Period ($n$)</strong> = <span id="eq-period">25</span> years (Retirement Age - Current Age), and 
+                <strong>Rate ($i_{\text{pre}}$)</strong> = <span id="eq-rate">3%</span>.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="ch open">
+            <div class="ch-left">
+              <div class="ci ci1">1D</div>
+              <div>
+                <span class="ch-title">Retirement Capitalization Method</span>
+                <span class="ch-sub">Select strategy for generating retirement funds</span>
+              </div>
+            </div>
+          </div>
+          <div class="cb open">
+            <div class="f-static">
+              <div>
+                <span class="f-label">Capitalization Method Selection</span>
+                <span class="f-sub">Liquidation (gradually spend down) vs Intact (preserves principal)</span>
+              </div>
+              <div>
+                <select class="inp-t" id="sel-capitalization-method" onchange="triggerCalculations()" style="font-size:12.5px; font-weight:bold;">
+                  <option value="liquidation" selected>Capital Liquidation Method (Spend Down Capital)</option>
+                  <option value="intact">Capital Intact Method (Preserve Principal Capital)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="f-static">
+              <div>
+                <span class="f-label">Nominal Rate of Return During Retirement (%)</span>
+                <span class="f-sub">Expected average return of capital while retired</span>
+              </div>
+              <div class="pfx-wrap">
+                <span class="pfx">%</span>
+                <input type="number" class="inp pl" id="inp-return-retirement" step="0.1" value="5.5" oninput="triggerCalculations()">
+              </div>
+            </div>
+
+            <div class="f-static">
+              <div>
+                <span class="f-label">Real Adjusted Rate of Return ($r_{\text{adj}}$)</span>
+                <span class="f-sub">Return adjusted for post-retirement inflation</span>
+              </div>
+              <div class="pfx-wrap" style="font-weight:bold;">
+                <span class="pfx">%</span>
+                <input type="text" class="inp pl" id="lbl-real-return" readonly value="2.43%" style="background:var(--surface2);">
+              </div>
+            </div>
+
+            <div class="formula-card" id="formula-liquidation-block">
+              <div class="math-title">Capital Liquidation Formula (Annuity Due / Beginning Mode)</div>
+              $$PV_{\text{need}} = PMT \times \left[ \frac{1 - (1 + r_{\text{adj}})^{-N}}{r_{\text{adj}}} \right] \times (1 + r_{\text{adj}})$$
+              <p style="margin-top:4px; font-size:11px; color:var(--text2);">
+                Where <strong>PMT</strong> = 1st Year Income Need, 
+                <strong>$r_{\text{adj}}$</strong> = Real Adjusted Return, and 
+                <strong>$N$</strong> = <span id="eq-post-n">25</span> years of retirement (Life Expectancy - Retirement Age).
+              </p>
+            </div>
+
+            <div class="formula-card" id="formula-intact-block" style="display:none;">
+              <div class="math-title">Capital Intact Formula</div>
+              $$PV_{\text{need}} = \frac{PMT}{r_{\text{adj}}}$$
+              <p style="margin-top:4px; font-size:11px; color:var(--text2);">
+                Yielding perpetual income without exhausting the principal fund base.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="seg-nav">
+          <div></div>
+          <button class="btn-nav btn-pri" onclick="switchSegment(2)">
+            Next: EPF Projection
+            <svg style="width:14px; height:14px; margin-left:4px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </button>
+        </div>
+      </section>
+
+      <!-- SEGMENT 2: EPF PROJECTIONS -->
+      <section class="segment" id="segment-2">
+        <div class="seg-hdr">
+          <div>
+            <span class="seg-tag t2">Section 2</span>
+            <h1 class="seg-title">Employee Provident Fund (EPF) Projection</h1>
+            <p class="seg-desc">Calculate your projected statutory EPF retirement savings incorporating compound wage growth.</p>
+          </div>
+          <div class="seg-tot-box">
+            <span class="tot-label">Est. Projected EPF Fund</span>
+            <div class="tot-val text-blue" id="val-hdr-epf-proj">RM 0.00</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="ch open">
+            <div class="ch-left">
+              <div class="ci ci2">2A</div>
+              <div>
+                <span class="ch-title">Statutory Contributions &amp; Wage Growth Inputs</span>
+                <span class="ch-sub">Required components for compounding projection calculations</span>
+              </div>
+            </div>
+          </div>
+          <div class="cb open">
+            <div class="f-static">
+              <div>
+                <span class="f-label">Current EPF Balance (RM)</span>
+                <span class="f-sub">Initial EPF balance today ($FV_1$ principal base)</span>
+              </div>
+              <div class="pfx-wrap">
+                <span class="pfx">RM</span>
+                <input type="number" class="inp pl" id="inp-current-epf" min="0" value="50000" oninput="triggerCalculations()">
+              </div>
+            </div>
+
+            <div class="f-static">
+              <div>
+                <span class="f-label">Salary Increment Rate ($G$) (%)</span>
+                <span class="f-sub">Average expected annual salary rise %</span>
+              </div>
+              <div class="pfx-wrap">
+                <span class="pfx">%</span>
+                <input type="number" class="inp pl" id="inp-salary-increment" step="0.1" value="4.0" oninput="triggerCalculations()">
+              </div>
+            </div>
+
+            <div class="f-static">
+              <div>
+                <span class="f-label">Total EPF Contribution (%)</span>
+                <span class="f-sub">Combined employer + employee statutory percentage contribution</span>
+              </div>
+              <div class="pfx-wrap">
+                <span class="pfx">%</span>
+                <input type="number" class="inp pl" id="inp-epf-contribution-rate" step="0.5" value="24.0" oninput="triggerCalculations()">
+              </div>
+            </div>
+
+            <div class="f-static">
+              <div>
+                <span class="f-label">EPF Dividend/Growth Rate ($R$) (%)</span>
+                <span class="f-sub">Average annual dividend return paid by EPF</span>
+              </div>
+              <div class="pfx-wrap">
+                <span class="pfx">%</span>
+                <input type="number" class="inp pl" id="inp-epf-growth-rate" step="0.1" value="5.5" oninput="triggerCalculations()">
+              </div>
+            </div>
+
+            <div class="formula-card">
+              <div class="math-title">Statutory EPF Compound Accumulation Modeling</div>
+              $$FV_2 = FV_1 + \left( PMT \times \frac{(1 + R)^n - (1 + G)^n}{R - G} \right)$$
+              <p style="margin-top:6px; font-size:11px; color:var(--text2); line-height: 1.5;">
+                Where:<br>
+                • <strong>$FV_2$</strong> = Total Projected EPF Balance at retirement.<br>
+                • <strong>$FV_1$</strong> = Projected value of current balance $= PV_{\text{epf}} \times (1 + R)^n$.<br>
+                • <strong>$PMT$</strong> = Base contribution $= \text{Current Salary} \times \text{EPF Contribution Rate}$.<br>
+                • <strong>$R$</strong> = EPF Dividend rate, <strong>$G$</strong> = Salary Increment rate, and <strong>$n$</strong> = years to retirement (<span id="eq-epf-n">25</span>).
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="seg-nav">
+          <button class="btn-nav" onclick="switchSegment(1)">
+            <svg style="width:14px; height:14px; margin-right:4px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            Back: Fund Needs
+          </button>
+          <button class="btn-nav btn-pri" onclick="switchSegment(3)">
+            Next: Other Assets &amp; Gap
+            <svg style="width:14px; height:14px; margin-left:4px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </button>
+        </div>
+      </section>
+
+      <!-- SEGMENT 3: GAP ANALYSIS INPUTS -->
+      <section class="segment" id="segment-3">
+        <div class="seg-hdr">
+          <div>
+            <span class="seg-tag t3">Section 3</span>
+            <h1 class="seg-title">Other Assets &amp; Gap Analysis</h1>
+            <p class="seg-desc">Factor in other non-EPF retirement reserves to determine your net surplus or deficit.</p>
+          </div>
+          <div class="seg-tot-box">
+            <span class="tot-label">Est. Other Reserves Total</span>
+            <div class="tot-val text-gold" id="val-hdr-other-reserves">RM 0.00</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="ch open">
+            <div class="ch-left">
+              <div class="ci ci3">3A</div>
+              <div>
+                <span class="ch-title">Custom Non-EPF Retirement Reserves</span>
+                <span class="ch-sub">Add personal investments, unit trusts, or properties</span>
+              </div>
+            </div>
+          </div>
+          <div class="cb open">
+            <p style="font-size:12.5px; color:var(--text2); margin-bottom:12px;">
+              Input any additional financial capital earmarked for retirement to obtain an accurate picture.
+            </p>
+            
+            <div class="exp-rows" id="other-funds-container">
+              <!-- Dynamically generated rows -->
+            </div>
+
+            <button class="btn-add" onclick="addNewFundRow()">
+              <svg style="width:12px; height:12px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Add New Retirement Resource / Fund
+            </button>
+          </div>
+        </div>
+
+        <!-- Call to Action Card -->
+        <div class="card" style="background:var(--surface2); border: 2px solid var(--border-strong);">
+          <div class="cb open" style="text-align:center; padding: 2rem 1.5rem;">
+            <h3 style="font-size:18px; font-weight:400; margin-bottom:8px;">Ready to Calculate the Retirement Gap?</h3>
+            <p style="font-size:13px; color:var(--text2); margin-bottom:1.5rem; max-width:550px; margin-left:auto; margin-right:auto;">
+              ProRetire Plan will compile Section 1 needs, Section 2 projected EPF savings, and Section 3 custom assets to generate a full visual diagnostics report.
+            </p>
+            
+            <button class="btn-pdf" style="margin:0 auto; padding: 12px 24px; font-size:14px; border-radius:30px;" onclick="calculateAndNavigateToAnalysis()">
+              <svg style="width:16px; height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+              Find The Retirement Fund Gap
+            </button>
+          </div>
+        </div>
+
+        <div class="seg-nav">
+          <button class="btn-nav" onclick="switchSegment(2)">
+            <svg style="width:14px; height:14px; margin-right:4px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            Back: EPF Growth
+          </button>
+          <div></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- ── PAGE 2: ANALYSIS DISPLAY (DASHBOARD) ── -->
+  <div id="page-analysis" class="page">
+    <main class="main-area">
+      <div class="a-header">
+        <div class="a-header-left">
+          <span class="seg-tag t2" id="badge-status-result">ANALYSIS REPORT</span>
+          <h1 class="a-title">Retirement Readiness Diagnostics</h1>
+          <p class="a-sub">Consolidated balance sheet, inflation models, and gap analysis results.</p>
+        </div>
+        <div class="seg-hdr-actions">
+          <button class="btn-pdf" onclick="triggerPrint()">
+            <svg style="width:14px; height:14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            Print Diagnostics Report
+          </button>
+        </div>
+      </div>
+
+      <!-- Live Notification Banner -->
+      <div id="banner-result-box" class="grp-block" style="border:1px solid var(--border); border-left: 5px solid var(--green); background:var(--surface);">
+        <h3 id="diag-banner-title" style="font-size:16px; font-weight:600; margin-bottom:4px;">Diagnostic Assessment</h3>
+        <p id="diag-banner-desc" style="font-size:13px; color:var(--text2);">Calculating evaluation...</p>
+      </div>
+
+      <div class="sec-title">Core Balance Sheet Metrics</div>
+
+      <!-- Quadrant Cards Summary -->
+      <div class="quad-grid">
+        <div class="quad-card">
+          <div class="q-head qr">
+            Total Fund Needed 
+            <span class="q-hint" id="diag-method-badge">Capital Liquidation</span>
+          </div>
+          <div class="q-body">
+            <div class="q-row">
+              <span>Inflation Base Yr 1 PMT:</span>
+              <span class="q-val" id="diag-y1-pmt">RM 0.00</span>
+            </div>
+            <div class="q-row">
+              <span>Compounding Period:</span>
+              <span class="q-val" id="diag-pre-period">25 yrs</span>
+            </div>
+            <div class="q-row">
+              <span>Retirement Span:</span>
+              <span class="q-val" id="diag-post-period">25 yrs</span>
+            </div>
+            <div class="q-div"></div>
+            <div class="q-foot">
+              <span>TOTAL CAPITAL NEED:</span>
+              <span class="q-fv negative" id="diag-total-needed">RM 0.00</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="quad-card">
+          <div class="q-head qg">
+            Accumulated Resources
+            <span class="q-hint">Projected to Retirement</span>
+          </div>
+          <div class="q-body">
+            <div class="q-row">
+              <span>Projected EPF ($FV_2$):</span>
+              <span class="q-val" id="diag-epf-fv2">RM 0.00</span>
+            </div>
+            <div class="q-row">
+              <span>Other Asset Portfolio:</span>
+              <span class="q-val" id="diag-other-portfolio">RM 0.00</span>
+            </div>
+            <div class="q-row">
+              <span>Personal Additions:</span>
+              <span class="q-val" id="diag-additions-val">RM 0.00</span>
+            </div>
+            <div class="q-div"></div>
+            <div class="q-foot">
+              <span>TOTAL ACCUMULATION:</span>
+              <span class="q-fv positive" id="diag-total-available">RM 0.00</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Large Gap Display Card -->
+      <div class="nw-duo-grid">
+        <div class="nw-card">
+          <div class="nw-card-lbl">
+            NET CAPITAL POSITION
+          </div>
+          <div class="nw-card-fml">Total Accumulation Less Retirement Target Needs</div>
+          <div class="nw-val" id="diag-net-position-val">RM 0.00</div>
+          <div style="margin-top:10px;">
+            <span class="nw-epf-tag with-epf" id="diag-adequacy-tag">Calculating</span>
+          </div>
+        </div>
+
+        <div class="nw-card">
+          <div class="nw-card-lbl">
+            RESOURCES TO TARGET RATIO (%)
+          </div>
+          <div class="nw-card-fml">Funding completeness coverage ratio</div>
+          <div class="nw-val" id="diag-adequacy-ratio">0.0%</div>
+          <div style="margin-top:10px;">
+            <div class="ratio-track">
+              <div class="ratio-fill" id="diag-ratio-bar" style="width:0%; background:var(--green);"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <!-- Visual Asset Composition Chart / Bar list -->
+        <div class="a-card">
+          <div class="a-card-title">
+            <span class="a-dot" style="background:var(--blue);"></span>
+            Portfolio Composition at Retirement
+          </div>
+          <div class="bar-list">
+            <div>
+              <div class="bar-item-top">
+                <span class="bar-lbl">Projected EPF Account Value</span>
+                <span class="bar-val" id="bar-lbl-epf-val">RM 0.00</span>
+              </div>
+              <div class="bar-track">
+                <div class="bar-fill" id="bar-fill-epf" style="width:0%; background:var(--blue);"></div>
+              </div>
+            </div>
+
+            <div>
+              <div class="bar-item-top">
+                <span class="bar-lbl">Additional Personal Savings &amp; Assets</span>
+                <span class="bar-val" id="bar-lbl-other-val">RM 0.00</span>
+              </div>
+              <div class="bar-track">
+                <div class="bar-fill" id="bar-fill-other" style="width:0%; background:var(--gold);"></div>
+              </div>
+            </div>
+
+            <div style="margin-top:12px; padding-top:10px; border-top:1px dashed var(--border);">
+              <div class="bar-item-top" style="font-weight:bold;">
+                <span class="bar-lbl">Target Capital Fund Requirement</span>
+                <span class="bar-val" id="bar-lbl-total-req">RM 0.00</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Metric Table -->
+        <div class="a-card">
+          <div class="a-card-title">
+            <span class="a-dot" style="background:var(--gold);"></span>
+            Detailed Component Balances
+          </div>
+          <table class="bk-table">
+            <thead>
+              <tr>
+                <th>Component Segment</th>
+                <th style="text-align:right;">Projected Value (RM)</th>
+              </tr>
+            </thead>
+            <tbody id="analysis-table-body">
+              <!-- Dynamically populated rows -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Action Plan Recommendations Card -->
+      <div class="grp-block">
+        <div class="grp-label">Personalized Action Steps &amp; Recommendations</div>
+        <div id="action-plan-container">
+          <!-- Dynamically populated list of personalized financial action plans -->
+        </div>
+      </div>
+
+      <!-- Section: Commentary Area (Persists and saves locally) -->
+      <div class="card">
+        <div class="ch open">
+          <div class="ch-left">
+            <svg style="width:16px; height:16px; color:var(--text2);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <span class="ch-title">Planner Analysis Commentary</span>
+          </div>
+        </div>
+        <div class="cb open">
+          <div class="commentary-block">
+            <div class="commentary-lbl">
+              Write Analysis Notes
+              <span class="commentary-char" id="comm-char-cnt">0 / 1000 characters</span>
+            </div>
+            <textarea class="commentary-box" id="inp-commentary" placeholder="Write down structural action plans, observations, and decisions based on these projections..." maxlength="1000" oninput="saveAndCountCommentary()"></textarea>
+            <!-- Print mode text copy -->
+            <div class="commentary-print" id="lbl-commentary-print"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="seg-nav">
+        <button class="btn-nav" onclick="switchPage('entry')">
+          <svg style="width:14px; height:14px; margin-right:4px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          Modify Input Assumptions
+        </button>
+        <div></div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Loading overlay for print rendering -->
+  <div class="pdf-overlay" id="pdf-overlay">
+    <div class="pdf-box">
+      <div class="pdf-spinner"></div>
+      <h3 style="font-size:15px; font-weight:600;">Generating Document</h3>
+      <p>Formatting print stylesheet elements...</p>
+    </div>
+  </div>
+
+  <!-- ── APP CONTROLLER LOGIC ── -->
+  <script>
+    // State storage
+    let customFunds = [
+      { name: "Unit Trust / Mutual Funds", amount: 150000 },
+      { name: "Private Retirement Scheme (PRS)", amount: 45000 }
+    ];
+
+    // Initialize application
+    window.onload = function() {
+      // Load saved commentary if exists
+      if (localStorage.getItem("proretire_commentary")) {
+        document.getElementById("inp-commentary").value = localStorage.getItem("proretire_commentary");
+      }
+      
+      // Seed initial custom funds
+      renderCustomFunds();
+      // Run calculations
+      triggerCalculations();
+    };
+
+    // Toggle showing percentage input based on PV option
+    function togglePVPercentUI() {
+      const type = document.getElementById("sel-pv-type").value;
+      const row = document.getElementById("row-pv-percentage");
+      if (type === "percentage") {
+        row.style.display = "grid";
+      } else {
+        row.style.display = "none";
+      }
+    }
+
+    // Dynamic row generation for other assets
+    function renderCustomFunds() {
+      const container = document.getElementById("other-funds-container");
+      container.innerHTML = "";
+      
+      customFunds.forEach((fund, index) => {
+        const row = document.createElement("div");
+        row.className = "exp-row";
+        row.innerHTML = `
+          <input type="text" class="inp-t" value="${escapeHtml(fund.name)}" placeholder="Asset / Fund Name" oninput="updateFundName(${index}, this.value)">
+          <div class="pfx-wrap">
+            <span class="pfx">RM</span>
+            <input type="number" class="inp pl" value="${fund.amount}" placeholder="Amount" oninput="updateFundAmount(${index}, this.value)">
+          </div>
+          <button class="btn-rm" onclick="removeFundRow(${index})" title="Remove">×</button>
+        `;
+        container.appendChild(row);
+      });
+
+      calculateOtherFundsTotal();
+    }
+
+    function addNewFundRow() {
+      customFunds.push({ name: "Alternative Investment Base", amount: 10000 });
+      renderCustomFunds();
+      triggerCalculations();
+    }
+
+    function removeFundRow(index) {
+      customFunds.splice(index, 1);
+      renderCustomFunds();
+      triggerCalculations();
+    }
+
+    function updateFundName(index, val) {
+      customFunds[index].name = val;
+      // save comments/state locally optionally
+    }
+
+    function updateFundAmount(index, val) {
+      customFunds[index].amount = parseFloat(val) || 0;
+      calculateOtherFundsTotal();
+      triggerCalculations();
+    }
+
+    function calculateOtherFundsTotal() {
+      const total = customFunds.reduce((sum, item) => sum + (item.amount || 0), 0);
+      document.getElementById("val-hdr-other-reserves").innerText = formatCurrency(total);
+      return total;
+    }
+
+    // Multi-tab controller
+    function switchPage(pageId) {
+      document.getElementById("page-entry").classList.remove("active");
+      document.getElementById("page-analysis").classList.remove("active");
+      document.getElementById("btn-tab-entry").classList.remove("active");
+      document.getElementById("btn-tab-analysis").classList.remove("active");
+
+      if (pageId === "entry") {
+        document.getElementById("page-entry").classList.add("active");
+        document.getElementById("btn-tab-entry").classList.add("active");
+      } else {
+        document.getElementById("page-analysis").classList.add("active");
+        document.getElementById("btn-tab-analysis").classList.add("active");
+        // Scroll back to top of display
+        window.scrollTo(0, 0);
+      }
+    }
+
+    // Segment tracking inside entry page
+    function switchSegment(num) {
+      document.getElementById("segment-1").classList.remove("active");
+      document.getElementById("segment-2").classList.remove("active");
+      document.getElementById("segment-3").classList.remove("active");
+      
+      document.getElementById("nav-seg-1").classList.remove("active");
+      document.getElementById("nav-seg-2").classList.remove("active");
+      document.getElementById("nav-seg-3").classList.remove("active");
+
+      document.getElementById(`segment-${num}`).classList.add("active");
+      document.getElementById(`nav-seg-${num}`).classList.add("active");
+
+      // Progress bar updates
+      const pct = num === 1 ? "40%" : num === 2 ? "70%" : "100%";
+      document.getElementById("prog-pct").innerText = pct;
+      document.getElementById("prog-fill").style.width = pct;
+    }
+
+    // CORE COMPUTATION MATRIX
+    function triggerCalculations() {
+      // 1. Inputs
+      const curAge = parseInt(document.getElementById("inp-current-age").value) || 30;
+      let retAge = parseInt(document.getElementById("inp-retirement-age").value) || 55;
+      
+      // Enforce age boundary requirements
+      if (retAge < 55) retAge = 55;
+      if (retAge > 60) retAge = 60;
+      
+      const lifeExp = parseInt(document.getElementById("inp-life-expectancy").value) || 80;
+      const curSalary = parseFloat(document.getElementById("inp-annual-salary").value) || 0;
+      const curExpenses = parseFloat(document.getElementById("inp-annual-expenses").value) || 0;
+      
+      const pvType = document.getElementById("sel-pv-type").value;
+      const salaryPct = parseFloat(document.getElementById("inp-salary-pct").value) || 70;
+      const infPre = (parseFloat(document.getElementById("inp-inflation-pre").value) || 0) / 100;
+      const infPost = (parseFloat(document.getElementById("inp-inflation-post").value) || 0) / 100;
+      
+      const capitalizationMethod = document.getElementById("sel-capitalization-method").value;
+      const retReturn = (parseFloat(document.getElementById("inp-return-retirement").value) || 0) / 100;
+
+      // Compound factors
+      const nPre = Math.max(0, retAge - curAge);
+      const nPost = Math.max(0, lifeExp - retAge);
+
+      // Section 1: Calculate PV Foundation
+      let pvBase = 0;
+      if (pvType === "percentage") {
+        pvBase = curSalary * (salaryPct / 100);
+        document.getElementById("eq-pv-source").innerText = `${salaryPct}% x RM ${formatRawNumber(curSalary)} = RM ${formatRawNumber(pvBase)}`;
+      } else {
+        pvBase = curExpenses;
+        document.getElementById("eq-pv-source").innerText = `Current Expenses = RM ${formatRawNumber(pvBase)}`;
+      }
+
+      // Update LaTeX strings in description programmatically
+      document.getElementById("eq-period").innerText = nPre;
+      document.getElementById("eq-rate").innerText = `${(infPre * 100).toFixed(1)}%`;
+      document.getElementById("eq-post-n").innerText = nPost;
+      document.getElementById("lbl-inflation-rate").innerText = `${(infPre * 100).toFixed(2)}%`;
+
+      // Year 1 Retirement Needs Future Value
+      const yr1NeedsFV = pvBase * Math.pow(1 + infPre, nPre);
+      document.getElementById("val-hdr-y1-needs").innerText = formatCurrency(yr1NeedsFV);
+      document.getElementById("lbl-yr1-fv").innerText = formatCurrency(yr1NeedsFV);
+      
+      // Diagnostics Quadrant details
+      document.getElementById("diag-y1-pmt").innerText = formatCurrency(yr1NeedsFV);
+      document.getElementById("diag-pre-period").innerText = `${nPre} yrs`;
+      document.getElementById("diag-post-period").innerText = `${nPost} yrs`;
+
+      // Real rate adjusted return ($r_{adj}$) formulation: (1 + R)/(1 + inflation) - 1
+      let rAdj = ((1 + retReturn) / (1 + infPost)) - 1;
+      document.getElementById("lbl-real-return").value = `${(rAdj * 100).toFixed(2)}%`;
+
+      // Target Fund Needed calculations
+      let fundNeeded = 0;
+      if (capitalizationMethod === "liquidation") {
+        document.getElementById("formula-liquidation-block").style.display = "block";
+        document.getElementById("formula-intact-block").style.display = "none";
+        document.getElementById("diag-method-badge").innerText = "Capital Liquidation";
+
+        if (rAdj === 0) {
+          fundNeeded = yr1NeedsFV * nPost;
+        } else {
+          // Beginning of period mode formulation (annuity due)
+          fundNeeded = yr1NeedsFV * ((1 - Math.pow(1 + rAdj, -nPost)) / rAdj) * (1 + rAdj);
+        }
+      } else {
+        document.getElementById("formula-liquidation-block").style.display = "none";
+        document.getElementById("formula-intact-block").style.display = "block";
+        document.getElementById("diag-method-badge").innerText = "Capital Intact";
+
+        if (rAdj <= 0) {
+          fundNeeded = Infinity; // Avoid crash on negative adjusted real returns
+        } else {
+          fundNeeded = yr1NeedsFV / rAdj;
+        }
+      }
+
+      const validatedFundNeeded = isFinite(fundNeeded) ? fundNeeded : 0;
+      document.getElementById("lbl-fund-needed").innerText = formatCurrency(validatedFundNeeded);
+
+      // Section 2: EPF accumulation formulas
+      const curEPF = parseFloat(document.getElementById("inp-current-epf").value) || 0;
+      const salInc = (parseFloat(document.getElementById("inp-salary-increment").value) || 0) / 100;
+      const epfContribRate = (parseFloat(document.getElementById("inp-epf-contribution-rate").value) || 0) / 100;
+      const epfGrowth = (parseFloat(document.getElementById("inp-epf-growth-rate").value) || 0) / 100;
+
+      document.getElementById("eq-epf-n").innerText = nPre;
+      document.getElementById("lbl-epf-years").innerText = `${nPre} yrs`;
+      document.getElementById("lbl-epf-salary").innerText = formatCurrency(curSalary);
+
+      // $FV_1$ computation = $PV_{epf} \times (1 + R)^n$
+      const fv1 = curEPF * Math.pow(1 + epfGrowth, nPre);
+
+      // Annual statutory Contribution PMT
+      const pmtEPF = curSalary * epfContribRate;
+
+      // $FV_2$ EPF formula handling division by zero risk when R == G
+      let fv2 = 0;
+      if (Math.abs(epfGrowth - salInc) < 1e-6) {
+        // Safe limit fallback: $PMT \times n \times (1 + R)^{n-1}$
+        fv2 = fv1 + (pmtEPF * nPre * Math.pow(1 + epfGrowth, nPre - 1));
+      } else {
+        fv2 = fv1 + (pmtEPF * (Math.pow(1 + epfGrowth, nPre) - Math.pow(1 + salInc, nPre)) / (epfGrowth - salInc));
+      }
+
+      document.getElementById("val-hdr-epf-proj").innerText = formatCurrency(fv2);
+      document.getElementById("lbl-projected-epf").innerText = formatCurrency(fv2);
+
+      // Section 3: Gap Analysis Compilation
+      const otherAssetsTotal = calculateOtherFundsTotal();
+      const totalAccumulation = fv2 + otherAssetsTotal;
+
+      document.getElementById("lbl-total-available").innerText = formatCurrency(totalAccumulation);
+      document.getElementById("lbl-total-needed-side").innerText = formatCurrency(validatedFundNeeded);
+
+      const calculatedGap = totalAccumulation - validatedFundNeeded;
+      const gapLabelElement = document.getElementById("lbl-current-gap");
+      
+      gapLabelElement.innerText = formatCurrency(calculatedGap);
+      if (calculatedGap >= 0) {
+        gapLabelElement.className = "ss-v ss-b positive";
+      } else {
+        gapLabelElement.className = "ss-v ss-b negative";
+      }
+
+      // Populate diagnostics variables
+      document.getElementById("diag-epf-fv2").innerText = formatCurrency(fv2);
+      document.getElementById("diag-other-portfolio").innerText = formatCurrency(otherAssetsTotal);
+      document.getElementById("diag-total-needed").innerText = formatCurrency(validatedFundNeeded);
+      document.getElementById("diag-total-available").innerText = formatCurrency(totalAccumulation);
+      
+      const gapValDiv = document.getElementById("diag-net-position-val");
+      gapValDiv.innerText = formatCurrency(calculatedGap);
+
+      // Coverage ratio
+      let ratio = 0;
+      if (validatedFundNeeded > 0) {
+        ratio = (totalAccumulation / validatedFundNeeded) * 100;
+      } else if (totalAccumulation > 0) {
+        ratio = 100;
+      }
+      
+      document.getElementById("diag-adequacy-ratio").innerText = `${ratio.toFixed(1)}%`;
+      const ratioFill = document.getElementById("diag-ratio-bar");
+      ratioFill.style.width = `${Math.min(100, ratio)}%`;
+
+      const statusBadge = document.getElementById("badge-status-result");
+      const adequacyTag = document.getElementById("diag-adequacy-tag");
+      const resultBanner = document.getElementById("banner-result-box");
+      const bannerTitle = document.getElementById("diag-banner-title");
+      const bannerDesc = document.getElementById("diag-banner-desc");
+
+      if (calculatedGap >= 0) {
+        // Capital Surplus
+        statusBadge.className = "seg-tag t1";
+        statusBadge.innerText = "ADEQUATE SURPLUS";
+        
+        adequacyTag.className = "nw-epf-tag with-epf";
+        adequacyTag.innerText = "FULLY SECURED SURPLUS";
+        
+        ratioFill.style.background = "var(--green)";
+        gapValDiv.className = "nw-val positive";
+        
+        resultBanner.style.borderLeftColor = "var(--green)";
+        bannerTitle.innerText = "Excellent News! Your Capital Target is Met.";
+        bannerDesc.innerText = `Projections show an estimated surplus of ${formatCurrency(calculatedGap)} at age ${retAge}. Keep up this savings momentum.`;
+      } else {
+        // Capital Deficit
+        statusBadge.className = "seg-tag ci-r";
+        statusBadge.innerText = "FUNDING DEFICIT SHORTFALL";
+        
+        adequacyTag.className = "nw-epf-tag no-epf";
+        adequacyTag.innerText = "ACTION REQUIRED - FUNDING GAP";
+        
+        ratioFill.style.background = "var(--orange)";
+        gapValDiv.className = "nw-val negative";
+        
+        resultBanner.style.borderLeftColor = "var(--red)";
+        bannerTitle.innerText = "Retirement Deficit Detected";
+        bannerDesc.innerText = `You are facing an estimated shortfall of ${formatCurrency(Math.abs(calculatedGap))} at age ${retAge}. Explore our calculated actions below to help close this gap.`;
+      }
+
+      // Populate component breakdowns list
+      populateBreakdownTable(fv2, otherAssetsTotal, validatedFundNeeded);
+      // Generate actionable advice steps based on results
+      generateActionPlan(calculatedGap, nPre, validatedFundNeeded, yr1NeedsFV, rAdj);
+    }
+
+    function populateBreakdownTable(epfVal, otherVal, targetVal) {
+      const tbody = document.getElementById("analysis-table-body");
+      tbody.innerHTML = "";
+
+      // List of resources
+      const rows = [
+        { name: "Projected EPF Account Value ($FV_2$)", val: epfVal, class: "neutral" },
+      ];
+
+      // Add custom funds
+      customFunds.forEach(fund => {
+        rows.push({ name: fund.name || "Unnamed Resource", val: fund.amount || 0, class: "" });
+      });
+
+      rows.push({ name: "<strong>Total Estimated Capital Resources</strong>", val: epfVal + otherVal, class: "ss-b positive" });
+      rows.push({ name: "<strong>Retirement Target Capital Needed</strong>", val: targetVal, class: "ss-b negative" });
+
+      rows.forEach(r => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${r.name}</td>
+          <td class="${r.class}">${formatCurrency(r.val)}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      // Update comparison bars
+      const maxVal = Math.max(epfVal + otherVal, targetVal) || 1;
+      document.getElementById("bar-lbl-epf-val").innerText = formatCurrency(epfVal);
+      document.getElementById("bar-lbl-other-val").innerText = formatCurrency(otherVal);
+      document.getElementById("bar-lbl-total-req").innerText = formatCurrency(targetVal);
+
+      document.getElementById("bar-fill-epf").style.width = `${(epfVal / maxVal) * 100}%`;
+      document.getElementById("bar-fill-other").style.width = `${(otherVal / maxVal) * 100}%`;
+    }
+
+    // Dynamic Action Plan logic based on financial gap calculations
+    function generateActionPlan(gap, yearsToRetire, fundNeeded, annualExpensesFV, realRate) {
+      const container = document.getElementById("action-plan-container");
+      container.innerHTML = "";
+
+      let items = [];
+
+      if (gap >= 0) {
+        // Optimal scenario
+        items.push({
+          type: "check",
+          text: `<strong>Target Achieved:</strong> Your plan covers <strong>${(( (gap + fundNeeded) / fundNeeded) * 100).toFixed(0)}%</strong> of your target retirement capital pool. Review your asset allocation strategy as you draw nearer to retirement to lock in gains.`
+        });
+        items.push({
+          type: "check",
+          text: "<strong>Preserve Purchase Power:</strong> Your nominal funds are growing faster than inflation. Consider moving a portion of funds into low-volatility fixed income to insulate against late-stage market shocks."
+        });
+      } else {
+        // Shortfall scenarios
+        const deficit = Math.abs(gap);
+        
+        // 1. Calculate extra annual savings required to bridge the gap (future value annuity factor)
+        let requiredExtraAnnual = 0;
+        if (realRate > 0 && yearsToRetire > 0) {
+          requiredExtraAnnual = deficit / ((Math.pow(1 + realRate, yearsToRetire) - 1) / realRate);
+        } else if (yearsToRetire > 0) {
+          requiredExtraAnnual = deficit / yearsToRetire;
+        }
+        const requiredExtraMonthly = requiredExtraAnnual / 12;
+
+        items.push({
+          type: "alert",
+          text: `<strong>Savings Adjustment:</strong> To bridge this gap strictly via cash additions, you must save an extra <strong>${formatCurrency(requiredExtraMonthly)} per month</strong> over the next ${yearsToRetire} years (earning your post-retirement adjusted interest rate).`
+        });
+
+        // 2. Recommend delaying retirement
+        items.push({
+          type: "alert",
+          text: `<strong>Extend Accumulation Phase:</strong> Delaying your retirement target age from ${document.getElementById("inp-retirement-age").value} to 60 gives your investments longer to compound and reduces the post-retirement liquidation period.`
+        });
+
+        // 3. Voluntary EPF savings
+        items.push({
+          type: "alert",
+          text: "<strong>Utilize EPF Voluntary Contributions:</strong> Employees can make voluntary top-ups directly to their EPF account up to RM 100,000 annually. Compounding this under EPF's historically high dividends is a low-risk method to narrow the gap."
+        });
+
+        // 4. Downsize lifestyle target
+        const optimizedReplacement = annualExpensesFV * 0.85; // suggest cutting expenses target by 15%
+        items.push({
+          type: "alert",
+          text: `<strong>Manage Lifestyle Expectation:</strong> Reducing your post-retirement income expectation by just 10% drastically drops the total capital hurdle required. Investigate if adjusting the income replacement target parameter from ${document.getElementById("inp-salary-pct").value}% downwards aligns with downsized post-retirement expectations.`
+        });
+      }
+
+      items.forEach(item => {
+        const div = document.createElement("div");
+        div.className = "ap-item";
+        div.innerHTML = `
+          <div class="ap-icon ${item.type === "check" ? "check" : "alert"}">
+            ${item.type === "check" ? "✓" : "!"}
+          </div>
+          <div class="ap-text">${item.text}</div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    // Process button click in step 3
+    function calculateAndNavigateToAnalysis() {
+      triggerCalculations();
+      switchPage('analysis');
+    }
+
+    // Commentary Sync and LocalStorage auto-save
+    function saveAndCountCommentary() {
+      const text = document.getElementById("inp-commentary").value;
+      document.getElementById("comm-char-cnt").innerText = `${text.length} / 1000 characters`;
+      document.getElementById("lbl-commentary-print").innerText = text;
+      localStorage.setItem("proretire_commentary", text);
+    }
+
+    // Reset Form to initial state
+    function resetAllData() {
+      document.getElementById("inp-current-age").value = 30;
+      document.getElementById("inp-retirement-age").value = 55;
+      document.getElementById("inp-life-expectancy").value = 80;
+      document.getElementById("inp-annual-salary").value = 60000;
+      document.getElementById("inp-annual-expenses").value = 36000;
+      document.getElementById("inp-salary-pct").value = 70;
+      document.getElementById("inp-inflation-pre").value = 3.0;
+      document.getElementById("inp-inflation-post").value = 3.0;
+      document.getElementById("inp-return-retirement").value = 5.5;
+      document.getElementById("sel-capitalization-method").value = "liquidation";
+      
+      document.getElementById("inp-current-epf").value = 50000;
+      document.getElementById("inp-salary-increment").value = 4.0;
+      document.getElementById("inp-epf-contribution-rate").value = 24.0;
+      document.getElementById("inp-epf-growth-rate").value = 5.5;
+
+      customFunds = [
+        { name: "Unit Trust / Mutual Funds", amount: 150000 },
+        { name: "Private Retirement Scheme (PRS)", amount: 45000 }
+      ];
+
+      document.getElementById("inp-commentary").value = "";
+      localStorage.removeItem("proretire_commentary");
+
+      renderCustomFunds();
+      togglePVPercentUI();
+      triggerCalculations();
+      switchPage('entry');
+    }
+
+    // Helper functions
+    function formatCurrency(val) {
+      if (!isFinite(val) || isNaN(val)) return "RM 0.00";
+      return "RM " + val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function formatRawNumber(val) {
+      if (isNaN(val)) return "0.00";
+      return val.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+    }
+
+    function escapeHtml(text) {
+      return text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    // Triggers beautiful native formatting for print/saving to PDF
+    function triggerPrint() {
+      // Sync commentary to the print view div container
+      document.getElementById("lbl-commentary-print").innerText = document.getElementById("inp-commentary").value;
+      
+      const overlay = document.getElementById("pdf-overlay");
+      overlay.classList.add("show");
+      
+      // Allow CSS print layouts to resolve cleanly before browser dialogue
+      setTimeout(() => {
+        overlay.classList.remove("show");
+        window.print();
+      }, 950);
+    }
+  </script>
+</body>
+</html>

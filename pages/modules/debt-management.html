@@ -1,0 +1,1501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Debt Strategy Planner & Optimizer</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap" rel="stylesheet">
+  
+  <!-- Lucide Icons for premium visual depth -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    /* Insert exact styles provided by the user */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #f7f6f2; --surface: #fff; --surface2: #f2f0eb;
+      --border: #e2dfd8; --border-strong: #c8c4bb;
+      --text: #1a1916; --text2: #6b6860; --text3: #a09d98;
+      --green: #1a6b47; --green-bg: #edf7f2;
+      --blue: #1a4a6b; --blue-bg: #edf3f7;
+      --red: #6b1a1a; --red-bg: #f7eded;
+      --gold: #6b4e1a; --gold-bg: #f7f2ed;
+      --orange: #b85c00; --amber: #c97a1a;
+      --r: 6px; --rl: 10px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.06);
+      --purple: #5f3dc4; --purple-light:#f1ecff;
+    }
+    body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); font-size:14px; line-height:1.5; min-height:100vh; }
+
+    /* ── TOPBAR ── */
+    .topbar { background:var(--surface); border-bottom:1px solid var(--border); padding:0 1.5rem; display:flex; align-items:center; justify-content:space-between; height:56px; position:sticky; top:0; z-index:200; }
+    .brand { display:flex; align-items:center; gap:10px; }
+    .brand-mark { width:28px; height:28px; background:var(--text); border-radius:6px; display:flex; align-items:center; justify-content:center; flex-shrink:0; color: #fff; }
+    .brand-mark svg { width:14px; height:14px; }
+    .brand-name { font-size:14px; font-weight:500; letter-spacing:-0.01em; }
+    .brand-sub { font-size:12px; color:var(--text3); margin-left:2px; }
+    .pill-nav { display:flex; background:var(--surface2); border-radius:20px; padding:3px; gap:2px; }
+    .pill-btn { padding:5px 16px; border-radius:16px; border:none; background:transparent; font-size:12px; font-family:'DM Sans',sans-serif; color:var(--text2); cursor:pointer; font-weight:400; transition:all .15s; }
+    .pill-btn.active { background:var(--surface); color:var(--text); font-weight:500; box-shadow:0 1px 2px rgba(0,0,0,.08); }
+
+    /* ── PAGE SHELLS ── */
+    .page { display:none; }
+    .page.active { display:flex; min-height:calc(100vh - 56px); }
+
+    /* ── ENTRY LAYOUT ── */
+    .sidebar { width:260px; flex-shrink:0; background:var(--surface); border-right:1px solid var(--border); position:sticky; top:56px; height:calc(100vh - 56px); overflow-y:auto; padding:1.25rem 0; }
+    .main-area { flex:1; padding:2rem; overflow-y:auto; min-width:0; }
+
+    /* sidebar nav */
+    .sb-label { font-size:10px; font-weight:500; letter-spacing:.08em; text-transform:uppercase; color:var(--text3); padding:0 1.25rem; margin-bottom:.5rem; }
+    .sb-item { display:flex; align-items:center; gap:10px; padding:9px 1.25rem; cursor:pointer; border-left:2px solid transparent; transition:all .12s; font-size:13px; color:var(--text2); text-decoration:none; }
+    .sb-item:hover { background:var(--surface2); color:var(--text); }
+    .sb-item.active { border-left-color:var(--text); color:var(--text); font-weight:500; background:var(--surface2); }
+    .sb-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+    .d1 { background:var(--green); } .d2 { background:var(--blue); } .d3 { background:var(--gold); } .d4 { background:var(--text3); }
+
+    /* progress */
+    .prog-wrap { padding:1.25rem 1.25rem .75rem; }
+    .prog-top { display:flex; justify-content:space-between; font-size:11px; color:var(--text3); margin-bottom:6px; }
+    .prog-track { height:3px; background:var(--surface2); border-radius:2px; overflow:hidden; }
+    .prog-fill { height:100%; background:var(--text); border-radius:2px; width:0%; transition:width .4s; }
+
+    /* per-segment sidebar summaries */
+    .seg-sum { display:none; margin:0 1rem .75rem; }
+    .seg-sum.on { display:block; }
+    .ss-head { color:#fff; font-size:10px; font-weight:500; letter-spacing:.06em; text-transform:uppercase; padding:6px 10px; border-radius:var(--r) var(--r) 0 0; }
+    .ss-body { background:var(--surface2); border-radius:0 0 var(--r) var(--r); padding:8px 10px; border:1px solid var(--border); border-top:none; }
+    .ss-row { display:flex; justify-content:space-between; align-items:baseline; padding:3px 0; font-size:11px; color:var(--text2); border-bottom:1px solid var(--border); }
+    .ss-row:last-child { border-bottom:none; }
+    .ss-row.neg { color:var(--red); }
+    .ss-v { font-family:'DM Mono',monospace; font-size:11px; color:var(--text); }
+    .ss-b { font-weight:500; }
+    .ss-div { height:1px; background:var(--border-strong); margin:5px 0; }
+    .ss-tot { display:flex; justify-content:space-between; align-items:baseline; padding:3px 0; font-size:11px; font-weight:500; }
+    .positive { color:var(--green); } .negative { color:var(--red); } .neutral { color:var(--blue); } .warning { color:var(--amber); }
+
+    /* ── SEGMENT CONTENT ── */
+    .segment { display:none; }
+    .segment.active { display:block; }
+    .seg-hdr { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:1.75rem; gap: 1rem; flex-wrap: wrap; }
+    .seg-tag { display:inline-flex; align-items:center; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:500; margin-bottom:6px; }
+    .t1{background:var(--green-bg);color:var(--green);} .t2{background:var(--blue-bg);color:var(--blue);} .t3{background:var(--gold-bg);color:var(--gold);} .t4{background:var(--surface2);color:var(--text2);}
+    .seg-title { font-size:22px; font-weight:300; letter-spacing:-.03em; }
+    .seg-desc { font-size:13px; color:var(--text3); margin-top:4px; }
+    .seg-tot-box { text-align:right; background:var(--surface2); border-radius:var(--rl); padding:10px 16px; min-width: 140px; }
+    .tot-label { font-size:11px; color:var(--text3); }
+    .tot-val { font-size:20px; font-weight:500; font-family:'DM Mono',monospace; letter-spacing:-.03em; }
+
+    /* cards */
+    .card { background:var(--surface); border:1px solid var(--border); border-radius:var(--rl); margin-bottom:1rem; overflow:hidden; box-shadow:var(--shadow); }
+    .ch { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; cursor:pointer; user-select:none; border-bottom:1px solid transparent; transition:background .12s; }
+    .ch:hover { background:var(--surface2); }
+    .ch.open { border-bottom-color:var(--border); }
+    .ch-left { display:flex; align-items:center; gap:10px; }
+    .ci { width:28px; height:28px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:13px; flex-shrink:0; }
+    .ci1{background:var(--green-bg);} .ci2{background:var(--blue-bg);} .ci3{background:var(--gold-bg);} .ci-r{background:var(--red-bg);} .ci-g{background:var(--surface2);}
+    .ch-title { font-size:13px; font-weight:500; }
+    .ch-sub { font-size:11px; color:var(--text3); margin-top:1px; }
+    .ch-right { display:flex; align-items:center; gap:10px; }
+    .ch-sum { font-family:'DM Mono',monospace; font-size:13px; color:var(--text2); }
+    .chev { width:16px; height:16px; color:var(--text3); transition:transform .2s; flex-shrink:0; }
+    .chev.open { transform:rotate(180deg); }
+    .cb { display:none; padding:14px 16px; }
+    .cb.open { display:block; }
+
+    /* fields */
+    .f-static { display:grid; grid-template-columns:240px 1fr ; gap:8px; align-items:center; padding:8px 0; border-bottom:1px solid var(--border); }
+    .f-static:last-of-type { border-bottom:none; }
+    .f-label { font-size:13px; }
+    .f-sub { font-size:11px; color:var(--text3); margin-top: 1px; }
+    .pfx-wrap { position:relative; }
+    .pfx { position:absolute; left:10px; top:50%; transform:translateY(-50%); font-size:12px; color:var(--text3); pointer-events:none; }
+    .inp { width:100%; height:34px; border:1px solid var(--border); border-radius:var(--r); padding:0 10px; font-size:13px; font-family:'DM Mono',monospace; color:var(--text); background:var(--surface); text-align:right; transition:border-color .12s; }
+    .inp:focus { outline:none; border-color:var(--text); }
+    .inp.pl { padding-left:26px; text-align:left; }
+    .inp-t { height:34px; border:1px solid var(--border); border-radius:var(--r); padding:0 10px; font-size:13px; font-family:'DM Sans',sans-serif; color:var(--text); background:var(--surface); width:100%; transition:border-color .12s; }
+    .inp-t:focus { outline:none; border-color:var(--text); }
+    
+    /* Dynamic table list for debts */
+    .table-container { overflow-x: auto; margin: 10px 0; border-radius: var(--r); border: 1px solid var(--border); }
+    .debt-table { width: 100%; border-collapse: collapse; min-width: 650px; text-align: left; }
+    .debt-table th { background: var(--surface2); color: var(--text2); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; padding: 10px 12px; border-bottom: 1px solid var(--border); }
+    .debt-table td { padding: 8px 12px; font-size: 13px; border-bottom: 1px solid var(--surface2); vertical-align: middle; }
+    .debt-table tr:last-child td { border-bottom: none; }
+    .debt-table tr:hover { background-color: rgba(0,0,0,0.01); }
+
+    .debt-input-grp { display: flex; align-items: center; gap: 4px; }
+    .debt-input-grp .inp { max-width: 110px; }
+    .col-narrow { width: 40px; text-align: center; }
+    .col-action { width: 50px; text-align: center; }
+    .checkbox-col { width: 50px; text-align: center; }
+
+    .exp-rows { margin-top:10px; }
+    .exp-row { display:grid; grid-template-columns:1fr 160px 30px; gap:6px; align-items:center; margin-bottom:6px; animation:fi .15s ease; }
+    .exp-row-4 { display:grid; grid-template-columns:130px 1fr 150px 30px; gap:6px; align-items:center; margin-bottom:6px; animation:fi .15s ease; }
+    @keyframes fi { from{opacity:0;transform:translateY(-4px)} to{opacity:1;transform:translateY(0)} }
+    
+    .btn-rm { width:28px; height:28px; border:1px solid var(--border); border-radius:var(--r); background:transparent; cursor:pointer; color:var(--text3); display:flex; align-items:center; justify-content:center; font-size:16px; transition:all .12s; margin: 0 auto; }
+    .btn-rm:hover { border-color:var(--red); color:var(--red); background:var(--red-bg); }
+    .btn-add { display:flex; align-items:center; gap:6px; justify-content: center; padding:8px 12px; border:1px dashed var(--border-strong); border-radius:var(--r); background:transparent; font-size:12px; font-family:'DM Sans',sans-serif; color:var(--text2); cursor:pointer; margin-top:10px; width:100%; transition:all .12s; font-weight: 500; }
+    .btn-add:hover { border-color:var(--text); color:var(--text); background:var(--surface2); }
+    
+    .ded-section { margin-top:1.5rem; padding-top:1.25rem; border-top:1px dashed var(--border); }
+    .ded-lbl { font-size:11px; font-weight:500; letter-spacing:.06em; text-transform:uppercase; color:var(--red); margin-bottom:.75rem; }
+    .age-input{text-align:left;}
+
+    /* nav buttons */
+    .seg-nav { display:flex; justify-content:space-between; align-items:center; margin-top:2rem; padding-top:1.5rem; border-top:1px solid var(--border); }
+    .btn-nav { display:flex; align-items:center; gap:6px; padding:9px 18px; border:1px solid var(--border); border-radius:var(--r); background:transparent; font-size:13px; font-family:'DM Sans',sans-serif; color:var(--text2); cursor:pointer; transition:all .12s; text-decoration: none; }
+    .btn-nav:hover { border-color:var(--text); color:var(--text); }
+    .btn-pri { background:var(--text); color:#fff; border-color:var(--text); }
+    .btn-pri:hover { background:#333; }
+
+    /* ── STRATEGY CHOICE PANEL ── */
+    .strategy-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 15px 0; }
+    .strat-card { border: 1px solid var(--border); background: var(--surface); border-radius: var(--rl); padding: 14px 16px; cursor: pointer; transition: all 0.2s; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; }
+    .strat-card:hover { border-color: var(--border-strong); transform: translateY(-1px); }
+    .strat-card.active { border-color: var(--blue); background-color: var(--blue-bg); }
+    .strat-title { font-weight: 600; font-size: 13px; display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+    .strat-desc { font-size: 11px; color: var(--text2); line-height: 1.4; }
+    .strat-badge { position: absolute; top: 0; right: 0; font-size: 9px; text-transform: uppercase; letter-spacing: .05em; padding: 3px 8px; background: var(--blue); color: #fff; border-bottom-left-radius: 6px; display: none; }
+    .strat-card.active .strat-badge { display: block; }
+
+    /* ── ANALYSIS PAGE ── */
+    #page-analysis .main-area { max-width:1100px; margin:0 auto; }
+    .a-header { margin-bottom:1.75rem; display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; flex-wrap:wrap; }
+    .a-header-left .a-title { font-size:28px; font-weight:300; letter-spacing:-.03em; }
+    .a-header-left .a-sub { font-size:13px; color:var(--text3); margin-top:4px; }
+    .sec-title { font-size:10px; font-weight:500; letter-spacing:.08em; text-transform:uppercase; color:var(--text3); margin-bottom:.75rem; margin-top:1.5rem; }
+
+    /* matrix */
+    .mx-grid { display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:10px; margin-bottom:1.5rem; }
+    .mx-item { background:var(--surface); border:1px solid var(--border); border-radius:var(--rl); padding:1rem 1.25rem; }
+    .mx-lbl { font-size:11px; color:var(--text3); letter-spacing:.03em; margin-bottom:3px; }
+    .mx-fml { font-size:10px; color:var(--text3); opacity:.7; margin-bottom:8px; font-style:italic; }
+    .mx-val { font-size:22px; font-weight:500; font-family:'DM Mono',monospace; letter-spacing:-.03em; }
+    .mx-sub { font-size:11px; color:var(--text3); margin-top:3px; }
+
+    /* kpi strip */
+    .kpi-grid { display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:10px; margin-bottom:1.5rem; }
+    .kpi { background:var(--surface); border:1px solid var(--border); border-radius:var(--rl); padding:1rem 1.25rem; }
+    .kpi-lbl { font-size:11px; color:var(--text3); letter-spacing:.03em; margin-bottom:6px; }
+    .kpi-val { font-size:20px; font-weight:500; font-family:'DM Mono',monospace; letter-spacing:-.03em; }
+    .kpi-sub { font-size:11px; color:var(--text3); margin-top:4px; }
+
+    /* analysis cards */
+    .a-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--rl); padding:1.25rem; margin-bottom:1rem; }
+    .a-card-title { font-size:13px; font-weight:500; margin-bottom:1rem; display:flex; align-items:center; gap:8px; }
+    .a-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+    .two-col { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem; }
+    .chart-wrap { position:relative; }
+    
+    .bar-list { display:flex; flex-direction:column; gap:10px; }
+    .bar-item-top { display:flex; justify-content:space-between; margin-bottom:5px; font-size:12px; }
+    .bar-lbl { color:var(--text2); }
+    .bar-val { font-family:'DM Mono',monospace; font-weight:500; }
+    .bar-track { height:6px; background:var(--surface2); border-radius:4px; overflow:hidden; }
+    .bar-fill { height:100%; border-radius:4px; transition:width .8s; }
+    
+    .bk-table { width:100%; border-collapse:collapse; }
+    .bk-table th { font-size:11px; font-weight:500; color:var(--text3); text-align:left; padding:0 0 8px; border-bottom:1px solid var(--border); }
+    .bk-table th:last-child { text-align:right; }
+    .bk-table td { padding:8px 0; font-size:13px; border-bottom:1px solid var(--surface2); vertical-align:middle; }
+    .bk-table td:last-child { text-align:right; font-family:'DM Mono',monospace; font-weight:500; }
+    .bk-table tr:last-child td { border-bottom:none; }
+    
+    .cat-badge { display:inline-flex; align-items:center; gap:5px; }
+    .cat-dot { width:6px; height:6px; border-radius:50%; }
+    .ratio-item { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+    .ratio-lbl { font-size:12px; color:var(--text2); width:130px; flex-shrink:0; }
+    .ratio-track { flex:1; background:var(--surface2); height:8px; border-radius:4px; overflow:hidden; }
+    .ratio-fill { height:100%; border-radius:4px; }
+    .ratio-pct { font-size:12px; font-family:'DM Mono',monospace; width:42px; text-align:right; }
+    
+    /* groups */
+    .grp-block { background:var(--surface); border:1px solid var(--border); border-radius:var(--rl); padding:1.25rem 1.5rem; margin-bottom:1.25rem; }
+    .grp-label { font-size:11px; font-weight:500; letter-spacing:.1em; text-transform:uppercase; color:var(--text3); margin-bottom:1rem; margin-top:1.25rem; padding-bottom:.5rem; border-bottom:1px solid var(--border); }
+    .grp-block .grp-label { margin-top:0; }
+    
+    /* projection panel */
+    .consolidation-projection-box { background: var(--blue-bg); border: 1px solid var(--blue); border-radius: var(--rl); padding: 16px; margin-top: 15px; }
+    .projection-title { font-size: 13px; font-weight: 600; color: var(--blue); display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
+    .proj-meta-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 15px; }
+    .proj-meta-item { background: var(--surface); padding: 8px 12px; border-radius: var(--r); border: 1px solid var(--border); }
+    .proj-meta-lbl { font-size: 11px; color: var(--text3); }
+    .proj-meta-val { font-size: 14px; font-weight: 600; font-family: 'DM Mono', monospace; }
+
+    /* commentary */
+    .commentary-block { margin-top: 1.5rem; margin-bottom:1.25rem; }
+    .commentary-box { width:100%; min-height:100px; border:1px solid var(--border); border-radius:var(--rl); padding:12px 14px; font-size:13px; font-family:'DM Sans',sans-serif; color:var(--text); background:var(--surface); resize:vertical; line-height:1.6; transition:border-color .12s; }
+    .commentary-box:focus { outline:none; border-color:var(--text); }
+    .commentary-box::placeholder { color:var(--text3); }
+    .commentary-lbl { font-size:11px; font-weight:500; letter-spacing:.06em; text-transform:uppercase; color:var(--text3); margin-bottom:6px; display:flex; align-items:center; gap:6px; }
+    .commentary-char { font-size:10px; color:var(--text3); margin-left:auto; font-weight:400; letter-spacing:0; text-transform:none; }
+    .commentary-print { display:none; font-size:11px; color:var(--text2); font-style:italic; margin-top:6px; white-space:pre-wrap; }
+
+    /* Reset buttons */
+    .btn-reset-seg { display:inline-flex; align-items:center; gap:5px; padding:5px 12px; border:1px solid var(--border); border-radius:var(--r); background:transparent; font-size:11px; font-family:'DM Sans',sans-serif; color:var(--text3); cursor:pointer; transition:all .12s; }
+    .btn-reset-seg:hover { border-color:#c0392b; color:#c0392b; background:#fff5f5; }
+    .btn-reset-data { display:inline-flex; align-items:center; gap:4px; padding:4px 9px; border:1px solid var(--border); border-radius:var(--r); background:transparent; font-size:11px; font-family:'DM Sans',sans-serif; color:var(--text3); cursor:pointer; transition:all .12s; margin-left:6px; }
+    .btn-reset-data:hover { border-color:#c0392b; color:#c0392b; background:#fff5f5; }
+    .seg-hdr-actions { display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+
+    /* Print button */
+    .btn-pdf { display:inline-flex; align-items:center; gap:7px; padding:8px 18px; background:var(--text); color:#fff; border:none; border-radius:var(--r); font-size:13px; font-family:'DM Sans',sans-serif; font-weight:500; cursor:pointer; transition:opacity .15s; white-space:nowrap; flex-shrink:0; text-decoration: none; }
+    .btn-pdf:hover { opacity:.85; }
+
+    /* External financing analysis button style */
+    .btn-external-link { display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; background: var(--blue); color: #fff; border-radius: var(--r); text-decoration: none; font-size: 13px; font-weight: 500; font-family: 'DM Sans', sans-serif; transition: background 0.15s ease; box-shadow: var(--shadow); }
+    .btn-external-link:hover { background: #11334c; }
+
+    /* Severity Indicators */
+    .severity-badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+    .severity-low { background-color: var(--green-bg); color: var(--green); }
+    .severity-mid { background-color: var(--gold-bg); color: var(--gold); }
+    .severity-high { background-color: var(--red-bg); color: var(--red); }
+
+    /* Interactive payoff simulation results list */
+    .sim-months-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; max-height: 250px; overflow-y: auto; padding: 10px; background: var(--surface2); border-radius: var(--r); margin-top: 10px; border: 1px solid var(--border); }
+    .sim-month-item { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 8px; text-align: center; }
+    .sim-m-lbl { font-size: 11px; color: var(--text3); text-transform: uppercase; font-weight: 500; }
+    .sim-m-val { font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 600; color: var(--text); }
+    .sim-m-interest { font-size: 10px; color: var(--red); }
+
+    @media print {
+      * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
+      body { background:#f7f6f2 !important; margin:0; }
+      .topbar, .sidebar, .btn-pdf, .btn-reset-seg, .btn-reset-data, .seg-nav, .commentary-box, .commentary-lbl, .commentary-char, .pill-nav, .btn-add, .btn-rm, .debt-table th:last-child, .debt-table td:last-child { display:none !important; }
+      #page-analysis { display:block !important; min-height:auto !important; }
+      #page-analysis .main-area { padding:12px !important; max-width:100% !important; }
+      .page.active { display:block !important; }
+      .commentary-print { display:block !important; }
+      .grp-block { break-inside:avoid; page-break-inside:avoid; margin-bottom:10px !important; padding:12px !important; border:1px solid #e2dfd8 !important; border-radius:8px !important; }
+      .a-card { break-inside:avoid; page-break-inside:avoid; margin-bottom:8px !important; }
+      .kpi-grid { grid-template-columns:repeat(4,1fr) !important; break-inside:avoid; }
+      .two-col { break-inside:avoid; }
+    }
+
+    @media(max-width:760px){
+      .sidebar{display:none;}
+      .kpi-grid,.mx-grid,.strategy-grid{grid-template-columns:1fr;}
+      .two-col{grid-template-columns:1fr;}
+      .topbar { height: auto; min-height: 56px; padding: 0.75rem 1rem; flex-wrap: wrap; gap: 10px; }
+    }
+  </style>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../../assets/js/supabase-client.js"></script>
+  <script src="../../assets/js/supabase-store.js"></script>
+  <script src="../../assets/js/auth-guard.js"></script>
+</head>
+<body>
+
+  <!-- ── TOPBAR ── -->
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark">
+        <i data-lucide="activity"></i>
+      </div>
+      <div>
+        <span class="brand-name">Debt Strategy Optimizer</span>
+        <span class="brand-sub">Planning Portal</span>
+      </div>
+    </div>
+
+    <!-- Page Switcher -->
+    <div class="pill-nav">
+      <button class="pill-btn active" onclick="switchPage('planner')">Planner</button>
+      <button class="pill-btn" onclick="switchPage('analysis')">Strategy Analysis</button>
+    </div>
+
+    <!-- Print / Export Action -->
+    <button class="btn-pdf" onclick="window.print()">
+      <i data-lucide="printer" style="width: 14px; height: 14px;"></i>
+      Print Report
+    </button>
+  </header>
+
+  <!-- Shell Wrapper -->
+  <div style="display: flex; min-height: calc(100vh - 56px);">
+
+    <!-- ── SIDEBAR ── -->
+    <aside class="sidebar">
+      <div class="sb-label">Overview</div>
+      
+      <!-- Progress Bar Tracker -->
+      <div class="prog-wrap">
+        <div class="prog-top">
+          <span>Debts Tracked</span>
+          <span id="sb-progress-text">0/0</span>
+        </div>
+        <div class="prog-track">
+          <div class="prog-fill" id="sb-progress-fill" style="width: 0%"></div>
+        </div>
+      </div>
+
+      <a href="#" class="sb-item active" onclick="switchPage('planner')">
+        <div class="sb-dot d1"></div>
+        <span>1. Debt Portfolio</span>
+      </a>
+      <a href="#" class="sb-item" onclick="switchPage('analysis')">
+        <div class="sb-dot d2"></div>
+        <span>2. Optimization Analysis</span>
+      </a>
+
+      <!-- Dynamic Sidebar Repayment Summaries -->
+      <div style="padding: 1.25rem 1rem 0 1rem;">
+        <div class="sb-label" style="padding: 0; margin-bottom: 0.5rem;">Live Strategy Summary</div>
+        
+        <div class="ss-body" style="border-radius: var(--r); border: 1px solid var(--border); background-color: var(--surface2);">
+          <div class="ss-row">
+            <span>Total Debts:</span>
+            <span class="ss-v ss-b" id="sb-summary-count">0</span>
+          </div>
+          <div class="ss-row">
+            <span>Total Balance:</span>
+            <span class="ss-v ss-b negative" id="sb-summary-balance">$0.00</span>
+          </div>
+          <div class="ss-row">
+            <span>Monthly Sum:</span>
+            <span class="ss-v" id="sb-summary-repayment">$0.00</span>
+          </div>
+          <div class="ss-row">
+            <span>Avg Rate:</span>
+            <span class="ss-v" id="sb-summary-rate">0.0%</span>
+          </div>
+          <div class="ss-div"></div>
+          <div class="ss-row">
+            <span>Active Strategy:</span>
+            <span class="ss-v ss-b warning" id="sb-summary-strategy" style="text-transform: capitalize;">Snowball</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick External Link Box inside Sidebar -->
+      <div style="padding: 1.25rem 1rem;">
+        <a href="https://financinganalysistool.vercel.app/" target="_blank" class="btn-external-link" style="width: 100%; display: flex; justify-content: center; font-size: 11px; padding: 8px 10px;">
+          <i data-lucide="external-link" style="width: 12px; height: 12px;"></i>
+          Financing Analysis Tool
+        </a>
+      </div>
+    </aside>
+
+    <!-- ── MAIN CONTENT AREA ── -->
+    <main class="main-area" id="main-content">
+
+      <!-- ================= PAGE 1: PLANNER ================= -->
+      <div class="page active" id="page-planner" style="flex-direction: column; width: 100%;">
+        
+        <!-- Segment Header -->
+        <div class="seg-hdr">
+          <div>
+            <div class="seg-tag t1">Debt Management Stage</div>
+            <h1 class="seg-title">Debt Strategy Planning</h1>
+            <p class="seg-desc">Assess the severity of existing debts and develop a structured payoff flow to reduce your repayment burden or settle obligations swiftly.</p>
+          </div>
+          <div class="seg-hdr-actions">
+            <button class="btn-reset-seg" onclick="resetPlannerData()">
+              <i data-lucide="rotate-ccw" style="width: 12px; height: 12px;"></i>
+              Reset Portfolio
+            </button>
+            <div class="seg-tot-box">
+              <span class="tot-label">Total Debt Pool</span>
+              <div class="tot-val negative" id="planner-total-pool">$0.00</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- KPI Strip Summary -->
+        <div class="kpi-grid">
+          <div class="kpi">
+            <div class="kpi-lbl">Total Monthly Committment</div>
+            <div class="kpi-val" id="kpi-monthly-sum">$0.00</div>
+            <div class="kpi-sub">Total monthly minimum payments due</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-lbl">Weighted Interest Rate</div>
+            <div class="kpi-val" style="color: var(--amber)" id="kpi-avg-rate">0.00%</div>
+            <div class="kpi-sub">Reflects true average interest cost</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-lbl">Longest Tenure remaining</div>
+            <div class="kpi-val" style="color: var(--blue)" id="kpi-longest-tenure">0 <span style="font-size: 12px;">mths</span></div>
+            <div class="kpi-sub">Time until final debt is fully repaid</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-lbl">Debt Severity Level</div>
+            <div class="kpi-val" id="kpi-severity-label">
+              <span class="severity-badge severity-low">Healthy</span>
+            </div>
+            <div class="kpi-sub" id="kpi-severity-sub">Based on debt scale and parameters</div>
+          </div>
+        </div>
+
+        <!-- Card: Debt Management List -->
+        <div class="card">
+          <div class="ch open">
+            <div class="ch-left">
+              <div class="ci ci1">
+                <i data-lucide="list-ordered" style="width: 16px; height: 16px; color: var(--green);"></i>
+              </div>
+              <div>
+                <span class="ch-title">Current Outstanding Debt Portfolio</span>
+                <p class="ch-sub">List your mortgages, credit cards, personal loans, or vehicle financing below</p>
+              </div>
+            </div>
+            <div class="ch-right">
+              <span class="ch-sum" id="card-debt-count">0 debts tracked</span>
+            </div>
+          </div>
+
+          <div class="cb open">
+            
+            <div class="table-container">
+              <table class="debt-table" id="debt-table">
+                <thead>
+                  <tr>
+                    <th class="col-narrow">#</th>
+                    <th>Name of Debt</th>
+                    <th style="text-align: right;">Monthly Repayment ($)</th>
+                    <th style="text-align: right;">Remaining Balance ($)</th>
+                    <th style="text-align: right;">Remaining Tenure (Months)</th>
+                    <th style="text-align: right;">Current Rate (%)</th>
+                    <th class="col-action">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="debt-table-body">
+                  <!-- Dynamic Row Insertion -->
+                </tbody>
+              </table>
+            </div>
+
+            <button class="btn-add" onclick="addNewDebtRow()">
+              <i data-lucide="plus" style="width: 14px; height: 14px;"></i>
+              Add New Debt Account
+            </button>
+
+          </div>
+        </div>
+
+        <!-- Card: Strategic Repayment Priority Method -->
+        <div class="card">
+          <div class="ch open">
+            <div class="ch-left">
+              <div class="ci ci3">
+                <i data-lucide="compass" style="width: 16px; height: 16px; color: var(--gold);"></i>
+              </div>
+              <div>
+                <span class="ch-title">Step 2: Choose Your Debt Repayment Strategy</span>
+                <p class="ch-sub">Select an optimization strategy below. The app will sequence your payoff stream dynamically.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="cb open">
+            
+            <!-- Three Strategy Choice Cards -->
+            <div class="strategy-grid">
+              
+              <!-- Snowball -->
+              <div class="strat-card active" id="strat-snowball" onclick="selectStrategy('snowball')">
+                <div class="strat-badge">Active</div>
+                <div>
+                  <div class="strat-title">
+                    <i data-lucide="snowflake" style="width: 14px; height: 14px; color: var(--blue);"></i>
+                    Debt Snowball
+                  </div>
+                  <p class="strat-desc">Debts are sequenced by <strong>lowest remaining balance first</strong>. Repaying small balances first provides rapid psychological wins and builds early behavioral momentum.</p>
+                </div>
+              </div>
+
+              <!-- Avalanche -->
+              <div class="strat-card" id="strat-avalanche" onclick="selectStrategy('avalanche')">
+                <div class="strat-badge">Active</div>
+                <div>
+                  <div class="strat-title">
+                    <i data-lucide="zap" style="width: 14px; height: 14px; color: var(--amber);"></i>
+                    Debt Avalanche
+                  </div>
+                  <p class="strat-desc">Debts are sequenced by <strong>highest interest rate first</strong>. This is the mathematically optimal path, minimizing overall interest accumulation and total outflow.</p>
+                </div>
+              </div>
+
+              <!-- Consolidation -->
+              <div class="strat-card" id="strat-consolidation" onclick="selectStrategy('consolidation')">
+                <div class="strat-badge">Active</div>
+                <div>
+                  <div class="strat-title">
+                    <i data-lucide="merge" style="width: 14px; height: 14px; color: var(--green);"></i>
+                    Debt Consolidation
+                  </div>
+                  <p class="strat-desc">Combine multiple high-interest debts into one unified financing tool with a single, structured monthly payment and rate. Select specific debts below to project outcomes.</p>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Strategy Specific Content Display Areas -->
+            <div id="strategy-explanation-area" style="margin-top: 15px; padding: 12px; border-radius: var(--r); background-color: var(--surface2); font-size: 13px;">
+              <!-- Dynamic content injected by JS depending on chosen strategy -->
+            </div>
+
+            <!-- Dynamic Checklist for Debt Consolidation Projection (Hidden unless Consolidation selected) -->
+            <div id="consolidation-checklist-container" style="display: none; margin-top: 15px; border-top: 1px dashed var(--border); padding-top: 15px;">
+              <h4 style="font-size: 13px; font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                <i data-lucide="check-square" style="width: 15px; height: 15px; color: var(--green);"></i>
+                Select Debts to Consolidate
+              </h4>
+              <p style="font-size: 11px; color: var(--text3); margin-bottom: 12px;">Tick the checkbox alongside any outstanding debts you intend to roll into your new Consolidated Loan portfolio:</p>
+              
+              <div class="table-container">
+                <table class="debt-table" style="min-width: 500px;">
+                  <thead>
+                    <tr>
+                      <th class="checkbox-col">Consolidate?</th>
+                      <th>Debt Name</th>
+                      <th style="text-align: right;">Current Monthly</th>
+                      <th style="text-align: right;">Outstanding Balance</th>
+                      <th style="text-align: right;">Interest Rate</th>
+                    </tr>
+                  </thead>
+                  <tbody id="consolidation-checklist-body">
+                    <!-- Dynamic Checklist Rows inserted here -->
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Consolidation Projection Config Parameters -->
+              <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 15px;">
+                <div class="f-static" style="grid-template-columns: 140px 1fr; border-bottom: none; padding: 0;">
+                  <div>
+                    <span class="f-label">New Loan Rate (%)</span>
+                    <p class="f-sub">Assumed annual rate</p>
+                  </div>
+                  <div class="pfx-wrap">
+                    <input type="number" id="consol-input-rate" class="inp" value="6.5" step="0.1" min="0.1" oninput="recalculateConsolidationProjection()" style="padding-right: 10px;">
+                  </div>
+                </div>
+
+                <div class="f-static" style="grid-template-columns: 140px 1fr; border-bottom: none; padding: 0;">
+                  <div>
+                    <span class="f-label">New Tenure (Months)</span>
+                    <p class="f-sub">Consolidation repayment term</p>
+                  </div>
+                  <div class="pfx-wrap">
+                    <input type="number" id="consol-input-tenure" class="inp" value="60" step="1" min="6" oninput="recalculateConsolidationProjection()" style="padding-right: 10px;">
+                  </div>
+                </div>
+              </div>
+
+              <!-- Consolidation Projection Outcome Card -->
+              <div class="consolidation-projection-box" id="consolidation-results-panel">
+                <div class="projection-title">
+                  <i data-lucide="trending-down"></i>
+                  Consolidation Loan Projections
+                </div>
+                
+                <div class="proj-meta-grid">
+                  <div class="proj-meta-item">
+                    <span class="proj-meta-lbl">Total Consolidated Debt</span>
+                    <div class="proj-meta-val" id="proj-val-total-balance">$0.00</div>
+                  </div>
+                  <div class="proj-meta-item">
+                    <span class="proj-meta-lbl">Previous Combined Monthly</span>
+                    <div class="proj-meta-val" id="proj-val-old-monthly">$0.00</div>
+                  </div>
+                  <div class="proj-meta-item" style="background-color: var(--green-bg); border-color: var(--green);">
+                    <span class="proj-meta-lbl" style="color: var(--green);">Projected New Monthly</span>
+                    <div class="proj-meta-val" id="proj-val-new-monthly" style="color: var(--green);">$0.00</div>
+                  </div>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-strong); padding-top: 10px; flex-wrap: wrap; gap: 8px;">
+                  <div style="font-size: 12px; color: var(--text2);">
+                    Estimated Monthly Savings: <strong class="positive" id="proj-val-savings" style="font-family: 'DM Mono'; font-size: 13px;">$0.00 / month</strong>
+                  </div>
+                  <div style="font-size: 11px; color: var(--text3); font-style: italic;">
+                    *Calculated via standard amortized loan repayment formula. Actual terms subject to banking assessment.
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Section Action Buttons & External Tools -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; flex-wrap: wrap; gap: 10px;">
+          <div>
+            <a href="https://financinganalysistool.vercel.app/" target="_blank" class="btn-external-link">
+              <i data-lucide="external-link"></i>
+              Launch Financing Analysis Tool
+            </a>
+          </div>
+          <div>
+            <button class="btn-nav btn-pri" onclick="switchPage('analysis')">
+              Proceed to Strategy Analysis
+              <i data-lucide="arrow-right" style="width: 14px; height: 14px;"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Commentary Block Card at the end -->
+        <div class="card" style="margin-top: 20px;">
+          <div class="cb open">
+            <div class="commentary-block">
+              <label class="commentary-lbl" for="planner-commentary">
+                <i data-lucide="message-square" style="width: 14px; height: 14px; color: var(--text3);"></i>
+                Advisor Commentary & Debt Strategy Memo
+                <span class="commentary-char" id="planner-commentary-count">0 / 1000 characters</span>
+              </label>
+              <textarea id="planner-commentary" class="commentary-box" placeholder="Document individual risk metrics, strategic steps, refinance possibilities, or advice for the client regarding their custom payoff plan..." maxlength="1000" oninput="updateCommentaryText()"></textarea>
+              <div class="commentary-print" id="planner-commentary-print"></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ================= PAGE 2: ANALYSIS ================= -->
+      <div class="page" id="page-analysis" style="flex-direction: column; width: 100%;">
+        
+        <div class="a-header">
+          <div class="a-header-left">
+            <h1 class="a-title">Strategy Sequencing & Impact Report</h1>
+            <p class="a-sub">Review chronological breakdown, amortization logic, and paydown projections based on selected configurations.</p>
+          </div>
+          <div>
+            <button class="btn-nav" onclick="switchPage('planner')">
+              <i data-lucide="arrow-left" style="width: 14px; height: 14px;"></i>
+              Back to Planner
+            </button>
+          </div>
+        </div>
+
+        <!-- Grid of 2 Cards: Sorted Payoff Order & Accelerating Tool -->
+        <div class="two-col">
+          
+          <!-- Column 1: Payoff Order List -->
+          <div class="card">
+            <div class="ch open">
+              <div class="ch-left">
+                <div class="ci ci1">
+                  <i data-lucide="arrow-down-narrow-wide" style="width: 16px; height: 16px; color: var(--green);"></i>
+                </div>
+                <div>
+                  <span class="ch-title" id="sequenced-card-title">Dynamic Payoff Sequence</span>
+                  <p class="ch-sub" id="sequenced-card-subtitle">Calculated chronological paydown routing order</p>
+                </div>
+              </div>
+            </div>
+            
+            <div class="cb open">
+              <div class="table-container">
+                <table class="debt-table" style="min-width: 500px;">
+                  <thead>
+                    <tr>
+                      <th class="col-narrow">Order</th>
+                      <th>Debt Account</th>
+                      <th style="text-align: right;">Outstanding Balance</th>
+                      <th style="text-align: right;">Monthly Minimum</th>
+                      <th style="text-align: right;">Rate</th>
+                      <th style="text-align: right;">Repayment Tenure</th>
+                    </tr>
+                  </thead>
+                  <tbody id="sequenced-debt-list-body">
+                    <!-- Javascript dynamically renders ordered sequence list here -->
+                  </tbody>
+                </table>
+              </div>
+              <p style="font-size: 11px; color: var(--text3); margin-top: 10px; font-style: italic;" id="sequenced-order-explanation-note">
+                *Order generated dynamically. Active strategy is applied to sort priority.
+              </p>
+            </div>
+          </div>
+
+          <!-- Column 2: Accelerator configuration -->
+          <div class="card">
+            <div class="ch open">
+              <div class="ch-left">
+                <div class="ci ci-r">
+                  <i data-lucide="zap" style="width: 16px; height: 16px; color: var(--red);"></i>
+                </div>
+                <div>
+                  <span class="ch-title">Strategy Accelerators</span>
+                  <p class="ch-sub">Supplement with additional monthly payoff funding to crush debt faster</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="cb open">
+              <div class="f-static">
+                <div>
+                  <span class="f-label">Monthly Accelerator Budget</span>
+                  <p class="f-sub">Extra money allocated on top of all monthly minimums</p>
+                </div>
+                <div class="pfx-wrap">
+                  <span class="pfx">$</span>
+                  <input type="number" id="accelerator-amount" class="inp pl" value="200" step="50" min="0" oninput="runPayoffSimulation()">
+                </div>
+              </div>
+
+              <!-- Quick Payoff Simulator Summary Metrics -->
+              <div style="margin-top: 15px; padding: 12px; border-radius: var(--r); background-color: var(--green-bg); border: 1px solid var(--green); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                <div>
+                  <span style="font-size: 11px; color: var(--green); text-transform: uppercase; font-weight: 600; letter-spacing: .05em;">Estimated Time to Free</span>
+                  <div style="font-size: 22px; font-weight: 700; color: var(--green); font-family: 'DM Mono';" id="sim-time-to-free">
+                    0 months
+                  </div>
+                </div>
+                <div>
+                  <span style="font-size: 11px; color: var(--green); text-transform: uppercase; font-weight: 600; letter-spacing: .05em;">Total Saved Interest</span>
+                  <div style="font-size: 22px; font-weight: 700; color: var(--green); font-family: 'DM Mono';" id="sim-total-interest">
+                    $0.00
+                  </div>
+                </div>
+              </div>
+
+              <div style="margin-top: 15px;">
+                <h4 style="font-size: 12px; font-weight: 600; margin-bottom: 5px; display: flex; align-items: center; gap: 4px;">
+                  <i data-lucide="calendar" style="width: 14px; height: 14px; color: var(--text3);"></i>
+                  Month-by-Month Balance Paydown Map
+                </h4>
+                <p style="font-size: 11px; color: var(--text3); margin-bottom: 8px;">Simulated sequence of global outstanding pool reduction over time:</p>
+                
+                <div class="sim-months-grid" id="sim-months-map-container">
+                  <!-- Dynamic monthly status indicators -->
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Full page width overview analysis card -->
+        <div class="card">
+          <div class="ch open">
+            <div class="ch-left">
+              <div class="ci ci-g">
+                <i data-lucide="bar-chart-2" style="width: 16px; height: 16px; color: var(--text2);"></i>
+              </div>
+              <div>
+                <span class="ch-title">Step-by-Step Amortization Breakdown under Active Strategy</span>
+                <p class="ch-sub">See how interest accrual and dynamic paydown velocities unfold over time</p>
+              </div>
+            </div>
+          </div>
+          <div class="cb open">
+            <div class="table-container">
+              <table class="debt-table">
+                <thead>
+                  <tr>
+                    <th>Paydown Phase / Debt Target</th>
+                    <th style="text-align: right;">Starting Balance ($)</th>
+                    <th style="text-align: right;">Rate (%)</th>
+                    <th style="text-align: right;">Payoff Speed Priority</th>
+                    <th style="text-align: right;">Target Minimum ($)</th>
+                    <th style="text-align: right;">Strategic Action Notes</th>
+                  </tr>
+                </thead>
+                <tbody id="strategy-breakdown-table-body">
+                  <!-- Generated by Javascript dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Outgoing Link Banner -->
+        <div class="card" style="border-color: var(--blue); background-color: var(--blue-bg);">
+          <div style="padding: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px;">
+            <div>
+              <h3 style="color: var(--blue); font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="compass" style="width: 18px; height: 18px;"></i>
+                Need Advanced Cash Flow & Rate Restructuring Analysis?
+              </h3>
+              <p style="color: var(--text2); font-size: 12px; margin-top: 4px;">Transition your completed debt strategy configurations over to our dedicated Financing Analysis Tool to map corporate/personal leverage ratios, run sensitivity analysis, or model variable rate configurations.</p>
+            </div>
+            <div>
+              <a href="https://financinganalysistool.vercel.app/" target="_blank" class="btn-external-link" style="background-color: var(--blue); padding: 12px 20px;">
+                Launch Financing Analysis Tool
+                <i data-lucide="external-link" style="width: 14px; height: 14px;"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom Action Back to Edit -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
+          <button class="btn-nav" onclick="switchPage('planner')">
+            <i data-lucide="edit-3" style="width: 14px; height: 14px;"></i>
+            Modify Debt List
+          </button>
+          <button class="btn-pdf" onclick="window.print()">
+            <i data-lucide="printer" style="width: 14px; height: 14px;"></i>
+            Print Optimization Report
+          </button>
+        </div>
+
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Javascript -->
+  <script>
+    // Initial Default Mock Debts to populate screen professionally
+    let debts = [
+      { id: '1', name: 'Credit Card A (High Interest)', repayment: 180, balance: 4500, tenure: 36, rate: 18.5 },
+      { id: '2', name: 'Vehicle Car Financing Loan', repayment: 350, balance: 14000, tenure: 48, rate: 5.2 },
+      { id: '3', name: 'Personal Study Loan', repayment: 120, balance: 8000, tenure: 72, rate: 7.9 },
+      { id: '4', name: 'Home Mortgage Balance', repayment: 1200, balance: 250000, tenure: 240, rate: 4.1 }
+    ];
+
+    let activeStrategy = 'snowball'; // 'snowball' | 'avalanche' | 'consolidation'
+    let selectedConsolidationDebts = ['1', '3']; // Default checked consolidation debts
+
+    // On Load Lifecycle
+    window.onload = function() {
+      lucide.createIcons();
+      renderDebtPlannerList();
+      updateGlobalMetrics();
+      selectStrategy(activeStrategy);
+    };
+
+    // Routing System
+    function switchPage(pageName) {
+      const pagePlanner = document.getElementById('page-planner');
+      const pageAnalysis = document.getElementById('page-analysis');
+      const navButtons = document.querySelectorAll('.pill-btn');
+      const sidebarItems = document.querySelectorAll('.sb-item');
+
+      if (pageName === 'planner') {
+        pagePlanner.classList.add('active');
+        pageAnalysis.classList.remove('active');
+        
+        navButtons[0].classList.add('active');
+        navButtons[1].classList.remove('active');
+
+        sidebarItems[0].classList.add('active');
+        sidebarItems[1].classList.remove('active');
+      } else {
+        pagePlanner.classList.remove('active');
+        pageAnalysis.classList.add('active');
+
+        navButtons[0].classList.remove('active');
+        navButtons[1].classList.add('active');
+
+        sidebarItems[0].classList.remove('active');
+        sidebarItems[1].classList.add('active');
+
+        // Trigger analysis recalculations
+        runPayoffSimulation();
+        renderAnalysisSections();
+      }
+      lucide.createIcons();
+    }
+
+    // Dynamic Debt Table Generation
+    function renderDebtPlannerList() {
+      const tableBody = document.getElementById('debt-table-body');
+      tableBody.innerHTML = '';
+
+      debts.forEach((debt, index) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td class="col-narrow" style="font-family: 'DM Mono', monospace; color: var(--text3); font-weight: 500;">${index + 1}</td>
+          <td>
+            <input type="text" value="${debt.name}" class="inp-t" onchange="updateDebtField('${debt.id}', 'name', this.value)" style="text-align: left;">
+          </td>
+          <td>
+            <div class="debt-input-grp" style="justify-content: flex-end;">
+              <input type="number" value="${debt.repayment}" class="inp" step="10" min="0" onchange="updateDebtField('${debt.id}', 'repayment', this.value)">
+            </div>
+          </td>
+          <td>
+            <div class="debt-input-grp" style="justify-content: flex-end;">
+              <input type="number" value="${debt.balance}" class="inp" step="100" min="0" onchange="updateDebtField('${debt.id}', 'balance', this.value)">
+            </div>
+          </td>
+          <td>
+            <div class="debt-input-grp" style="justify-content: flex-end;">
+              <input type="number" value="${debt.tenure}" class="inp" step="6" min="1" onchange="updateDebtField('${debt.id}', 'tenure', this.value)">
+            </div>
+          </td>
+          <td>
+            <div class="debt-input-grp" style="justify-content: flex-end;">
+              <input type="number" value="${debt.rate}" class="inp" step="0.1" min="0" onchange="updateDebtField('${debt.id}', 'rate', this.value)">
+            </div>
+          </td>
+          <td class="col-action">
+            <button class="btn-rm" onclick="removeDebtRow('${debt.id}')" title="Delete Account">
+              <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
+            </button>
+          </td>
+        `;
+        tableBody.appendChild(row);
+      });
+
+      // Update summary fields
+      document.getElementById('card-debt-count').textContent = `${debts.length} accounts configured`;
+      lucide.createIcons();
+    }
+
+    // Interactive Field Updates
+    function updateDebtField(id, field, value) {
+      const debt = debts.find(d => d.id === id);
+      if (debt) {
+        if (field === 'name') {
+          debt[field] = value;
+        } else {
+          debt[field] = parseFloat(value) || 0;
+        }
+        updateGlobalMetrics();
+        if (activeStrategy === 'consolidation') {
+          recalculateConsolidationProjection();
+        }
+      }
+    }
+
+    // Add and Remove Debt Items
+    function addNewDebtRow() {
+      const uniqueId = Date.now().toString();
+      const defaultNewDebt = {
+        id: uniqueId,
+        name: 'New Debt Source Name',
+        repayment: 100,
+        balance: 5000,
+        tenure: 48,
+        rate: 8.5
+      };
+      debts.push(defaultNewDebt);
+      
+      // If we are currently on consolidation, default check the new debt
+      if (activeStrategy === 'consolidation') {
+        selectedConsolidationDebts.push(uniqueId);
+      }
+
+      renderDebtPlannerList();
+      updateGlobalMetrics();
+      if (activeStrategy === 'consolidation') {
+        renderConsolidationChecklist();
+      }
+    }
+
+    function removeDebtRow(id) {
+      debts = debts.filter(d => d.id !== id);
+      selectedConsolidationDebts = selectedConsolidationDebts.filter(cid => cid !== id);
+      renderDebtPlannerList();
+      updateGlobalMetrics();
+      if (activeStrategy === 'consolidation') {
+        renderConsolidationChecklist();
+      }
+    }
+
+    // Calculations of entire dynamic pool
+    function updateGlobalMetrics() {
+      let totalBalance = 0;
+      let totalRepayment = 0;
+      let weightedRateSum = 0;
+      let longestTenure = 0;
+
+      debts.forEach(d => {
+        totalBalance += d.balance;
+        totalRepayment += d.repayment;
+        weightedRateSum += (d.rate * d.balance);
+        if (d.tenure > longestTenure) {
+          longestTenure = d.tenure;
+        }
+      });
+
+      const averageRate = totalBalance > 0 ? (weightedRateSum / totalBalance) : 0;
+
+      // Update Main Header Metric Display Box
+      document.getElementById('planner-total-pool').textContent = formatCurrency(totalBalance);
+      
+      // Update KPI Blocks
+      document.getElementById('kpi-monthly-sum').textContent = formatCurrency(totalRepayment);
+      document.getElementById('kpi-avg-rate').textContent = averageRate.toFixed(2) + '%';
+      document.getElementById('kpi-longest-tenure').innerHTML = `${longestTenure} <span style="font-size: 12px; font-weight: 400; color: var(--text3)">mths</span>`;
+
+      // Assign Severity Badge
+      const severityContainer = document.getElementById('kpi-severity-label');
+      const severitySubText = document.getElementById('kpi-severity-sub');
+      let ratioSeverity = (totalRepayment / 4000); // normalized against generic income benchmark 
+
+      if (totalBalance === 0) {
+        severityContainer.innerHTML = `<span class="severity-badge severity-low">Debt Free</span>`;
+        severitySubText.textContent = "Outstanding portfolio represents zero liability.";
+      } else if (averageRate > 12 || ratioSeverity > 0.45 || totalBalance > 100000) {
+        severityContainer.innerHTML = `<span class="severity-badge severity-high">High Risk</span>`;
+        severitySubText.textContent = "High balance/rates. Restructuring highly advised.";
+      } else if (averageRate > 7 || ratioSeverity > 0.25) {
+        severityContainer.innerHTML = `<span class="severity-badge severity-mid">Moderate</span>`;
+        severitySubText.textContent = "Consistent balance. Strategy alignment can accelerate freedom.";
+      } else {
+        severityContainer.innerHTML = `<span class="severity-badge severity-low">Manageable</span>`;
+        severitySubText.textContent = "Liabilities operate within stable parameters.";
+      }
+
+      // Sidebar Updates
+      document.getElementById('sb-progress-text').textContent = `${debts.length}/${debts.length}`;
+      document.getElementById('sb-progress-fill').style.width = debts.length > 0 ? "100%" : "0%";
+      document.getElementById('sb-summary-count').textContent = debts.length;
+      document.getElementById('sb-summary-balance').textContent = formatCurrency(totalBalance);
+      document.getElementById('sb-summary-repayment').textContent = formatCurrency(totalRepayment);
+      document.getElementById('sb-summary-rate').textContent = averageRate.toFixed(1) + '%';
+    }
+
+    // Reset Application data completely
+    function resetPlannerData() {
+      debts = [];
+      selectedConsolidationDebts = [];
+      renderDebtPlannerList();
+      updateGlobalMetrics();
+      if (activeStrategy === 'consolidation') {
+        renderConsolidationChecklist();
+      }
+    }
+
+    // Select and Switch active Debt Repayment Strategy
+    function selectStrategy(strategyKey) {
+      activeStrategy = strategyKey;
+      
+      // Visual feedback on card selectors
+      document.querySelectorAll('.strat-card').forEach(card => card.classList.remove('active'));
+      document.getElementById(`strat-${strategyKey}`).classList.add('active');
+
+      // Update Sidebar dynamic label
+      document.getElementById('sb-summary-strategy').textContent = strategyKey;
+
+      // Select description strings & configure inputs
+      const strategyExplanationArea = document.getElementById('strategy-explanation-area');
+      const consolidationChecklistContainer = document.getElementById('consolidation-checklist-container');
+
+      if (strategyKey === 'snowball') {
+        consolidationChecklistContainer.style.display = 'none';
+        strategyExplanationArea.innerHTML = `
+          <div style="display: flex; gap: 8px; align-items: flex-start;">
+            <i data-lucide="info" style="color: var(--blue); flex-shrink:0; width: 16px; height: 16px; margin-top: 2px;"></i>
+            <div>
+              <strong>Active Snowball Sequence Applied:</strong> Outstandings are ordered automatically from lowest balance first to highest balance last. Extra payments are routed strictly to the lowest balance to eliminate it and roll the entire previous payment forward into the next card.
+            </div>
+          </div>
+        `;
+      } else if (strategyKey === 'avalanche') {
+        consolidationChecklistContainer.style.display = 'none';
+        strategyExplanationArea.innerHTML = `
+          <div style="display: flex; gap: 8px; align-items: flex-start;">
+            <i data-lucide="info" style="color: var(--amber); flex-shrink:0; width: 16px; height: 16px; margin-top: 2px;"></i>
+            <div>
+              <strong>Active Avalanche Sequence Applied:</strong> Outstandings are ordered automatically based on highest annual percentage rate (APR) first, lowest interest rate last. Extra payments target high rate liabilities first, saving the absolute maximum in compounded interest payments over time.
+            </div>
+          </div>
+        `;
+      } else if (strategyKey === 'consolidation') {
+        consolidationChecklistContainer.style.display = 'block';
+        strategyExplanationArea.innerHTML = `
+          <div style="display: flex; gap: 8px; align-items: flex-start;">
+            <i data-lucide="info" style="color: var(--green); flex-shrink:0; width: 16px; height: 16px; margin-top: 2px;"></i>
+            <div>
+              <strong>Active Consolidation Projection Applied:</strong> Grouping multiple accounts into one cohesive balance stream. Tick specific debts in the list below to observe simulated payment modifications based on an aggregate amortization profile.
+            </div>
+          </div>
+        `;
+        renderConsolidationChecklist();
+      }
+
+      lucide.createIcons();
+    }
+
+    // Rendery checklist dynamically inside consolidation section
+    function renderConsolidationChecklist() {
+      const containerBody = document.getElementById('consolidation-checklist-body');
+      containerBody.innerHTML = '';
+
+      if (debts.length === 0) {
+        containerBody.innerHTML = `<tr><td colspan="5" class="neutral" style="text-align: center;">No debts found. Add debts above to construct consolidation checklist.</td></tr>`;
+        recalculateConsolidationProjection();
+        return;
+      }
+
+      debts.forEach(debt => {
+        const isChecked = selectedConsolidationDebts.includes(debt.id) ? 'checked' : '';
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td class="checkbox-col">
+            <input type="checkbox" ${isChecked} onchange="toggleConsolidationDebt('${debt.id}', this.checked)" style="transform: scale(1.1); cursor: pointer;">
+          </td>
+          <td style="font-weight: 500;">${debt.name}</td>
+          <td style="text-align: right; font-family: 'DM Mono';">${formatCurrency(debt.repayment)}</td>
+          <td style="text-align: right; font-family: 'DM Mono';">${formatCurrency(debt.balance)}</td>
+          <td style="text-align: right; font-family: 'DM Mono';">${debt.rate}%</td>
+        `;
+        containerBody.appendChild(row);
+      });
+
+      recalculateConsolidationProjection();
+    }
+
+    // Toggle specific items inside checklist
+    function toggleConsolidationDebt(id, isChecked) {
+      if (isChecked) {
+        if (!selectedConsolidationDebts.includes(id)) {
+          selectedConsolidationDebts.push(id);
+        }
+      } else {
+        selectedConsolidationDebts = selectedConsolidationDebts.filter(cid => cid !== id);
+      }
+      recalculateConsolidationProjection();
+    }
+
+    // Apply amortization loan formula on active selected consolidation debts
+    function recalculateConsolidationProjection() {
+      let totalConsolidatedBalance = 0;
+      let previousCombinedRepayment = 0;
+
+      debts.forEach(d => {
+        if (selectedConsolidationDebts.includes(d.id)) {
+          totalConsolidatedBalance += d.balance;
+          previousCombinedRepayment += d.repayment;
+        }
+      });
+
+      const assumedRate = parseFloat(document.getElementById('consol-input-rate').value) || 0;
+      const assumedTenure = parseInt(document.getElementById('consol-input-tenure').value) || 0;
+
+      let projectedNewMonthly = 0;
+
+      if (totalConsolidatedBalance > 0 && assumedRate > 0 && assumedTenure > 0) {
+        const monthlyRate = (assumedRate / 100) / 12;
+        // Amortization formula: M = P * (r*(1+r)^n) / ((1+r)^n - 1)
+        projectedNewMonthly = totalConsolidatedBalance * (monthlyRate * Math.pow(1 + monthlyRate, assumedTenure)) / (Math.pow(1 + monthlyRate, assumedTenure) - 1);
+        
+        if (isNaN(projectedNewMonthly) || !isFinite(projectedNewMonthly)) {
+          // Fallback simple division if rate math breaks (e.g., extremely close to zero)
+          projectedNewMonthly = totalConsolidatedBalance / assumedTenure;
+        }
+      } else if (totalConsolidatedBalance > 0 && assumedTenure > 0) {
+        projectedNewMonthly = totalConsolidatedBalance / assumedTenure;
+      }
+
+      const savings = previousCombinedRepayment - projectedNewMonthly;
+
+      // Update Projection box DOM elements
+      document.getElementById('proj-val-total-balance').textContent = formatCurrency(totalConsolidatedBalance);
+      document.getElementById('proj-val-old-monthly').textContent = formatCurrency(previousCombinedRepayment);
+      document.getElementById('proj-val-new-monthly').textContent = formatCurrency(projectedNewMonthly);
+
+      const savingsLabelElement = document.getElementById('proj-val-savings');
+      if (savings > 0) {
+        savingsLabelElement.textContent = `+${formatCurrency(savings)} / month reduction`;
+        savingsLabelElement.className = "positive";
+      } else if (savings < 0) {
+        savingsLabelElement.textContent = `${formatCurrency(savings)} / month increase`;
+        savingsLabelElement.className = "negative";
+      } else {
+        savingsLabelElement.textContent = `$0.00 / month difference`;
+        savingsLabelElement.className = "neutral";
+      }
+    }
+
+    // Textarea Commentary Memo updates
+    function updateCommentaryText() {
+      const textarea = document.getElementById('planner-commentary');
+      const textLen = textarea.value.length;
+      document.getElementById('planner-commentary-count').textContent = `${textLen} / 1000 characters`;
+      
+      // Update element visible only during printing
+      document.getElementById('planner-commentary-print').textContent = textarea.value;
+    }
+
+    // ── ANALYSIS & PAYOFF SEQUENCING CODES ──
+    function getSequencedDebts() {
+      // Create clone array to protect raw data
+      let cloned = JSON.parse(JSON.stringify(debts));
+
+      if (activeStrategy === 'snowball') {
+        // Sequence: Lowest Balance top, Highest Balance bottom
+        cloned.sort((a, b) => a.balance - b.balance);
+      } else if (activeStrategy === 'avalanche') {
+        // Sequence: Highest Rate top, Lowest Rate bottom
+        cloned.sort((a, b) => b.rate - a.rate);
+      } else if (activeStrategy === 'consolidation') {
+        // Debts inside consolidation list grouped together first, then remaining sorted standardly
+        cloned.sort((a, b) => {
+          const aSelected = selectedConsolidationDebts.includes(a.id) ? 1 : 0;
+          const bSelected = selectedConsolidationDebts.includes(b.id) ? 1 : 0;
+          if (bSelected !== aSelected) {
+            return bSelected - aSelected; // Consolidated ones on top
+          }
+          return a.balance - b.balance; // Tiebreaker lowest balance first
+        });
+      }
+      return cloned;
+    }
+
+    function renderAnalysisSections() {
+      const orderedDebts = getSequencedDebts();
+      
+      // 1. Update card title headers based on chosen strategy
+      const seqTitle = document.getElementById('sequenced-card-title');
+      const seqSubtitle = document.getElementById('sequenced-card-subtitle');
+      const noteElement = document.getElementById('sequenced-order-explanation-note');
+
+      if (activeStrategy === 'snowball') {
+        seqTitle.textContent = "Dynamic Snowball sequence (Lowest Balance First)";
+        seqSubtitle.textContent = "Calculated order focused on capturing early emotional wins";
+        noteElement.textContent = "*Sequenced by ascending Balance size. Accelerators will aggressively payoff first index.";
+      } else if (activeStrategy === 'avalanche') {
+        seqTitle.textContent = "Dynamic Avalanche sequence (Highest Rate First)";
+        seqSubtitle.textContent = "Calculated order focused on absolute interest minimization";
+        noteElement.textContent = "*Sequenced by descending Interest Rate (APR). Accelerators target high rates to limit compounding cost.";
+      } else if (activeStrategy === 'consolidation') {
+        seqTitle.textContent = "Dynamic Consolidation Sequence & Outstandings Grouping";
+        seqSubtitle.textContent = "Grouping designated accounts into a single amortized tool block";
+        noteElement.textContent = "*Items marked with blue star symbols represent consolidated liabilities folded into new loan.";
+      }
+
+      // 2. Render Sequenced Debt table body
+      const tableBody = document.getElementById('sequenced-debt-list-body');
+      tableBody.innerHTML = '';
+
+      if (orderedDebts.length === 0) {
+        tableBody.innerHTML = `<tr><td colspan="6" class="neutral" style="text-align: center; padding: 1.5rem;">No debts configured. Back to Planner tab to add entries.</td></tr>`;
+        return;
+      }
+
+      orderedDebts.forEach((debt, index) => {
+        const isConsolidated = activeStrategy === 'consolidation' && selectedConsolidationDebts.includes(debt.id);
+        const marker = isConsolidated ? `<span class="severity-badge severity-mid" style="padding: 2px 6px;"><i data-lucide="merge" style="width: 10px; height: 10px; margin-right: 3px;"></i>Consolidated</span>` : `${index + 1}`;
+        
+        const row = document.createElement('tr');
+        if (isConsolidated) {
+          row.style.backgroundColor = 'var(--blue-bg)';
+        }
+        
+        row.innerHTML = `
+          <td class="col-narrow" style="font-family: 'DM Mono', monospace; font-weight: 600;">${marker}</td>
+          <td style="font-weight: 500;">
+            ${debt.name} 
+          </td>
+          <td style="text-align: right; font-family: 'DM Mono', monospace; font-weight: 500;">${formatCurrency(debt.balance)}</td>
+          <td style="text-align: right; font-family: 'DM Mono', monospace;">${formatCurrency(debt.repayment)}</td>
+          <td style="text-align: right; font-family: 'DM Mono', monospace; color: var(--amber);">${debt.rate}%</td>
+          <td style="text-align: right; font-family: 'DM Mono', monospace;">${debt.tenure} mths</td>
+        `;
+        tableBody.appendChild(row);
+      });
+
+      // 3. Render Step by Step Amortization Action Notes Table
+      const breakTableBody = document.getElementById('strategy-breakdown-table-body');
+      breakTableBody.innerHTML = '';
+
+      orderedDebts.forEach((debt, index) => {
+        let actionNotes = "";
+        let ratePriorityTag = "";
+
+        if (activeStrategy === 'snowball') {
+          if (index === 0) {
+            actionNotes = "<strong>Target Focus #1:</strong> Channels the entire monthly accelerator budget into this item to secure a rapid account closure.";
+            ratePriorityTag = "<span class='severity-badge severity-high'>Immediate Target</span>";
+          } else if (index === orderedDebts.length - 1) {
+            actionNotes = "<strong>Secondary Anchor:</strong> Receives minimum payments only until all prior outstanding debt balances are completely resolved.";
+            ratePriorityTag = "<span class='severity-badge severity-low'>Delayed Phase</span>";
+          } else {
+            actionNotes = `Queue Priority #${index + 1}. Once earlier debts clear, rolled payment accumulates and focuses here.`;
+            ratePriorityTag = "<span class='severity-badge severity-mid'>In Queue</span>";
+          }
+        } else if (activeStrategy === 'avalanche') {
+          if (index === 0) {
+            actionNotes = "<strong>Mathematical Optimization Peak:</strong> Targeting this highest-interest debt first avoids high compound expansion fees.";
+            ratePriorityTag = "<span class='severity-badge severity-high'>Immediate Target</span>";
+          } else if (index === orderedDebts.length - 1) {
+            actionNotes = "<strong>Minimum Drag:</strong> Repay minimum amounts only; rate yields lower overall compounding hazard.";
+            ratePriorityTag = "<span class='severity-badge severity-low'>Delayed Phase</span>";
+          } else {
+            actionNotes = `Queue Priority #${index + 1}. Awaiting repayment of high-rate targets.`;
+            ratePriorityTag = "<span class='severity-badge severity-mid'>In Queue</span>";
+          }
+        } else if (activeStrategy === 'consolidation') {
+          const isConsolidated = selectedConsolidationDebts.includes(debt.id);
+          if (isConsolidated) {
+            actionNotes = "<strong>Restructured:</strong> Absorbed into the consolidated framework. Replaces separate monthly invoices with a streamlined interest model.";
+            ratePriorityTag = "<span class='severity-badge severity-mid'>Restructured</span>";
+          } else {
+            actionNotes = "<strong>Standalone Stream:</strong> Stays separate from consolidation. Target for direct standard payoff channels.";
+            ratePriorityTag = "<span class='severity-badge severity-low'>Separate Account</span>";
+          }
+        }
+
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td style="font-weight: 500;">${debt.name}</td>
+          <td style="text-align: right; font-family: 'DM Mono', monospace;">${formatCurrency(debt.balance)}</td>
+          <td style="text-align: right; font-family: 'DM Mono', monospace; color: var(--amber);">${debt.rate}%</td>
+          <td style="text-align: right;">${ratePriorityTag}</td>
+          <td style="text-align: right; font-family: 'DM Mono', monospace; font-weight: 600;">${formatCurrency(debt.repayment)}</td>
+          <td style="font-size: 12px; color: var(--text2); line-height: 1.4;">${actionNotes}</td>
+        `;
+        breakTableBody.appendChild(row);
+      });
+
+      lucide.createIcons();
+    }
+
+    // Interactive Payoff Simulation Calculation Algorithm
+    function runPayoffSimulation() {
+      const extraBudget = parseFloat(document.getElementById('accelerator-amount').value) || 0;
+      
+      // Clone debt list and set up month-by-month simulation variables
+      let activeDebts = JSON.parse(JSON.stringify(debts));
+      let totalBalance = activeDebts.reduce((sum, d) => sum + d.balance, 0);
+
+      // Simple handling for zero liabilities
+      if (totalBalance === 0) {
+        document.getElementById('sim-time-to-free').textContent = "0 months";
+        document.getElementById('sim-total-interest').textContent = "$0.00";
+        document.getElementById('sim-months-map-container').innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: var(--text3); font-size: 12px;">Zero outstanding debt. Clear portfolio!</div>`;
+        return;
+      }
+
+      let totalInterestPaid = 0;
+      let monthsElapsed = 0;
+      let monthRecords = [];
+      const MAX_MONTHS = 360; // 30 years safety circuit breaker
+
+      // Perform step sequence sort depending on active strategy
+      function sortSimulationPool() {
+        if (activeStrategy === 'snowball') {
+          activeDebts.sort((a, b) => a.balance - b.balance);
+        } else if (activeStrategy === 'avalanche') {
+          activeDebts.sort((a, b) => b.rate - a.rate);
+        } else if (activeStrategy === 'consolidation') {
+          // Keep consolidated ones combined, sorted standardly
+          activeDebts.sort((a, b) => {
+            const aCons = selectedConsolidationDebts.includes(a.id) ? 1 : 0;
+            const bCons = selectedConsolidationDebts.includes(b.id) ? 1 : 0;
+            if (bCons !== aCons) return bCons - aCons;
+            return a.balance - b.balance;
+          });
+        }
+      }
+
+      while (totalBalance > 0 && monthsElapsed < MAX_MONTHS) {
+        monthsElapsed++;
+        sortSimulationPool();
+
+        let monthlyAcceleratorRemaining = extraBudget;
+        let monthlyInterestAccruedThisMonth = 0;
+
+        // Step 1: Accrue monthly interest across all active outstanding accounts first
+        activeDebts.forEach(d => {
+          if (d.balance > 0) {
+            const monthlyRate = (d.rate / 100) / 12;
+            const interest = d.balance * monthlyRate;
+            d.balance += interest;
+            monthlyInterestAccruedThisMonth += interest;
+            totalInterestPaid += interest;
+          }
+        });
+
+        // Step 2: Pay minimum requirements first across all active debts
+        activeDebts.forEach(d => {
+          if (d.balance > 0) {
+            // Repayment cannot exceed remaining outstanding balance
+            const payment = Math.min(d.repayment, d.balance);
+            d.balance -= payment;
+          }
+        });
+
+        // Step 3: Direct the Accelerator budget + any unused freed-up minimums into the highest-priority debt
+        for (let i = 0; i < activeDebts.length; i++) {
+          let d = activeDebts[i];
+          if (d.balance > 0) {
+            const extraPayment = Math.min(monthlyAcceleratorRemaining, d.balance);
+            d.balance -= extraPayment;
+            monthlyAcceleratorRemaining -= extraPayment;
+            
+            // If accelerator is fully spent, stop distributing
+            if (monthlyAcceleratorRemaining <= 0) break;
+          }
+        }
+
+        // Calculate combined pool after this month's payments
+        totalBalance = activeDebts.reduce((sum, d) => sum + d.balance, 0);
+
+        // Record monthly history slice for visual tracking
+        monthRecords.push({
+          monthNumber: monthsElapsed,
+          remaining: totalBalance,
+          interest: monthlyInterestAccruedThisMonth
+        });
+      }
+
+      // Render month-by-month grid indicators
+      const visualContainer = document.getElementById('sim-months-map-container');
+      visualContainer.innerHTML = '';
+
+      // Limit grid length visually, but record metrics perfectly
+      const displayedRecords = monthRecords.slice(0, 48); // limit visual blocks to 4 years max
+
+      displayedRecords.forEach(r => {
+        const item = document.createElement('div');
+        item.className = 'sim-month-item';
+        
+        // Progress colors
+        let statusColor = "var(--text)";
+        if (r.remaining === 0) {
+          statusColor = "var(--green)";
+          item.style.borderColor = "var(--green)";
+          item.style.backgroundColor = "var(--green-bg)";
+        }
+
+        item.innerHTML = `
+          <div class="sim-m-lbl">Month ${r.monthNumber}</div>
+          <div class="sim-m-val" style="color: ${statusColor};">${formatCurrency(r.remaining)}</div>
+          <div class="sim-m-interest">+${formatCurrency(r.interest)} int</div>
+        `;
+        visualContainer.appendChild(item);
+      });
+
+      if (monthRecords.length > 48) {
+        const overflowIndicator = document.createElement('div');
+        overflowIndicator.style.gridColumn = '1 / -1';
+        overflowIndicator.style.textAlign = 'center';
+        overflowIndicator.style.fontSize = '12px';
+        overflowIndicator.style.color = 'var(--text3)';
+        overflowIndicator.style.padding = '8px';
+        overflowIndicator.textContent = `... and ${monthRecords.length - 48} more months of payoff trajectory.`;
+        visualContainer.appendChild(overflowIndicator);
+      }
+
+      // Update interactive summary values
+      document.getElementById('sim-time-to-free').textContent = `${monthsElapsed} months`;
+      
+      // Calculate projected saved interest compared to simple minimum amortization timeline
+      const simpleAverageMinimumInterestEstimate = debts.reduce((sum, d) => sum + ((d.balance * (d.rate/100)/12) * d.tenure * 0.5), 0);
+      const interestSavedVal = Math.max(0, simpleAverageMinimumInterestEstimate - totalInterestPaid);
+      
+      document.getElementById('sim-total-interest').textContent = formatCurrency(totalInterestPaid);
+    }
+
+    // Helper: Standard Currency Formatter
+    function formatCurrency(val) {
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'MYR',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }).format(val);
+    }
+  </script>
+</body>
+</html>

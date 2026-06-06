@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hajj Planner & Gap Analyzer</title>
+  <!-- Google Fonts: DM Sans & DM Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+  
+  <style>
+    /* Inserted User Stylesheet with responsive and functional extensions */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #f7f6f2; --surface: #fff; --surface2: #f2f0eb;
+      --border: #e2dfd8; --border-strong: #c8c4bb;
+      --text: #1a1916; --text2: #6b6860; --text3: #a09d98;
+      --green: #1a6b47; --green-bg: #edf7f2;
+      --blue: #1a4a6b; --blue-bg: #edf3f7;
+      --red: #6b1a1a; --red-bg: #f7eded;
+      --gold: #6b4e1a; --gold-bg: #f7f2ed;
+      --orange: #b85c00; --amber: #c97a1a;
+      --r: 6px; --rl: 10px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); font-size:14px; line-height:1.5; min-height:100vh; }
+
+    /* ── TOPBAR ── */
+    .topbar { background:var(--surface); border-bottom:1px solid var(--border); padding:0 1.5rem; display:flex; align-items:center; justify-content:space-between; height:56px; position:sticky; top:0; z-index:200; }
+    .brand { display:flex; align-items:center; gap:10px; }
+    .brand-mark { width:28px; height:28px; background:var(--gold); border-radius:6px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .brand-mark svg { width:16px; height:16px; fill: #fff; }
+    .brand-name { font-size:14px; font-weight:500; letter-spacing:-0.01em; }
+    .brand-sub { font-size:12px; color:var(--text3); margin-left:2px; }
+    .pill-nav { display:flex; background:var(--surface2); border-radius:20px; padding:3px; gap:2px; }
+    .pill-btn { padding:5px 16px; border-radius:16px; border:none; background:transparent; font-size:12px; font-family:'DM Sans',sans-serif; color:var(--text2); cursor:pointer; font-weight:400; transition:all .15s; }
+    .pill-btn.active { background:var(--surface); color:var(--text); font-weight:500; box-shadow:0 1px 2px rgba(0,0,0,.08); }
+
+    /* ── PAGE SHELLS ── */
+    .page { display:none; }
+    .page.active { display:flex; min-height:calc(100vh - 56px); }
+
+    /* ── ENTRY LAYOUT ── */
+    .sidebar { width:260px; flex-shrink:0; background:var(--surface); border-right:1px solid var(--border); position:sticky; top:56px; height:calc(100vh - 56px); overflow-y:auto; padding:1.25rem 0; }
+    .main-area { flex:1; padding:2rem; overflow-y:auto; min-width:0; }
+
+    /* sidebar nav */
+    .sb-label { font-size:10px; font-weight:500; letter-spacing:.08em; text-transform:uppercase; color:var(--text3); padding:0 1.25rem; margin-bottom:.5rem; }
+    .sb-item { display:flex; align-items:center; gap:10px; padding:9px 1.25rem; cursor:pointer; border-left:2px solid transparent; transition:all .12s; font-size:13px; color:var(--text2); text-decoration:none; }
+    .sb-item:hover { background:var(--surface2); color:var(--text); }
+    .sb-item.active { border-left-color:var(--gold); color:var(--text); font-weight:500; background:var(--surface2); }
+    .sb-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+    .d1 { background:var(--green); } .d2 { background:var(--blue); } .d3 { background:var(--gold); } .d4 { background:var(--text3); }
+
+    /* progress */
+    .prog-wrap { padding:1.25rem 1.25rem .75rem; }
+    .prog-top { display:flex; justify-content:space-between; font-size:11px; color:var(--text3); margin-bottom:6px; }
+    .prog-track { height:3px; background:var(--surface2); border-radius:2px; overflow:hidden; }
+    .prog-fill { height:100%; background:var(--gold); border-radius:2px; width:45%; transition:width .4s; }
+
+    /* per-segment sidebar summaries */
+    .seg-sum { display:none; margin:0 1rem .75rem; }
+    .seg-sum.on { display:block; }
+    .ss-head { color:#fff; font-size:10px; font-weight:500; letter-spacing:.06em; text-transform:uppercase; padding:6px 10px; border-radius:var(--r) var(--r) 0 0; }
+    .ss-body { background:var(--surface2); border-radius:0 0 var(--r) var(--r); padding:8px 10px; border:1px solid var(--border); border-top:none; }
+    .ss-row { display:flex; justify-content:space-between; align-items:baseline; padding:3px 0; font-size:11px; color:var(--text2); border-bottom:1px solid var(--border); }
+    .ss-row:last-child { border-bottom:none; }
+    .ss-row.neg { color:var(--red); }
+    .ss-v { font-family:'DM Mono',monospace; font-size:11px; color:var(--text); }
+    .ss-b { font-weight:500; }
+    .ss-div { height:1px; background:var(--border-strong); margin:5px 0; }
+    .ss-tot { display:flex; justify-content:space-between; align-items:baseline; padding:3px 0; font-size:11px; font-weight:500; }
+    .positive { color:var(--green); } .negative { color:var(--red); } .neutral { color:var(--blue); } .warning { color:var(--amber); }
+
+    /* ── SEGMENT CONTENT ── */
+    .segment { display:none; }
+    .segment.active { display:block; }
+    .seg-hdr { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:1.75rem; }
+    .seg-tag { display:inline-flex; align-items:center; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:500; margin-bottom:6px; }
+    .t1{background:var(--green-bg);color:var(--green);} .t2{background:var(--blue-bg);color:var(--blue);} .t3{background:var(--gold-bg);color:var(--gold);} .t4{background:var(--surface2);color:var(--text2);}
+    .seg-title { font-size:22px; font-weight:300; letter-spacing:-.03em; }
+    .seg-desc { font-size:13px; color:var(--text3); margin-top:4px; }
+    .seg-tot-box { text-align:right; background:var(--surface2); border-radius:var(--rl); padding:10px 16px; }
+    .tot-label { font-size:11px; color:var(--text3); }
+    .tot-val { font-size:20px; font-weight:500; font-family:'DM Mono',monospace; letter-spacing:-.03em; }
+
+    /* cards */
+    .card { background:var(--surface); border:1px solid var(--border); border-radius:var(--rl); margin-bottom:1rem; overflow:hidden; box-shadow:var(--shadow); }
+    .ch { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; cursor:pointer; user-select:none; border-bottom:1px solid transparent; transition:background .12s; }
+    .ch:hover { background:var(--surface2); }
+    .ch.open { border-bottom-color:var(--border); }
+    .ch-left { display:flex; align-items:center; gap:10px; }
+    .ci { width:28px; height:28px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:13px; flex-shrink:0; }
+    .ci1{background:var(--green-bg);} .ci2{background:var(--blue-bg);} .ci3{background:var(--gold-bg);} .ci-r{background:var(--red-bg);} .ci-g{background:var(--surface2);}
+    .ch-title { font-size:13px; font-weight:500; }
+    .ch-sub { font-size:11px; color:var(--text3); margin-top:1px; }
+    .ch-right { display:flex; align-items:center; gap:10px; }
+    .ch-sum { font-family:'DM Mono',monospace; font-size:13px; color:var(--text2); }
+    .chev { width:16px; height:16px; color:var(--text3); transition:transform .2s; flex-shrink:0; }
+    .chev.open { transform:rotate(180deg); }
+    .cb { display:none; padding:14px 16px; }
+    .cb.open { display:block; }
+
+    /* fields */
+    .f-static { display:grid; grid-template-columns:240px 1fr ; gap:12px; align-items:center; padding:10px 0; border-bottom:1px solid var(--border); }
+    .f-static:last-of-type { border-bottom:none; }
+    .f-label { font-size:13px; font-weight:500; }
+    .f-sub { font-size:11px; color:var(--text3); font-weight:normal; }
+    .pfx-wrap { position:relative; }
+    .pfx { position:absolute; left:10px; top:50%; transform:translateY(-50%); font-size:12px; color:var(--text3); pointer-events:none; }
+    .inp { width:100%; height:34px; border:1px solid var(--border); border-radius:var(--r); padding:0 10px; font-size:13px; font-family:'DM Mono',monospace; color:var(--text); background:var(--surface); text-align:right; transition:border-color .12s; }
+    .inp:focus { outline:none; border-color:var(--text); }
+    .inp.pl { padding-left:26px; text-align:left; }
+    .inp-t { height:34px; border:1px solid var(--border); border-radius:var(--r); padding:0 10px; font-size:13px; font-family:'DM Sans',sans-serif; color:var(--text); background:var(--surface); width:100%; transition:border-color .12s; }
+    .inp-t:focus { outline:none; border-color:var(--text); }
+
+    /* toggle slider specific styled element */
+    .toggle-container {
+      display: inline-flex;
+      align-items: center;
+      background: var(--surface2);
+      border-radius: 20px;
+      padding: 3px;
+      position: relative;
+      cursor: pointer;
+      user-select: none;
+      border: 1px solid var(--border);
+    }
+    .toggle-option {
+      padding: 4px 16px;
+      font-size: 11px;
+      font-weight: 500;
+      border-radius: 14px;
+      transition: all 0.2s ease;
+      color: var(--text2);
+    }
+    .toggle-option.active {
+      background: var(--surface);
+      color: var(--gold);
+      box-shadow: var(--shadow);
+    }
+
+    /* results display and gaps */
+    .gap-result-box {
+      background: var(--surface2);
+      border-radius: var(--rl);
+      padding: 1.5rem;
+      margin-top: 1.25rem;
+      border: 1px solid var(--border-strong);
+      display: none;
+      animation: fi 0.25s ease forwards;
+    }
+    .gap-result-box.show {
+      display: block;
+    }
+    .gap-hdr {
+      font-size: 11px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 0.5rem;
+    }
+    .gap-big-val {
+      font-size: 28px;
+      font-family: 'DM Mono', monospace;
+      font-weight: bold;
+      margin-bottom: 0.75rem;
+      letter-spacing: -0.02em;
+    }
+    .gap-details {
+      font-size: 13px;
+      color: var(--text2);
+      line-height: 1.6;
+    }
+
+    /* action btn */
+    .action-btn-container {
+      margin-top: 1.5rem;
+    }
+    .btn-action {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border: none;
+      border-radius: var(--r);
+      background: var(--gold);
+      color: #fff;
+      font-size: 13px;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 500;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .btn-action:hover {
+      opacity: 0.9;
+    }
+
+    /* editable commentary styles */
+    .commentary-block { margin-top: 1.5rem; border-top: 1px dashed var(--border); padding-top: 1.25rem; }
+    .commentary-box { width:100%; min-height:80px; border:1px solid var(--border); border-radius:var(--rl); padding:10px 12px; font-size:13px; font-family:'DM Sans',sans-serif; color:var(--text); background:var(--surface); resize:vertical; line-height:1.5; transition:border-color .12s; }
+    .commentary-box:focus { outline:none; border-color:var(--gold); }
+    .commentary-lbl { font-size:11px; font-weight:500; letter-spacing:.06em; text-transform:uppercase; color:var(--text3); margin-bottom:6px; display:flex; align-items:center; gap:6px; }
+
+    /* reset / controls */
+    .seg-hdr-actions { display:flex; align-items:center; gap:8px; }
+    .btn-reset-data { display:inline-flex; align-items:center; gap:4px; padding:6px 12px; border:1px solid var(--border); border-radius:var(--r); background:transparent; font-size:11px; font-family:'DM Sans',sans-serif; color:var(--text3); cursor:pointer; transition:all .12s; }
+    .btn-reset-data:hover { border-color:#c0392b; color:#c0392b; background:#fff5f5; }
+
+    /* Animations */
+    @keyframes fi { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:translateY(0)} }
+    .fade-in { animation: fi 0.2s ease forwards; }
+
+    /* Responsive */
+    @media(max-width:768px){
+      .sidebar { display:none; }
+      .main-area { padding:1.25rem; }
+      .f-static { grid-template-columns:1fr; gap:4px; align-items:stretch; }
+      .inp { text-align: left; }
+    }
+  </style>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../../assets/js/supabase-client.js"></script>
+  <script src="../../assets/js/supabase-store.js"></script>
+  <script src="../../assets/js/auth-guard.js"></script>
+</head>
+<body>
+
+  <!-- ── TOPBAR ── -->
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-mark">
+        <svg viewBox="0 0 24 24">
+          <!-- Elegant Kaaba shape representing Hajj -->
+          <path d="M19 4H5c-1.1 0-2 .9-2 2v12c0 1.1 0.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-0.9-2-2-2zm-1 3H6v2h12V7zm0 4H6v2h12v-2zm0 4H6v2h12v-2z"/>
+        </svg>
+      </div>
+      <div>
+        <span class="brand-name">Lighthouse</span>
+        <span class="brand-sub">Hajj Planner</span>
+      </div>
+    </div>
+    
+    <div class="pill-nav">
+      <button class="pill-btn active" onclick="switchPage('planner')">Planner</button>
+      <button class="pill-btn" onclick="switchPage('quickguide')">Quick Guide</button>
+    </div>
+  </div>
+
+  <!-- ── PAGES ── -->
+  <div id="appShell">
+    <!-- Active State Target standard layout -->
+  </div>
+
+  <!-- ── PLANNER PAGE ── -->
+  <div id="page-planner" class="page active">
+    
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="sb-label">Active Goal</div>
+      <a class="sb-item active">
+        <div class="sb-dot d3"></div>
+        <span>Makkah Journey</span>
+      </a>
+
+      <div class="prog-wrap">
+        <div class="prog-top">
+          <span>Fund Sufficiency</span>
+          <span id="sidebar-progress-percent">0%</span>
+        </div>
+        <div class="prog-track">
+          <div id="sidebar-progress-fill" class="prog-fill" style="width: 0%;"></div>
+        </div>
+      </div>
+
+      <div class="seg-sum on" style="margin-top: 1rem;">
+        <div class="ss-head" style="background: var(--gold)">Live Metrics</div>
+        <div class="ss-body">
+          <div class="ss-row">
+            <span>Inflation Rate</span>
+            <span class="ss-v" id="sd-inflation">0.00%</span>
+          </div>
+          <div class="ss-row">
+            <span>Expected Horizon</span>
+            <span class="ss-v" id="sd-horizon">0 Years</span>
+          </div>
+          <div class="ss-div"></div>
+          <div class="ss-row">
+            <span>Target Cost</span>
+            <span class="ss-v ss-b" id="sd-target">RM 0.00</span>
+          </div>
+          <div class="ss-row">
+            <span>Fund FV</span>
+            <span class="ss-v ss-b" id="sd-fund-fv">RM 0.00</span>
+          </div>
+          <div class="ss-div"></div>
+          <div class="ss-tot">
+            <span>Net Gap</span>
+            <span id="sd-gap-badge" class="neutral">RM 0.00</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="main-area">
+      <div class="seg-hdr">
+        <div>
+          <div class="seg-tag t3">Strategic Planning Tool</div>
+          <h1 class="seg-title">Hajj Goal Planning</h1>
+          <p class="seg-desc">Evaluate the sufficiency of your current savings horizon against inflation-adjusted future costs of Hajj.</p>
+        </div>
+        <div class="seg-hdr-actions">
+          <button class="btn-reset-data" onclick="resetPlanner()">
+            <svg style="width:12px; height:12px; fill:currentColor;" viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+            Reset Form
+          </button>
+        </div>
+      </div>
+
+      <!-- Card 1: Hajj Horizon & Basic Settings -->
+      <div class="card">
+        <div class="ch open">
+          <div class="ch-left">
+            <div class="ci ci3">🕋</div>
+            <div>
+              <div class="ch-title">Hajj Projection & Horizon</div>
+              <div class="ch-sub">Calculate the dynamic cost of your journey based on expected inflation</div>
+            </div>
+          </div>
+        </div>
+        <div class="cb open">
+          <!-- Current Year Information (derived/system year is 2026 as per base setting) -->
+          <div class="f-static">
+            <div>
+              <div class="f-label">Current Reference Year</div>
+              <div class="f-sub">System standard reference point</div>
+            </div>
+            <div>
+              <input type="number" class="inp pl" id="currentYear" value="2026" readonly style="background-color: var(--surface2); color: var(--text3); border-color: var(--border);">
+            </div>
+          </div>
+
+          <div class="f-static">
+            <div>
+              <div class="f-label">Target Year of Performance</div>
+              <div class="f-sub">When do you plan to perform your Hajj?</div>
+            </div>
+            <div>
+              <input type="number" class="inp" id="plannedYear" value="2035" oninput="calculateProjections()">
+            </div>
+          </div>
+
+          <div class="f-static">
+            <div>
+              <div class="f-label">Current Cost of Hajj (PV)</div>
+              <div class="f-sub">Current price standard package per person</div>
+            </div>
+            <div class="pfx-wrap">
+              <span class="pfx">RM</span>
+              <input type="number" class="inp" id="currentCost" value="35000" oninput="calculateProjections()">
+            </div>
+          </div>
+
+          <div class="f-static">
+            <div>
+              <div class="f-label">Expected Hajj Inflation Rate (Annual)</div>
+              <div class="f-sub">Average expected rate of increase per year</div>
+            </div>
+            <div class="pfx-wrap">
+              <span class="pfx">%</span>
+              <input type="number" step="0.1" class="inp" id="expectedInflation" value="5" oninput="calculateProjections()">
+            </div>
+          </div>
+
+          <!-- Future Projected Cost Box -->
+          <div class="seg-tot-box" style="margin-top: 15px; background-color: var(--gold-bg); border: 1px solid rgba(107, 78, 26, 0.15)">
+            <div class="tot-label" style="color: var(--gold)">Future Projected Cost in <span id="projectedLabelYear">2035</span> (FV)</div>
+            <div class="tot-val" style="color: var(--gold)" id="projectedCostResult">RM 54,296.17</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 2: Slider Indicator Card for Existing Hajj Fund -->
+      <div class="card">
+        <div class="ch">
+          <div class="ch-left">
+            <div class="ci ci2">💵</div>
+            <div>
+              <div class="ch-title">Do you have an existing Hajj savings / investment fund?</div>
+              <div class="ch-sub">Toggle to configure allocations, starting balances and recurring contributions</div>
+            </div>
+          </div>
+          <div class="ch-right">
+            <!-- Toggle Slider styled to fit brand profile -->
+            <div class="toggle-container" onclick="toggleFundCard()">
+              <div class="toggle-option" id="toggle-no">No</div>
+              <div class="toggle-option active" id="toggle-yes">Yes</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 3: Detailed Fund Allocations & Dynamic Math (conditionally displayed via styling) -->
+      <div class="card" id="fundAllocationCard">
+        <div class="ch open">
+          <div class="ch-left">
+            <div class="ci ci1">📈</div>
+            <div>
+              <div class="ch-title">Hajj Accumulation Strategy</div>
+              <div class="ch-sub">Configure expected return vectors and regular annual commitment periods</div>
+            </div>
+          </div>
+        </div>
+        <div class="cb open">
+          <div class="f-static">
+            <div>
+              <div class="f-label">Target Amount</div>
+              <div class="f-sub">Auto-inherited target inflation-adjusted cost</div>
+            </div>
+            <div class="pfx-wrap">
+              <span class="pfx">RM</span>
+              <input type="text" class="inp" id="targetAmountDisplay" readonly style="background-color: var(--surface2); border-color: var(--border); font-weight: 500;">
+            </div>
+          </div>
+
+          <div class="f-static">
+            <div>
+              <div class="f-label">Horizon Start Year</div>
+              <div class="f-sub">When will you start this specific planning line?</div>
+            </div>
+            <div>
+              <input type="number" class="inp" id="startYear" value="2026" oninput="calculateProjections()">
+            </div>
+          </div>
+
+          <div class="f-static">
+            <div>
+              <div class="f-label">Horizon Due Year</div>
+              <div class="f-sub">Locked to target performance year</div>
+            </div>
+            <div>
+              <input type="number" class="inp" id="dueYearDisplay" readonly style="background-color: var(--surface2); border-color: var(--border);">
+            </div>
+          </div>
+
+          <div class="f-static">
+            <div>
+              <div class="f-label">Current Hajj Fund Balance (Initial)</div>
+              <div class="f-sub">Lump sum currently available for Hajj targets</div>
+            </div>
+            <div class="pfx-wrap">
+              <span class="pfx">RM</span>
+              <input type="number" class="inp" id="currentFund" value="10000" oninput="calculateProjections()">
+            </div>
+          </div>
+
+          <div class="f-static">
+            <div>
+              <div class="f-label">Annual Regular Investment (PMT)</div>
+              <div class="f-sub">Amount you commit to save/invest each year</div>
+            </div>
+            <div class="pfx-wrap">
+              <span class="pfx">RM</span>
+              <input type="number" class="inp" id="annualInvestment" value="3000" oninput="calculateProjections()">
+            </div>
+          </div>
+
+          <div class="f-static">
+            <div>
+              <div class="f-label">Expected Annual Return Rate</div>
+              <div class="f-sub">Target portfolio dividend or rate of return</div>
+            </div>
+            <div class="pfx-wrap">
+              <span class="pfx">%</span>
+              <input type="number" step="0.1" class="inp" id="expectedReturn" value="6" oninput="calculateProjections()">
+            </div>
+          </div>
+
+          <!-- Future Value of Funds Box -->
+          <div class="seg-tot-box" style="margin-top: 15px; background-color: var(--green-bg); border: 1px solid rgba(26, 107, 71, 0.15)">
+            <div class="tot-label" style="color: var(--green)">Expected Future Value of Fund (FV)</div>
+            <div class="tot-val" style="color: var(--green)" id="fundFVResult">RM 50,477.12</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Button Area -->
+      <div class="action-btn-container">
+        <button class="btn-action" onclick="triggerGapAnalysis()">
+          <svg style="width: 16px; height: 16px; fill: currentColor;" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z"/></svg>
+          Find The Hajj Fund Gap
+        </button>
+      </div>
+
+      <!-- Calculated Gap Result Box (Hidden until action button is triggered) -->
+      <div id="gapResultBox" class="gap-result-box">
+        <div id="gapThemeWrapper">
+          <div class="gap-hdr" id="gapOutcomeTitle">GAP DEFICIT</div>
+          <div class="gap-big-val" id="gapOutcomeValue">RM -3,819.05</div>
+          <div class="gap-details" id="gapOutcomeText">
+            Based on your horizon calculations, you require RM 54,296.17 but your planned savings strategy yields RM 50,477.12. You have a gap deficit of RM 3,819.05.
+          </div>
+        </div>
+
+        <!-- Commentary Box at bottom of Result Card -->
+        <div class="commentary-block">
+          <div class="commentary-lbl">
+            <span>Planner Commentary & Notes</span>
+            <span class="commentary-char" id="commCharCounter">0/500</span>
+          </div>
+          <textarea class="commentary-box" id="commentaryText" placeholder="Provide notes on strategic next steps, such as increasing investment targets, choosing higher-yield portfolios, or extending the performance horizon..." maxlength="500" oninput="updateCharCount()"></textarea>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── QUICK GUIDE PAGE ── -->
+  <div id="page-quickguide" class="page">
+    <div class="main-area" style="max-width: 800px; margin: 0 auto;">
+      <div class="seg-hdr">
+        <div>
+          <div class="seg-tag t2">Reference Guide</div>
+          <h1 class="seg-title">Hajj Cost Components & Advice</h1>
+          <p class="seg-desc">Understanding key elements of Hajj planning to optimize your journey variables.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="cb open">
+          <div style="margin-bottom: 1.5rem;">
+            <h3 style="font-size: 15px; margin-bottom: 0.5rem; color: var(--gold);">1. Compound Inflation on Hajj Expenses</h3>
+            <p style="font-size: 13px; color: var(--text2); line-height: 1.6;">
+              Hajj packages globally subject to high local inflation, changes in transport fuel premiums, accommodation rates in Makkah and Madinah, and municipal service fees. Historically, Hajj inflation tracks higher than standard consumer price indexes, averaging 4% to 8% annually.
+            </p>
+          </div>
+          <div style="margin-bottom: 1.5rem;">
+            <h3 style="font-size: 15px; margin-bottom: 0.5rem; color: var(--gold);">2. The Power of Regular Investment Annuities</h3>
+            <p style="font-size: 13px; color: var(--text2); line-height: 1.6;">
+              By allocating funds into Shariah-compliant mutual funds, Islamic deposit accounts, or specialized institutions like Malaysia's Tabung Haji, compounding interest/returns dynamically offsets the inflation slope. Starting early significantly reduces your required annual regular contribution (PMT).
+            </p>
+          </div>
+          <div style="margin-bottom: 0.5rem;">
+            <h3 style="font-size: 15px; margin-bottom: 0.5rem; color: var(--gold);">3. Structural Equation Model Definitions</h3>
+            <ul style="font-size: 13px; color: var(--text2); padding-left: 1.25rem; line-height: 1.7;">
+              <li><strong>Projected Expense (FV)</strong> = $PV \times (1 + r)^n$</li>
+              <li><strong>Annuity Accumulation (FV)</strong> = $Initial \times (1 + i)^n + PMT \times \frac{(1 + i)^n - 1}{i}$</li>
+              <li><strong>Hajj Gap Score</strong> = Accumulated Future Value of Assets minus Projected Cost of Performance</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── JAVASCRIPT LOGIC ── -->
+  <script>
+    // State management
+    let hasExistingFund = true;
+    const currentYearDefault = 2026;
+
+    // Run projections instantly on bootstrap
+    window.onload = function() {
+      calculateProjections();
+    };
+
+    // Tab Switching System
+    function switchPage(pageId) {
+      document.querySelectorAll('.pill-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+      
+      if (pageId === 'planner') {
+        document.querySelector('.pill-btn[onclick="switchPage(\'planner\')"]').classList.add('active');
+        document.getElementById('page-planner').classList.add('active');
+      } else {
+        document.querySelector('.pill-btn[onclick="switchPage(\'quickguide\')"]').classList.add('active');
+        document.getElementById('page-quickguide').classList.add('active');
+      }
+    }
+
+    // Interactive Slider Toggle (Yes/No Option)
+    function toggleFundCard() {
+      hasExistingFund = !hasExistingFund;
+      
+      const btnYes = document.getElementById('toggle-yes');
+      const btnNo = document.getElementById('toggle-no');
+      const card = document.getElementById('fundAllocationCard');
+      const gapResultBox = document.getElementById('gapResultBox');
+
+      if (hasExistingFund) {
+        btnYes.classList.add('active');
+        btnNo.classList.remove('active');
+        card.style.display = 'block';
+        card.classList.add('fade-in');
+      } else {
+        btnYes.classList.remove('active');
+        btnNo.classList.add('active');
+        card.style.display = 'none';
+        gapResultBox.classList.remove('show'); // Reset the gap analysis results if toggled off
+      }
+      calculateProjections();
+    }
+
+    // Core Mathematical Projections Block
+    function calculateProjections() {
+      // Inputs from UI
+      const currentYear = parseInt(document.getElementById('currentYear').value) || currentYearDefault;
+      const plannedYear = parseInt(document.getElementById('plannedYear').value) || currentYearDefault + 9;
+      const currentCost = parseFloat(document.getElementById('currentCost').value) || 0;
+      const expectedInflation = parseFloat(document.getElementById('expectedInflation').value) || 0;
+      
+      // Calculate Projection Periods
+      let inflationPeriod = plannedYear - currentYear;
+      if (inflationPeriod < 0) inflationPeriod = 0;
+
+      // Future Value of Hajj Costs FV = PV * (1 + rate)^period
+      const inflationRateDec = expectedInflation / 100;
+      const costOfHajjPlannedYear = currentCost * Math.pow((1 + inflationRateDec), inflationPeriod);
+
+      // UI Cost updates
+      document.getElementById('projectedLabelYear').innerText = plannedYear;
+      document.getElementById('projectedCostResult').innerText = formatCurrency(costOfHajjPlannedYear);
+      document.getElementById('targetAmountDisplay').value = formatCurrency(costOfHajjPlannedYear);
+      document.getElementById('dueYearDisplay').value = plannedYear;
+
+      // Sidebar Live Summary Updates
+      document.getElementById('sd-inflation').innerText = expectedInflation.toFixed(2) + '%';
+      document.getElementById('sd-horizon').innerText = inflationPeriod + ' Years';
+      document.getElementById('sd-target').innerText = formatCurrency(costOfHajjPlannedYear);
+
+      // Fund Math
+      const startYear = parseInt(document.getElementById('startYear').value) || currentYear;
+      const currentFund = parseFloat(document.getElementById('currentFund').value) || 0;
+      const annualInvestment = parseFloat(document.getElementById('annualInvestment').value) || 0;
+      const expectedReturn = parseFloat(document.getElementById('expectedReturn').value) || 0;
+
+      let fundPeriod = plannedYear - startYear;
+      if (fundPeriod < 0) fundPeriod = 0;
+
+      const returnRateDec = expectedReturn / 100;
+
+      // Compound return formula: Future Value of initial sum + Future Value of regular annuity contributions
+      // FV = Initial * (1 + r)^n + PMT * [((1 + r)^n - 1) / r]
+      let fundFV = 0;
+      if (returnRateDec === 0) {
+        fundFV = currentFund + (annualInvestment * fundPeriod);
+      } else {
+        const initialFV = currentFund * Math.pow((1 + returnRateDec), fundPeriod);
+        const annuityFV = annualInvestment * ((Math.pow((1 + returnRateDec), fundPeriod) - 1) / returnRateDec);
+        fundFV = initialFV + annuityFV;
+      }
+
+      // If user toggled "No" to savings/investment, existing fund assets are zero
+      const activeFundFV = hasExistingFund ? fundFV : 0;
+
+      // Update intermediate FV Result
+      document.getElementById('fundFVResult').innerText = formatCurrency(activeFundFV);
+      document.getElementById('sd-fund-fv').innerText = formatCurrency(activeFundFV);
+
+      // Update sidebar indicator tracking progress bar
+      let progressionPercentage = 0;
+      if (costOfHajjPlannedYear > 0) {
+        progressionPercentage = Math.min(100, Math.round((activeFundFV / costOfHajjPlannedYear) * 100));
+      }
+      document.getElementById('sidebar-progress-percent').innerText = progressionPercentage + '%';
+      document.getElementById('sidebar-progress-fill').style.width = progressionPercentage + '%';
+    }
+
+    // Calculate & Display the Hajj Fund Gap on Explicit Request
+    function triggerGapAnalysis() {
+      const currentYear = parseInt(document.getElementById('currentYear').value) || currentYearDefault;
+      const plannedYear = parseInt(document.getElementById('plannedYear').value) || currentYearDefault + 9;
+      const currentCost = parseFloat(document.getElementById('currentCost').value) || 0;
+      const expectedInflation = parseFloat(document.getElementById('expectedInflation').value) || 0;
+
+      // Hajj Projected Price
+      let inflationPeriod = plannedYear - currentYear;
+      if (inflationPeriod < 0) inflationPeriod = 0;
+      const inflationRateDec = expectedInflation / 100;
+      const costOfHajjPlannedYear = currentCost * Math.pow((1 + inflationRateDec), inflationPeriod);
+
+      // Existing Fund Projections
+      const startYear = parseInt(document.getElementById('startYear').value) || currentYear;
+      const currentFund = parseFloat(document.getElementById('currentFund').value) || 0;
+      const annualInvestment = parseFloat(document.getElementById('annualInvestment').value) || 0;
+      const expectedReturn = parseFloat(document.getElementById('expectedReturn').value) || 0;
+
+      let fundPeriod = plannedYear - startYear;
+      if (fundPeriod < 0) fundPeriod = 0;
+
+      const returnRateDec = expectedReturn / 100;
+      let fundFV = 0;
+      if (returnRateDec === 0) {
+        fundFV = currentFund + (annualInvestment * fundPeriod);
+      } else {
+        const initialFV = currentFund * Math.pow((1 + returnRateDec), fundPeriod);
+        const annuityFV = annualInvestment * ((Math.pow((1 + returnRateDec), fundPeriod) - 1) / returnRateDec);
+        fundFV = initialFV + annuityFV;
+      }
+
+      // Check toggled state
+      const finalAccumulation = hasExistingFund ? fundFV : 0;
+      
+      // Calculate exact Gap (Accumulation - Target Cost)
+      const gap = finalAccumulation - costOfHajjPlannedYear;
+
+      const resultBox = document.getElementById('gapResultBox');
+      const themeWrapper = document.getElementById('gapThemeWrapper');
+      const title = document.getElementById('gapOutcomeTitle');
+      const valueDisp = document.getElementById('gapOutcomeValue');
+      const textDisp = document.getElementById('gapOutcomeText');
+      const sdBadge = document.getElementById('sd-gap-badge');
+
+      // Update Sidebar details and output styling
+      if (gap >= 0) {
+        title.innerText = "SURPLUS ACHIEVED";
+        title.style.color = "var(--green)";
+        valueDisp.innerText = "+" + formatCurrency(gap);
+        valueDisp.style.color = "var(--green)";
+        textDisp.innerHTML = `Congratulations! Based on your strategic parameters, your accumulated Hajj fund will yield <strong>${formatCurrency(finalAccumulation)}</strong>, which fully satisfies the inflation-adjusted cost of <strong>${formatCurrency(costOfHajjPlannedYear)}</strong>. You will have a financial surplus of <strong>${formatCurrency(gap)}</strong>.`;
+        
+        // Update Sidebar Badge Style
+        sdBadge.className = "positive";
+        sdBadge.innerText = "+" + formatCurrency(gap);
+      } else {
+        title.innerText = "FUNDING DEFICIT GAP";
+        title.style.color = "var(--red)";
+        valueDisp.innerText = "-" + formatCurrency(Math.abs(gap));
+        valueDisp.style.color = "var(--red)";
+        textDisp.innerHTML = `Your plan reveals a funding shortage. The inflation-adjusted cost of performing Hajj in ${plannedYear} is projected at <strong>${formatCurrency(costOfHajjPlannedYear)}</strong>. Your current investment vectors will only accumulate <strong>${formatCurrency(finalAccumulation)}</strong>. You require an additional <strong>${formatCurrency(Math.abs(gap))}</strong>.`;
+        
+        // Update Sidebar Badge Style
+        sdBadge.className = "negative";
+        sdBadge.innerText = "-" + formatCurrency(Math.abs(gap));
+      }
+
+      resultBox.classList.add('show');
+      resultBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    // Reset Form Input to default variables
+    function resetPlanner() {
+      document.getElementById('plannedYear').value = 2035;
+      document.getElementById('currentCost').value = 35000;
+      document.getElementById('expectedInflation').value = 5;
+      
+      document.getElementById('startYear').value = 2026;
+      document.getElementById('currentFund').value = 10000;
+      document.getElementById('annualInvestment').value = 3000;
+      document.getElementById('expectedReturn').value = 6;
+      
+      document.getElementById('commentaryText').value = "";
+      updateCharCount();
+
+      // Ensure fund card view is visible by default on reset
+      hasExistingFund = false;
+      toggleFundCard(); // This will reset toggle status to 'Yes' state and re-calculate
+    }
+
+    // Utility currency helper
+    function formatCurrency(amount) {
+      if (isNaN(amount) || amount === Infinity) return "RM 0.00";
+      return "RM " + amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    // Character Counter on Commentary Textarea
+    function updateCharCount() {
+      const charCount = document.getElementById('commentaryText').value.length;
+      document.getElementById('commCharCounter').innerText = charCount + "/500";
+    }
+  </script>
+</body>
+</html>

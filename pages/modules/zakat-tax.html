@@ -1,0 +1,1158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zakat & Tax Planner - YA 2025 / Year 2026</title>
+  
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts: DM Sans & DM Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap" rel="stylesheet">
+
+  <style>
+    /* Embed attached styles.css with overrides where necessary for standalone layout */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #f7f6f2; --surface: #fff; --surface2: #f2f0eb;
+      --border: #e2dfd8; --border-strong: #c8c4bb;
+      --text: #1a1916; --text2: #6b6860; --text3: #a09d98;
+      --green: #1a6b47; --green-bg: #edf7f2;
+      --blue: #1a4a6b; --blue-bg: #edf3f7;
+      --red: #6b1a1a; --red-bg: #f7eded;
+      --gold: #6b4e1a; --gold-bg: #f7f2ed;
+      --orange: #b85c00; --amber: #c97a1a;
+      --r: 6px; --rl: 10px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); font-size:14px; line-height:1.5; min-height:100vh; }
+
+    /* ── TOPBAR ── */
+    .topbar { background:var(--surface); border-bottom:1px solid var(--border); padding:0 1.5rem; display:flex; align-items:center; justify-content:space-between; height:56px; position:sticky; top:0; z-index:200; }
+    .brand { display:flex; align-items:center; gap:10px; }
+    .brand-mark { width:28px; height:28px; background:var(--text); border-radius:6px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .brand-mark i { color: #fff; font-size: 13px; }
+    .brand-name { font-size:14px; font-weight:500; letter-spacing:-0.01em; }
+    .brand-sub { font-size:12px; color:var(--text3); margin-left:2px; }
+    .pill-nav { display:flex; background:var(--surface2); border-radius:20px; padding:3px; gap:2px; }
+    .pill-btn { padding:5px 16px; border-radius:16px; border:none; background:transparent; font-size:12px; font-family:'DM Sans',sans-serif; color:var(--text2); cursor:pointer; font-weight:400; transition:all .15s; }
+    .pill-btn.active { background:var(--surface); color:var(--text); font-weight:500; box-shadow:0 1px 2px rgba(0,0,0,.08); }
+
+    /* ── PAGE SHELLS ── */
+    .page { display:none; }
+    .page.active { display:flex; min-height:calc(100vh - 56px); }
+
+    /* ── ENTRY LAYOUT ── */
+    .sidebar { width:260px; flex-shrink:0; background:var(--surface); border-right:1px solid var(--border); position:sticky; top:56px; height:calc(100vh - 56px); overflow-y:auto; padding:1.25rem 0; }
+    .main-area { flex:1; padding:2rem; overflow-y:auto; min-width:0; }
+
+    /* sidebar nav */
+    .sb-label { font-size:10px; font-weight:500; letter-spacing:.08em; text-transform:uppercase; color:var(--text3); padding:0 1.25rem; margin-bottom:.5rem; }
+    .sb-item { display:flex; align-items:center; gap:10px; padding:9px 1.25rem; cursor:pointer; border-left:2px solid transparent; transition:all .12s; font-size:13px; color:var(--text2); text-decoration:none; }
+    .sb-item:hover { background:var(--surface2); color:var(--text); }
+    .sb-item.active { border-left-color:var(--text); color:var(--text); font-weight:500; background:var(--surface2); }
+    .sb-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+    .d1 { background:var(--green); } .d2 { background:var(--blue); } .d3 { background:var(--gold); } .d4 { background:var(--text3); }
+
+    /* progress */
+    .prog-wrap { padding:1.25rem 1.25rem .75rem; }
+    .prog-top { display:flex; justify-content:space-between; font-size:11px; color:var(--text3); margin-bottom:6px; }
+    .prog-track { height:3px; background:var(--surface2); border-radius:2px; overflow:hidden; }
+    .prog-fill { height:100%; background:var(--text); border-radius:2px; width:50%; transition:width .4s; }
+
+    /* per-segment sidebar summaries */
+    .seg-sum { display:none; margin:0 1rem .75rem; }
+    .seg-sum.on { display:block; }
+    .ss-head { background: var(--text); color:#fff; font-size:10px; font-weight:500; letter-spacing:.06em; text-transform:uppercase; padding:6px 10px; border-radius:var(--r) var(--r) 0 0; }
+    .ss-body { background:var(--surface2); border-radius:0 0 var(--r) var(--r); padding:8px 10px; border:1px solid var(--border); border-top:none; }
+    .ss-row { display:flex; justify-content:space-between; align-items:baseline; padding:3px 0; font-size:11px; color:var(--text2); border-bottom:1px solid var(--border); }
+    .ss-row:last-child { border-bottom:none; }
+    .ss-row.neg { color:var(--red); }
+    .ss-v { font-family:'DM Mono',monospace; font-size:11px; color:var(--text); }
+    .ss-b { font-weight:500; }
+    .ss-div { height:1px; background:var(--border-strong); margin:5px 0; }
+    .ss-tot { display:flex; justify-content:space-between; align-items:baseline; padding:3px 0; font-size:11px; font-weight:500; }
+    .positive { color:var(--green); } .negative { color:var(--red); } .neutral { color:var(--blue); } .warning { color:var(--amber); }
+
+    /* ── SEGMENT CONTENT ── */
+    .segment { display:none; }
+    .segment.active { display:block; }
+    .seg-hdr { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:1.75rem; }
+    .seg-tag { display:inline-flex; align-items:center; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:500; margin-bottom:6px; }
+    .t1{background:var(--green-bg);color:var(--green);} .t2{background:var(--blue-bg);color:var(--blue);} .t3{background:var(--gold-bg);color:var(--gold);} .t4{background:var(--surface2);color:var(--text2);}
+    .seg-title { font-size:24px; font-weight:300; letter-spacing:-.03em; }
+    .seg-desc { font-size:13px; color:var(--text3); margin-top:4px; }
+    .seg-tot-box { text-align:right; background:var(--surface2); border-radius:var(--rl); padding:10px 16px; }
+    .tot-label { font-size:11px; color:var(--text3); }
+    .tot-val { font-size:20px; font-weight:500; font-family:'DM Mono',monospace; letter-spacing:-.03em; }
+
+    /* cards */
+    .card { background:var(--surface); border:1px solid var(--border); border-radius:var(--rl); margin-bottom:1.5rem; overflow:hidden; box-shadow:var(--shadow); }
+    .ch { display:flex; align-items:center; justify-content:space-between; padding:14px 16px; cursor:pointer; user-select:none; border-bottom:1px solid transparent; transition:background .12s; }
+    .ch:hover { background:var(--surface2); }
+    .ch.open { border-bottom-color:var(--border); }
+    .ch-left { display:flex; align-items:center; gap:10px; }
+    .ci { width:28px; height:28px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:13px; flex-shrink:0; }
+    .ci1{background:var(--green-bg); color: var(--green);} 
+    .ci2{background:var(--blue-bg); color: var(--blue);} 
+    .ci3{background:var(--gold-bg); color: var(--gold);} 
+    .ci-r{background:var(--red-bg); color: var(--red);} 
+    .ci-g{background:var(--surface2); color: var(--text2);}
+    .ch-title { font-size:13px; font-weight:500; }
+    .ch-sub { font-size:11px; color:var(--text3); margin-top:1px; }
+    .ch-right { display:flex; align-items:center; gap:10px; }
+    .ch-sum { font-family:'DM Mono',monospace; font-size:13px; color:var(--text2); }
+    .chev { width:16px; height:16px; color:var(--text3); transition:transform .2s; flex-shrink:0; }
+    .chev.open { transform:rotate(180deg); }
+    .cb { display:none; padding:14px 16px; }
+    .cb.open { display:block; }
+
+    /* fields */
+    .f-static { display:grid; grid-template-columns:280px 1fr ; gap:12px; align-items:center; padding:10px 0; border-bottom:1px solid var(--border); }
+    .f-static:last-of-type { border-bottom:none; }
+    .f-label { font-size:13px; font-weight: 500; }
+    .f-sub { font-size:11px; color:var(--text3); display: block; font-weight: normal; margin-top: 2px; }
+    
+    .pfx-wrap { position:relative; width: 100%; display: flex; }
+    .pfx { position:absolute; left:10px; top:50%; transform:translateY(-50%); font-size:12px; color:var(--text3); pointer-events:none; }
+    .sfx { position:absolute; right:10px; top:50%; transform:translateY(-50%); font-size:12px; color:var(--text3); pointer-events:none; }
+    .inp { width:100%; height:34px; border:1px solid var(--border); border-radius:var(--r); padding:0 10px; font-size:13px; font-family:'DM Mono',monospace; color:var(--text); background:var(--surface); text-align:right; transition:border-color .12s; }
+    .inp:focus { outline:none; border-color:var(--text); }
+    .inp.pl { padding-left:26px; }
+    .inp.pr { padding-right:54px; }
+    .inp:disabled { background: var(--surface2); color: var(--text3); cursor: not-allowed; }
+
+    /* Custom Switch & Checkbox */
+    .option-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--rl);
+      padding: 1rem;
+      margin-bottom: 1rem;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .option-row:hover {
+      border-color: var(--border-strong);
+      box-shadow: var(--shadow);
+    }
+    .option-checkbox-wrapper {
+      position: relative;
+      width: 20px;
+      height: 20px;
+      margin-top: 2px;
+    }
+    .option-checkbox {
+      width: 20px;
+      height: 20px;
+      accent-color: var(--text);
+      cursor: pointer;
+    }
+    .option-label {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text);
+    }
+    .option-desc {
+      font-size: 12px;
+      color: var(--text3);
+      margin-top: 2px;
+    }
+
+    /* output assessments */
+    .calc-result-box {
+      border: 1px solid;
+      border-radius: var(--rl);
+      padding: 1.5rem;
+      margin-top: 1.5rem;
+      animation: fi .2s ease;
+    }
+    .res-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 6px;
+    }
+    .res-main-val {
+      font-size: 28px;
+      font-weight: 700;
+      font-family: 'DM Mono', monospace;
+      letter-spacing: -0.04em;
+      margin-bottom: 12px;
+    }
+    .res-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      border-top: 1px solid rgba(0,0,0,0.06);
+      padding-top: 12px;
+    }
+    .res-sub-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12.5px;
+    }
+    .res-sub-lbl {
+      color: var(--text2);
+    }
+    .res-sub-val {
+      font-family: 'DM Mono', monospace;
+      font-weight: 500;
+    }
+
+    /* Bracket tables style from styles.css */
+    .table-responsive {
+      overflow-x: auto;
+      margin-top: 1rem;
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+    }
+    .bk-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12.5px;
+    }
+    .bk-table th {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text3);
+      text-align: left;
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface2);
+    }
+    .bk-table td {
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--surface2);
+    }
+    .bk-table td:last-child {
+      text-align: right;
+      font-family: 'DM Mono', monospace;
+    }
+    .bk-table tr.active-tier {
+      background: var(--blue-bg);
+      font-weight: 500;
+    }
+
+    /* commentary */
+    .commentary-block { margin-top: 1.5rem; }
+    .commentary-box { width:100%; min-height:80px; border:1px solid var(--border); border-radius:var(--rl); padding:10px 12px; font-size:13px; font-family:'DM Sans',sans-serif; color:var(--text); background:var(--surface); resize:vertical; line-height:1.5; transition:border-color .12s; }
+    .commentary-box:focus { outline:none; border-color:var(--text); }
+    .commentary-box::placeholder { color:var(--text3); }
+    .commentary-lbl { font-size:11px; font-weight:500; letter-spacing:.06em; text-transform:uppercase; color:var(--text3); margin-bottom:6px; display:flex; align-items:center; gap:6px; }
+    .commentary-char { font-size:10px; color:var(--text3); margin-left:auto; font-weight:400; letter-spacing:0; text-transform:none; }
+    .commentary-print { display:none; font-size:12px; color:var(--text2); font-style:italic; margin-top:6px; white-space:pre-wrap; background: var(--surface2); padding: 10px; border-radius: var(--r); border: 1px solid var(--border); }
+
+    /* overall dashboard metric style */
+    .mx-grid { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:10px; margin-bottom:1.5rem; }
+    .mx-item { background:var(--surface); border:1px solid var(--border); border-radius:var(--rl); padding:1rem 1.25rem; }
+    .mx-lbl { font-size:11px; color:var(--text3); letter-spacing:.03em; margin-bottom:3px; }
+    .mx-fml { font-size:10px; color:var(--text3); opacity:.7; margin-bottom:8px; font-style:italic; }
+    .mx-val { font-size:22px; font-weight:500; font-family:'DM Mono',monospace; letter-spacing:-.03em; }
+    .mx-sub { font-size:11px; color:var(--text3); margin-top:3px; }
+
+    /* buttons */
+    .btn-pdf { display:inline-flex; align-items:center; gap:7px; padding:8px 18px; background:var(--text); color:#fff; border:none; border-radius:var(--r); font-size:13px; font-family:'DM Sans',sans-serif; font-weight:500; cursor:pointer; transition:opacity .15s; white-space:nowrap; flex-shrink:0; }
+    .btn-pdf:hover { opacity:.85; }
+    .btn-reset-data { display:inline-flex; align-items:center; gap:4px; padding:4px 9px; border:1px solid var(--border); border-radius:var(--r); background:transparent; font-size:11px; font-family:'DM Sans',sans-serif; color:var(--text3); cursor:pointer; transition:all .12s; margin-left:6px; }
+    .btn-reset-data:hover { border-color:#c0392b; color:#c0392b; background:#fff5f5; }
+
+    .action-btn { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; background: var(--text); color: #fff; border: none; border-radius: var(--r); font-size: 12.5px; font-weight: 500; cursor: pointer; transition: background 0.15s; }
+    .action-btn:hover { background: #333; }
+
+    /* helper info bar */
+    .info-bar { display: flex; align-items: flex-start; gap: 10px; padding: 10px 14px; border-radius: var(--r); font-size: 12.5px; margin-bottom: 1.25rem; line-height: 1.45; }
+    .info-bar i { font-size: 14px; margin-top: 2px; }
+
+    /* layout adjustments */
+    @media(max-width:768px){
+      .sidebar{display:none;}
+      .mx-grid{grid-template-columns:1fr;}
+      .f-static{grid-template-columns:1fr; gap:6px;}
+      .inp.pl{width: 100%;}
+    }
+
+    /* Print styles matching styles.css */
+    @media print {
+      * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
+      body { background:#f7f6f2 !important; margin:0; }
+      .topbar, .sidebar, .btn-pdf, .btn-reset-data, .commentary-box, .commentary-lbl, .commentary-char, .pill-nav { display:none !important; }
+      .page { display:block !important; min-height:auto !important; }
+      .main-area { padding:12px !important; max-width:100% !important; }
+      .commentary-print { display:block !important; }
+      .card { break-inside:avoid; page-break-inside:avoid; margin-bottom:10px !important; padding:12px !important; border:1px solid #e2dfd8 !important; border-radius:8px !important; }
+      .calc-result-box { break-inside:avoid; page-break-inside:avoid; }
+      .bk-table { font-size: 11px; }
+    }
+  </style>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../../assets/js/supabase-client.js"></script>
+  <script src="../../assets/js/supabase-store.js"></script>
+  <script src="../../assets/js/auth-guard.js"></script>
+</head>
+<body>
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-mark">
+        <i class="fa-solid fa-coins"></i>
+      </div>
+      <div>
+        <span class="brand-name">Zakat & Tax Planner</span>
+        <span class="brand-sub">YA 2025 / 2026 Desktop</span>
+      </div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <button class="btn-pdf" onclick="window.print()">
+        <i class="fa-solid fa-print"></i> Print Report
+      </button>
+      <button class="btn-reset-data" onclick="resetAll()">
+        <i class="fa-solid fa-rotate-left"></i> Reset Desk
+      </button>
+    </div>
+  </div>
+
+  <!-- MAIN WRAPPER -->
+  <div class="page active">
+    
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="prog-wrap">
+        <div class="prog-top">
+          <span>Desk Planning Setup</span>
+          <span id="completion-lbl">50% Completed</span>
+        </div>
+        <div class="prog-track">
+          <div class="prog-fill" id="completion-bar"></div>
+        </div>
+      </div>
+
+      <div class="sb-label">Assessments</div>
+      <a href="#overview-panel" class="sb-item active" onclick="scrollToElement('overview-panel', this)">
+        <span class="sb-dot d1"></span> Consolidated View
+      </a>
+      <a href="#tax-panel" class="sb-item" id="sb-nav-tax" onclick="scrollToElement('tax-panel-header', this)">
+        <span class="sb-dot d2"></span> YA 2025 Tax Calculator
+      </a>
+      <a href="#zakat-panel" class="sb-item" id="sb-nav-zakat" onclick="scrollToElement('zakat-panel-header', this)">
+        <span class="sb-dot d3"></span> Selangor Zakat Planner
+      </a>
+
+      <!-- Quick Summary inside Sidebar matching styles.css pattern -->
+      <div class="sb-label" style="margin-top:1.5rem;">Live Summary</div>
+      <div class="seg-sum on" style="display: block;">
+        <div class="ss-head">Quick Summary</div>
+        <div class="ss-body">
+          <div class="ss-row">
+            <span>Chargeable Income:</span>
+            <span class="ss-v" id="sb-chargeable">RM 0.00</span>
+          </div>
+          <div class="ss-row">
+            <span>Est. Income Tax:</span>
+            <span class="ss-v text-blue" id="sb-tax-due" style="color:var(--blue)">RM 0.00</span>
+          </div>
+          <div class="ss-row">
+            <span>Assessable Zakat:</span>
+            <span class="ss-v" id="sb-zakat-wealth">RM 0.00</span>
+          </div>
+          <div class="ss-row">
+            <span>Est. Zakat Due:</span>
+            <span class="ss-v" id="sb-zakat-due" style="color:var(--gold)">RM 0.00</span>
+          </div>
+          <div class="ss-div"></div>
+          <div class="ss-tot">
+            <span>Combined Outflow:</span>
+            <span class="ss-v ss-b positive" id="sb-total-outflow" style="color:var(--green)">RM 0.00</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN AREA -->
+    <div class="main-area">
+      
+      <!-- HEADER -->
+      <div class="a-header">
+        <div class="a-header-left">
+          <h1 class="a-title">Zakat & Tax Planning Desk</h1>
+          <p class="a-sub">Integrate your LHDN Malaysian progressive taxes with regional wealth zakat allocations systematically.</p>
+        </div>
+      </div>
+
+      <!-- OBJECTIVE & CONFIGURATION CARD -->
+      <div class="card" id="overview-panel">
+        <div class="ch open">
+          <div class="ch-left">
+            <div class="ci ci1"><i class="fa-solid fa-crosshairs"></i></div>
+            <div>
+              <span class="ch-title">Desk Configuration & Directives</span>
+              <p class="ch-sub">Configure active planning modules for the current assessment period</p>
+            </div>
+          </div>
+        </div>
+        <div class="cb open">
+          <div class="info-bar" style="background: var(--surface2); color: var(--text);">
+            <i class="fa-solid fa-calculator"></i>
+            <span><strong>Objective:</strong> Stay tax-compliant while optimizing your personal tax reliefs, and track zakat obligations across cash savings, mutual stock portfolios, and precious physical gold assets.</span>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
+            <!-- Checkbox 1: Tax Planning -->
+            <div class="option-row" onclick="togglePlannerCheckbox('tax')">
+              <div class="option-checkbox-wrapper">
+                <input type="checkbox" id="chk-tax" class="option-checkbox" checked onclick="event.stopPropagation(); handleCheckboxChange()">
+              </div>
+              <div>
+                <div class="option-label">I want to plan my Payable Tax for YA 2025</div>
+                <div class="option-desc">Loads the latest LHDN progressive bracket rules and deductions to evaluate monthly tax prepaid offset (MTD/PCB).</div>
+              </div>
+            </div>
+
+            <!-- Checkbox 2: Zakat Planning -->
+            <div class="option-row" onclick="togglePlannerCheckbox('zakat')">
+              <div class="option-checkbox-wrapper">
+                <input type="checkbox" id="chk-zakat" class="option-checkbox" checked onclick="event.stopPropagation(); handleCheckboxChange()">
+              </div>
+              <div>
+                <div class="option-label">I want to plan my Payable Zakat for Year 2026</div>
+                <div class="option-desc">Evaluates savings, investments, stored gold (85g threshold), and worn gold (800g Selangor Uruf) using current Nisab.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- OVERALL MATRIX SUMMARY PANEL -->
+      <div class="card" id="combined-summary-card">
+        <div class="ch open">
+          <div class="ch-left">
+            <div class="ci ci3"><i class="fa-solid fa-chart-pie"></i></div>
+            <div>
+              <span class="ch-title">Consolidated Wealth Outflow Assessment</span>
+              <p class="ch-sub">Global planning figures for the active desk session</p>
+            </div>
+          </div>
+        </div>
+        <div class="cb open">
+          <div class="mx-grid">
+            <!-- Tax KPI Card -->
+            <div class="mx-item" style="border-left: 3.5px solid var(--blue)">
+              <div class="mx-lbl">Income Tax Due</div>
+              <div class="mx-fml">LHDN Progressive Band</div>
+              <div class="mx-val text-blue" id="lbl-tax-payable" style="color: var(--blue);">RM 0.00</div>
+              <div class="mx-sub" id="lbl-tax-sub">Based on YA 2025</div>
+            </div>
+
+            <!-- Zakat KPI Card -->
+            <div class="mx-item" style="border-left: 3.5px solid var(--gold)">
+              <div class="mx-lbl">Zakat Obligation</div>
+              <div class="mx-fml">2.5% on Wealth Assets</div>
+              <div class="mx-val" id="lbl-zakat-payable" style="color: var(--gold);">RM 0.00</div>
+              <div class="mx-sub" id="lbl-zakat-sub">Nisab Threshold: RM 24,500</div>
+            </div>
+
+            <!-- Combined KPI Card -->
+            <div class="mx-item" style="border-left: 3.5px solid var(--green)">
+              <div class="mx-lbl">Combined Outflow</div>
+              <div class="mx-fml">Tax + Zakat Obligations</div>
+              <div class="mx-val" id="lbl-combined-outflow" style="color: var(--green);">RM 0.00</div>
+              <div class="mx-sub" id="lbl-combined-sub">Dynamic Zakat rebate applied to Tax</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- INCOME TAX CALCULATOR PANEL -->
+      <div class="card" id="tax-panel" style="display: block;">
+        <div class="ch open" id="tax-panel-header" onclick="toggleCardCollapse('tax-card-body', 'tax-chev')">
+          <div class="ch-left">
+            <div class="ci ci2"><i class="fa-solid fa-file-invoice-dollar"></i></div>
+            <div>
+              <span class="ch-title">Payable Tax Calculator (YA 2025 Model)</span>
+              <span class="ch-sub">Resident Individual Progressive Bracket Structure</span>
+            </div>
+          </div>
+          <div class="ch-right">
+            <span class="ch-sum" id="header-tax-sum">RM 0.00</span>
+            <i class="fa-solid fa-chevron-up chev open" id="tax-chev"></i>
+          </div>
+        </div>
+        
+        <div class="cb open" id="tax-card-body">
+          <div class="info-bar" style="background: var(--blue-bg); color: var(--blue);">
+            <i class="fa-solid fa-circle-info"></i>
+            <span>Calculations follow LHDN progressive brackets for YA 2025. Registered reliefs are deducted directly from gross income to reduce overall Chargeable Income.</span>
+          </div>
+
+          <!-- Basic Gross Income Input -->
+          <div class="f-static">
+            <div>
+              <span class="f-label">Annual Gross Income</span>
+              <span class="f-sub">Base salary, bonuses, commissions, and other taxable income.</span>
+            </div>
+            <div class="pfx-wrap">
+              <span class="pfx">RM</span>
+              <input type="number" id="tax-gross-income" class="inp pl" value="78000" oninput="runCalculations()">
+            </div>
+          </div>
+
+          <!-- Tax Relief Sub-Registry Header -->
+          <div style="margin-top: 1.25rem; margin-bottom: 0.5rem; border-bottom: 1px solid var(--border); padding-bottom: 4px;">
+            <span class="f-label" style="font-weight: 700; color: var(--text2);">Claimable Tax Relief Sub-Registry</span>
+          </div>
+
+          <!-- Individual Relief -->
+          <div class="f-static">
+            <div>
+              <span class="f-label">Individual & Dependent Relief</span>
+              <span class="f-sub">Automatic baseline statutory relief.</span>
+            </div>
+            <div class="pfx-wrap">
+              <span class="pfx">RM</span>
+              <input type="number" id="tax-relief-individual" class="inp pl" value="9000" disabled>
+            </div>
+          </div>
+
+          <!-- Medical Expense Relief -->
+          <div class="f-static">
+            <div>
+              <span class="f-label">Medical Expense Relief (Self/Spouse/Parent)</span>
+              <span class="f-sub">Serious illness therapies, parents' treatment, vaccinations (Cap: RM 10,000).</span>
+            </div>
+            <div class="pfx-wrap">
+              <span class="pfx">RM</span>
+              <input type="number" id="tax-relief-medical" class="inp pl" value="1500" max="10000" oninput="runCalculations()">
+            </div>
+          </div>
+
+          <!-- Lifestyle Relief -->
+          <div class="f-static">
+            <div>
+              <span class="f-label">Lifestyle Relief (Books/Internet/Tech/Sports)</span>
+              <span class="f-sub">Purchase of books, devices, sports gear, and subscription bills (Cap: RM 2,500).</span>
+            </div>
+            <div class="pfx-wrap">
+              <span class="pfx">RM</span>
+              <input type="number" id="tax-relief-lifestyle" class="inp pl" value="2000" max="2500" oninput="runCalculations()">
+            </div>
+          </div>
+
+          <!-- EPF Contributions -->
+          <div class="f-static">
+            <div>
+              <span class="f-label">EPF Contributions</span>
+              <span class="f-sub">Mandatory or voluntary Employees Provident Fund deposits (Cap: RM 4,000).</span>
+            </div>
+            <div class="pfx-wrap">
+              <span class="pfx">RM</span>
+              <input type="number" id="tax-relief-epf" class="inp pl" value="4000" max="4000" oninput="runCalculations()">
+            </div>
+          </div>
+
+          <!-- Life Insurance Premiums -->
+          <div class="f-static">
+            <div>
+              <span class="f-label">Life Insurance Premiums</span>
+              <span class="f-sub">Premiums paid on personal or spouse policies (Cap: RM 3,000).</span>
+            </div>
+            <div class="pfx-wrap">
+              <span class="pfx">RM</span>
+              <input type="number" id="tax-relief-life-ins" class="inp pl" value="3000" max="3000" oninput="runCalculations()">
+            </div>
+          </div>
+
+          <!-- SSPN Savings -->
+          <div class="f-static">
+            <div>
+              <span class="f-label">SSPN Savings Net Deposit</span>
+              <span class="f-sub">Net deposits made to National Education Savings Scheme (Cap: RM 8,000).</span>
+            </div>
+            <div class="pfx-wrap">
+              <span class="pfx">RM</span>
+              <input type="number" id="tax-relief-sspn" class="inp pl" value="0" max="8000" oninput="runCalculations()">
+            </div>
+          </div>
+
+          <!-- MTD Paid -->
+          <div class="f-static" style="margin-top: 1.25rem;">
+            <div>
+              <span class="f-label">Monthly Tax Deduction (MTD / PCB) Paid</span>
+              <span class="f-sub">Prepaid monthly taxes deducted automatically by your employer.</span>
+            </div>
+            <div class="pfx-wrap">
+              <span class="pfx">RM</span>
+              <input type="number" id="tax-mtd-paid" class="inp pl" value="1800" oninput="runCalculations()">
+            </div>
+          </div>
+
+          <!-- Zakat Offset Input -->
+          <div class="f-static">
+            <div>
+              <span class="f-label">Annual Zakat Payments (Rebated directly)</span>
+              <span class="f-sub">Islamic religious dues act as a 100% direct rebate off total computed tax.</span>
+            </div>
+            <div class="pfx-wrap">
+              <span class="pfx">RM</span>
+              <input type="number" id="tax-zakat-paid" class="inp pl" value="0" oninput="runCalculations()">
+            </div>
+          </div>
+
+          <!-- Runs Calculation Button -->
+          <div style="text-align: right; margin-top: 12px;">
+            <button class="action-btn" onclick="runCalculations()"><i class="fa-solid fa-calculator"></i> Run Tax Calculation</button>
+          </div>
+
+          <!-- Tax Output Assessment Box -->
+          <div class="calc-result-box" style="background: var(--blue-bg); border-color: rgba(26, 74, 107, 0.15)">
+            <div class="res-title" style="color: var(--blue);">Tax Liability Assessment (YA 2025)</div>
+            <div class="res-main-val" id="tax-final-liability-val" style="color: var(--blue);">RM 0.00</div>
+            
+            <div class="res-grid">
+              <div class="res-sub-item">
+                <span class="res-sub-lbl">Chargeable Income:</span>
+                <span class="res-sub-val" id="res-tax-chargeable">RM 0.00</span>
+              </div>
+              <div class="res-sub-item">
+                <span class="res-sub-lbl">Total Claimed Reliefs:</span>
+                <span class="res-sub-val" id="res-tax-reliefs">RM 0.00</span>
+              </div>
+              <div class="res-sub-item">
+                <span class="res-sub-lbl">Calculated Tax (Pre-rebates):</span>
+                <span class="res-sub-val" id="res-tax-calculated-owed">RM 0.00</span>
+              </div>
+              <div class="res-sub-item">
+                <span class="res-sub-lbl">Eligible Rebates Applied:</span>
+                <span class="res-sub-val" id="res-tax-rebates">RM 0.00</span>
+              </div>
+            </div>
+
+            <div style="margin-top: 1rem; font-size: 13px; font-weight: 700;">
+              Filing Action State: <span id="res-tax-status-text" class="neutral">Balanced</span>
+            </div>
+
+            <!-- Tax Progressive Breakdown Table -->
+            <div class="table-responsive">
+              <table class="bk-table">
+                <thead>
+                  <tr>
+                    <th>Chargeable Tier (RM)</th>
+                    <th>Rate (%)</th>
+                    <th style="text-align: right;">Calculated Tax within Tier (RM)</th>
+                  </tr>
+                </thead>
+                <tbody id="bracket-table-body">
+                  <!-- Generated by JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Commentary Block for Tax -->
+          <div class="commentary-block">
+            <div class="commentary-lbl">
+              <span>YA 2025 Tax Notes / Reminders</span>
+              <span class="commentary-char" id="char-count-tax">0 / 250 chars</span>
+            </div>
+            <textarea id="commentary-tax" class="commentary-box" placeholder="e.g. Remember to gather receipts for lifestyle purchases and life insurance statements before LHDN deadline..." maxlength="250" oninput="updateCommentary('tax')"></textarea>
+            <div class="commentary-print" id="print-tax-commentary">No notes specified.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ZAKAT WEALTH CALCULATOR PANEL -->
+      <div class="card" id="zakat-panel" style="display: block;">
+        <div class="ch open" id="zakat-panel-header" onclick="toggleCardCollapse('zakat-card-body', 'zakat-chev')">
+          <div class="ch-left">
+            <div class="ci ci3"><i class="fa-solid fa-coins"></i></div>
+            <div>
+              <span class="ch-title">Payable Zakat Planner (Selangor Model)</span>
+              <span class="ch-sub">Savings, Portfolio, and Precious Metals Wealth Zakat</span>
+            </div>
+          </div>
+          <div class="ch-right">
+            <span class="ch-sum" id="header-zakat-sum">RM 0.00</span>
+            <i class="fa-solid fa-chevron-up chev open" id="zakat-chev"></i>
+          </div>
+        </div>
+
+        <div class="cb open" id="zakat-card-body">
+          <div class="info-bar" style="background: var(--gold-bg); color: var(--gold);">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <span>Zakat is applicable at exactly 2.5% on wealth holdings once total assessable liquid holdings exceed the annual Nisab threshold. Current Selangor Nisab: <strong>RM 24,500.00</strong>.</span>
+          </div>
+
+          <!-- Cash & Savings -->
+          <div style="background: var(--surface2); padding: 12px; border-radius: var(--r); margin-bottom: 12px; border: 1px solid var(--border);">
+            <span class="f-label" style="font-weight: 700; color: var(--gold)">1. Zakat on Cash & Savings Accounts</span>
+            <p class="f-sub" style="margin-bottom: 8px;">Assessable value computed from the lowest combined aggregate balance of your cash deposits across the year.</p>
+            <div class="f-static" style="border-bottom:none; padding: 4px 0;">
+              <div><span class="f-label">Lowest Consolidated Annual Balance</span></div>
+              <div class="pfx-wrap">
+                <span class="pfx">RM</span>
+                <input type="number" id="zakat-savings-bal" class="inp pl" value="18000" oninput="runCalculations()">
+              </div>
+            </div>
+          </div>
+
+          <!-- Shares & Portfolios -->
+          <div style="background: var(--surface2); padding: 12px; border-radius: var(--r); margin-bottom: 12px; border: 1px solid var(--border);">
+            <span class="f-label" style="font-weight: 700; color: var(--gold)">2. Zakat on Shares & Mutual Portfolios</span>
+            <p class="f-sub" style="margin-bottom: 8px;">Assessable value of stocks, unit trust funds, and active digital portfolios at year-end market valuation.</p>
+            <div class="f-static" style="border-bottom:none; padding: 4px 0;">
+              <div><span class="f-label">Market Value of Stock Holdings</span></div>
+              <div class="pfx-wrap">
+                <span class="pfx">RM</span>
+                <input type="number" id="zakat-stocks-bal" class="inp pl" value="25000" oninput="runCalculations()">
+              </div>
+            </div>
+          </div>
+
+          <!-- Precious Gold Holdings -->
+          <div style="background: var(--surface2); padding: 12px; border-radius: var(--r); margin-bottom: 12px; border: 1px solid var(--border);">
+            <span class="f-label" style="font-weight: 700; color: var(--gold)">3. Zakat on Physical / Account Gold Holdings</span>
+            <p class="f-sub" style="margin-bottom: 8px;">Nisab limit for stored/investment gold bar is 85g. Customary worn gold jewelry in Selangor has an Uruf exemption up to 800g.</p>
+            
+            <div class="f-static">
+              <div>
+                <span class="f-label">Weight of Investment Gold (Stored)</span>
+                <span class="f-sub">Gold bars, bullion, digital gold accounts, or un-worn stored ornaments.</span>
+              </div>
+              <div class="pfx-wrap">
+                <input type="number" id="zakat-gold-stored" class="inp pr" value="90" oninput="runCalculations()">
+                <span class="sfx">Grams</span>
+              </div>
+            </div>
+
+            <div class="f-static">
+              <div>
+                <span class="f-label">Weight of Worn Gold Ornaments</span>
+                <span class="f-sub">Customary worn jewelry. Selangor Uruf threshold is 800g (Excess weight is zakatable).</span>
+              </div>
+              <div class="pfx-wrap">
+                <input type="number" id="zakat-gold-worn" class="inp pr" value="15" oninput="runCalculations()">
+                <span class="sfx">Grams</span>
+              </div>
+            </div>
+
+            <div class="f-static" style="border-bottom:none;">
+              <div>
+                <span class="f-label">Current Market Price of Gold</span>
+                <span class="f-sub">Valuation rate of gold per-gram for the assessment date.</span>
+              </div>
+              <div class="pfx-wrap">
+                <input type="number" id="zakat-gold-price" class="inp pr" value="340" oninput="runCalculations()">
+                <span class="sfx">RM/g</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Runs Calculation Button -->
+          <div style="text-align: right; margin-top: 12px;">
+            <button class="action-btn" onclick="runCalculations()"><i class="fa-solid fa-coins"></i> Calculate Zakat</button>
+          </div>
+
+          <!-- Zakat Output Assessment Box -->
+          <div class="calc-result-box" style="background: var(--gold-bg); border-color: rgba(107, 78, 26, 0.15)">
+            <div class="res-title" style="color: var(--gold);">Estimated Zakat Obligation Summary</div>
+            <div class="res-main-val" id="zakat-final-val" style="color: var(--gold);">RM 0.00</div>
+            
+            <div class="res-grid">
+              <div class="res-sub-item">
+                <span class="res-sub-lbl">Total Zakat-Assessable Wealth:</span>
+                <span class="res-sub-val" id="res-zakat-wealth">RM 0.00</span>
+              </div>
+              <div class="res-sub-item">
+                <span class="res-sub-lbl">Nisab Limit Check (RM 24,500.00):</span>
+                <span class="res-sub-val" id="res-zakat-nisab-check">Passed</span>
+              </div>
+              <div class="res-sub-item">
+                <span class="res-sub-lbl">Assessable Stored Gold Value:</span>
+                <span class="res-sub-val" id="res-gold-stored-val">RM 0.00</span>
+              </div>
+              <div class="res-sub-item">
+                <span class="res-sub-lbl">Assessable Worn Gold Value (Excess):</span>
+                <span class="res-sub-val" id="res-gold-worn-val">RM 0.00</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Commentary Block for Zakat -->
+          <div class="commentary-block">
+            <div class="commentary-lbl">
+              <span>Zakat Planning & Payment Notes</span>
+              <span class="commentary-char" id="char-count-zakat">0 / 250 chars</span>
+            </div>
+            <textarea id="commentary-zakat" class="commentary-box" placeholder="e.g. Schedule payment to Selangor Zakat Board. Note down the transaction receipt to claim direct rebate on tax..." maxlength="250" oninput="updateCommentary('zakat')"></textarea>
+            <div class="commentary-print" id="print-zakat-commentary">No notes specified.</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // System Configurations
+    const NISAB_THRESHOLD = 24500.00;
+
+    // LHDN YA 2025 Progressive Brackets Reference
+    const TAX_BRACKETS_YA_2025 = [
+      { min: 0, max: 5000, rate: 0.00, taxBase: 0 },
+      { min: 5000, max: 20000, rate: 0.01, taxBase: 0 },
+      { min: 20000, max: 35000, rate: 0.03, taxBase: 150 },
+      { min: 35000, max: 50000, rate: 0.06, taxBase: 600 },
+      { min: 50000, max: 70000, rate: 0.11, taxBase: 1500 },
+      { min: 70000, max: 100000, rate: 0.19, taxBase: 3700 },
+      { min: 100000, max: 400000, rate: 0.25, taxBase: 9400 },
+      { min: 400000, max: 600000, rate: 0.26, taxBase: 84400 },
+      { min: 600000, max: 2000000, rate: 0.28, taxBase: 136400 },
+      { min: 2000000, max: Infinity, rate: 0.30, taxBase: 528400 }
+    ];
+
+    window.onload = function() {
+      // Default state initializes both planners
+      runCalculations();
+      updateProgress();
+    };
+
+    // Scroll smoothly to target element
+    function scrollToElement(id, element) {
+      // Manage active state classes in sidebar
+      const items = document.querySelectorAll('.sb-item');
+      items.forEach(item => item.classList.remove('active'));
+      element.classList.add('active');
+
+      const target = document.getElementById(id);
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+
+    // Interactive Card Collapse/Expand toggler
+    function toggleCardCollapse(bodyId, chevId) {
+      const body = document.getElementById(bodyId);
+      const chev = document.getElementById(chevId);
+      if (body.classList.contains('open')) {
+        body.classList.remove('open');
+        chev.classList.remove('open');
+      } else {
+        body.classList.add('open');
+        chev.classList.add('open');
+      }
+    }
+
+    // Toggle planner panel display via the option card click
+    function togglePlannerCheckbox(type) {
+      const chk = document.getElementById('chk-' + type);
+      chk.checked = !chk.checked;
+      handleCheckboxChange();
+    }
+
+    // Processes checkbox changes to display correct cards and recalculate
+    function handleCheckboxChange() {
+      const isTaxPlanned = document.getElementById('chk-tax').checked;
+      const isZakatPlanned = document.getElementById('chk-zakat').checked;
+
+      const taxPanel = document.getElementById('tax-panel');
+      const zakatPanel = document.getElementById('zakat-panel');
+      const sbTax = document.getElementById('sb-nav-tax');
+      const sbZakat = document.getElementById('sb-nav-zakat');
+
+      // Update Panel visibility
+      taxPanel.style.display = isTaxPlanned ? 'block' : 'none';
+      sbTax.style.display = isTaxPlanned ? 'flex' : 'none';
+
+      zakatPanel.style.display = isZakatPlanned ? 'block' : 'none';
+      sbZakat.style.display = isZakatPlanned ? 'flex' : 'none';
+
+      runCalculations();
+      updateProgress();
+    }
+
+    // Dynamic UI Progress bar update
+    function updateProgress() {
+      const isTaxPlanned = document.getElementById('chk-tax').checked;
+      const isZakatPlanned = document.getElementById('chk-zakat').checked;
+      const fill = document.getElementById('completion-fill');
+      const bar = document.getElementById('completion-bar');
+      const lbl = document.getElementById('completion-lbl');
+
+      let score = 0;
+      if (isTaxPlanned) score += 50;
+      if (isZakatPlanned) score += 50;
+
+      bar.style.width = score + '%';
+      lbl.innerText = score + '% Completed';
+    }
+
+    // Core dynamic calculation runner
+    function runCalculations() {
+      let finalTaxCalculated = 0.00;
+      let finalZakatCalculated = 0.00;
+
+      const isTaxPlanned = document.getElementById('chk-tax').checked;
+      const isZakatPlanned = document.getElementById('chk-zakat').checked;
+
+      // 1. Determine Zakat (Calculate Zakat first so its rebate can automatically feed into Tax Relieves)
+      if (isZakatPlanned) {
+        finalZakatCalculated = calculateZakat();
+      } else {
+        document.getElementById('header-zakat-sum').innerText = 'RM 0.00';
+        document.getElementById('lbl-zakat-payable').innerText = 'RM 0.00';
+        document.getElementById('sb-zakat-wealth').innerText = 'RM 0.00';
+        document.getElementById('sb-zakat-due').innerText = 'RM 0.00';
+      }
+
+      // Auto-populate the Tax Zakat payment with calculated Zakat if both active
+      if (isTaxPlanned && isZakatPlanned) {
+        document.getElementById('tax-zakat-paid').value = Math.round(finalZakatCalculated);
+      }
+
+      // 2. Determine Income Tax
+      if (isTaxPlanned) {
+        finalTaxCalculated = calculateTax();
+      } else {
+        document.getElementById('header-tax-sum').innerText = 'RM 0.00';
+        document.getElementById('lbl-tax-payable').innerText = 'RM 0.00';
+        document.getElementById('sb-chargeable').innerText = 'RM 0.00';
+        document.getElementById('sb-tax-due').innerText = 'RM 0.00';
+      }
+
+      // Update Combined KPIS
+      const totalCombined = finalTaxCalculated + finalZakatCalculated;
+      document.getElementById('lbl-combined-outflow').innerText = 'RM ' + totalCombined.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      document.getElementById('sb-total-outflow').innerText = 'RM ' + totalCombined.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    // Specific Tax formula algorithm (replicates official YA 2025 progressive system)
+    function calculateTax() {
+      const grossIncome = parseFloat(document.getElementById('tax-gross-income').value) || 0;
+
+      // Collect relieves
+      const individualRelief = 9000;
+      const medicalRelief = Math.min(parseFloat(document.getElementById('tax-relief-medical').value) || 0, 10000);
+      const lifestyleRelief = Math.min(parseFloat(document.getElementById('tax-relief-lifestyle').value) || 0, 2500);
+      const epfRelief = Math.min(parseFloat(document.getElementById('tax-relief-epf').value) || 0, 4000);
+      const lifeInsRelief = Math.min(parseFloat(document.getElementById('tax-relief-life-ins').value) || 0, 3000);
+      const sspnRelief = Math.min(parseFloat(document.getElementById('tax-relief-sspn').value) || 0, 8000);
+
+      // Force Caps back into UI inputs visually if user exceeded
+      document.getElementById('tax-relief-medical').value = medicalRelief;
+      document.getElementById('tax-relief-lifestyle').value = lifestyleRelief;
+      document.getElementById('tax-relief-epf').value = epfRelief;
+      document.getElementById('tax-relief-life-ins').value = lifeInsRelief;
+      document.getElementById('tax-relief-sspn').value = sspnRelief;
+
+      const totalReliefs = individualRelief + medicalRelief + lifestyleRelief + epfRelief + lifeInsRelief + sspnRelief;
+      
+      let chargeableIncome = grossIncome - totalReliefs;
+      if (chargeableIncome < 0) chargeableIncome = 0;
+
+      // Calculate progressive bracket
+      let computedTax = 0;
+      let remainingChargeable = chargeableIncome;
+      let bracketHTML = '';
+
+      for (let i = 0; i < TAX_BRACKETS_YA_2025.length; i++) {
+        const bracket = TAX_BRACKETS_YA_2025[i];
+        const nextBracketMin = (i + 1 < TAX_BRACKETS_YA_2025.length) ? TAX_BRACKETS_YA_2025[i + 1].min : Infinity;
+        const tierBandwidth = nextBracketMin - bracket.min;
+
+        let taxableInThisTier = 0;
+        let isCurrentActiveTier = false;
+
+        if (remainingChargeable > 0) {
+          if (remainingChargeable > tierBandwidth) {
+            taxableInThisTier = tierBandwidth;
+            remainingChargeable -= tierBandwidth;
+          } else {
+            taxableInThisTier = remainingChargeable;
+            remainingChargeable = 0;
+            isCurrentActiveTier = true;
+          }
+
+          const taxInThisTier = taxableInThisTier * bracket.rate;
+          computedTax += taxInThisTier;
+
+          const activeRangeLabel = bracket.max === Infinity ? `Above ${bracket.min.toLocaleString()}` : `${bracket.min.toLocaleString()} - ${bracket.max.toLocaleString()}`;
+          bracketHTML += `
+            <tr class="${isCurrentActiveTier ? 'active-tier' : ''}">
+              <td>${activeRangeLabel}</td>
+              <td>${(bracket.rate * 100).toFixed(0)}%</td>
+              <td>RM ${taxInThisTier.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+            </tr>
+          `;
+        } else {
+          // Inactive ranges
+          const inactiveRangeLabel = bracket.max === Infinity ? `Above ${bracket.min.toLocaleString()}` : `${bracket.min.toLocaleString()} - ${bracket.max.toLocaleString()}`;
+          bracketHTML += `
+            <tr>
+              <td>${inactiveRangeLabel}</td>
+              <td>${(bracket.rate * 100).toFixed(0)}%</td>
+              <td style="color: var(--text3)">RM 0.00</td>
+            </tr>
+          `;
+        }
+      }
+
+      document.getElementById('bracket-table-body').innerHTML = bracketHTML;
+
+      // Apply rebates
+      let rebatesApplied = 0;
+
+      // Baseline low chargeable income rebate (< RM35k)
+      if (chargeableIncome <= 35000 && chargeableIncome > 0) {
+        rebatesApplied += 400;
+      }
+
+      // Zakat rebate (directly deducts tax)
+      const zakatPaidInput = parseFloat(document.getElementById('tax-zakat-paid').value) || 0;
+      rebatesApplied += zakatPaidInput;
+
+      let finalTaxPayable = computedTax - rebatesApplied;
+      if (finalTaxPayable < 0) finalTaxPayable = 0;
+
+      // Handle difference with pre-paid MTD/PCB
+      const mtdPaid = parseFloat(document.getElementById('tax-mtd-paid').value) || 0;
+      const taxDifference = mtdPaid - finalTaxPayable;
+
+      // Update Tax assessment outputs
+      document.getElementById('header-tax-sum').innerText = 'RM ' + finalTaxPayable.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      document.getElementById('lbl-tax-payable').innerText = 'RM ' + finalTaxPayable.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      document.getElementById('tax-final-liability-val').innerText = 'RM ' + finalTaxPayable.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      
+      document.getElementById('res-tax-chargeable').innerText = 'RM ' + chargeableIncome.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      document.getElementById('res-tax-reliefs').innerText = 'RM ' + totalReliefs.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      document.getElementById('res-tax-calculated-owed').innerText = 'RM ' + computedTax.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      document.getElementById('res-tax-rebates').innerText = 'RM ' + rebatesApplied.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+      // Live sidebar bindings
+      document.getElementById('sb-chargeable').innerText = 'RM ' + chargeableIncome.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      document.getElementById('sb-tax-due').innerText = 'RM ' + finalTaxPayable.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+      // Action description
+      const statusElement = document.getElementById('res-tax-status-text');
+      if (taxDifference > 0) {
+        statusElement.className = "positive";
+        statusElement.innerText = `Eligible Refund of RM ${taxDifference.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (Overpaid MTD)`;
+      } else if (taxDifference < 0) {
+        statusElement.className = "warning";
+        statusElement.innerText = `Outstanding Balance of RM ${Math.abs(taxDifference).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (To pay during e-filing)`;
+      } else {
+        statusElement.className = "neutral";
+        statusElement.innerText = "Exactly balanced. No refund or tax outstanding.";
+      }
+
+      return finalTaxPayable;
+    }
+
+    // Specific Zakat formula algorithm (replicates Selangor model)
+    function calculateZakat() {
+      const savingsVal = parseFloat(document.getElementById('zakat-savings-bal').value) || 0;
+      const stocksVal = parseFloat(document.getElementById('zakat-stocks-bal').value) || 0;
+      const storedGoldGrams = parseFloat(document.getElementById('zakat-gold-stored').value) || 0;
+      const wornGoldGrams = parseFloat(document.getElementById('zakat-gold-worn').value) || 0;
+      const goldPrice = parseFloat(document.getElementById('zakat-gold-price').value) || 0;
+
+      // 1. Analyze Stored Gold (Threshold Nisab is 85g)
+      let storedGoldAssessableVal = 0;
+      if (storedGoldGrams >= 85) {
+        storedGoldAssessableVal = storedGoldGrams * goldPrice;
+      }
+      document.getElementById('res-gold-stored-val').innerText = 'RM ' + storedGoldAssessableVal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+      // 2. Analyze Worn Gold Ornaments (Exemption limit Uruf is 800g for Selangor)
+      let wornGoldAssessableVal = 0;
+      if (wornGoldGrams > 800) {
+        const excessGrams = wornGoldGrams - 800;
+        wornGoldAssessableVal = excessGrams * goldPrice;
+      }
+      document.getElementById('res-gold-worn-val').innerText = 'RM ' + wornGoldAssessableVal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+      // Calculate overall assessable assets
+      const totalAssessableWealth = savingsVal + stocksVal + storedGoldAssessableVal + wornGoldAssessableVal;
+
+      let finalZakatDue = 0;
+      const nisabCheckElement = document.getElementById('res-zakat-nisab-check');
+
+      // Check against Selangor Nisab Threshold
+      if (totalAssessableWealth >= NISAB_THRESHOLD) {
+        finalZakatDue = totalAssessableWealth * 0.025;
+        nisabCheckElement.innerText = "Exceeded (Subject to Zakat)";
+        nisabCheckElement.className = "res-sub-val warning";
+      } else {
+        finalZakatDue = 0;
+        nisabCheckElement.innerText = "Below Nisab (No Zakat Due)";
+        nisabCheckElement.className = "res-sub-val positive";
+      }
+
+      // Update Zakat assessment outputs
+      document.getElementById('header-zakat-sum').innerText = 'RM ' + finalZakatDue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      document.getElementById('lbl-zakat-payable').innerText = 'RM ' + finalZakatDue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      document.getElementById('zakat-final-val').innerText = 'RM ' + finalZakatDue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      document.getElementById('res-zakat-wealth').innerText = 'RM ' + totalAssessableWealth.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+      // Live sidebar bindings
+      document.getElementById('sb-zakat-wealth').innerText = 'RM ' + totalAssessableWealth.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      document.getElementById('sb-zakat-due').innerText = 'RM ' + finalZakatDue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+      return finalZakatDue;
+    }
+
+    // Handles character counts and mirror print commentary text
+    function updateCommentary(type) {
+      const textarea = document.getElementById('commentary-' + type);
+      const counter = document.getElementById('char-count-' + type);
+      const printBox = document.getElementById('print-' + type + '-commentary');
+
+      counter.innerText = `${textarea.value.length} / 250 chars`;
+      
+      if (textarea.value.trim() === "") {
+        printBox.innerText = "No notes specified.";
+      } else {
+        printBox.innerText = textarea.value;
+      }
+    }
+
+    // Fully resets all configurations back to the standardized defaults
+    function resetAll() {
+      // Inputs
+      document.getElementById('tax-gross-income').value = 78000;
+      document.getElementById('tax-relief-medical').value = 1500;
+      document.getElementById('tax-relief-lifestyle').value = 2000;
+      document.getElementById('tax-relief-epf').value = 4000;
+      document.getElementById('tax-relief-life-ins').value = 3000;
+      document.getElementById('tax-relief-sspn').value = 0;
+      document.getElementById('tax-mtd-paid').value = 1800;
+      document.getElementById('tax-zakat-paid').value = 0;
+
+      document.getElementById('zakat-savings-bal').value = 18000;
+      document.getElementById('zakat-stocks-bal').value = 25000;
+      document.getElementById('zakat-gold-stored').value = 90;
+      document.getElementById('zakat-gold-worn').value = 15;
+      document.getElementById('zakat-gold-price').value = 340;
+
+      // Textareas
+      document.getElementById('commentary-tax').value = "";
+      document.getElementById('commentary-zakat').value = "";
+      updateCommentary('tax');
+      updateCommentary('zakat');
+
+      // Toggles
+      document.getElementById('chk-tax').checked = true;
+      document.getElementById('chk-zakat').checked = true;
+
+      handleCheckboxChange();
+    }
+  </script>
+</body>
+</html>

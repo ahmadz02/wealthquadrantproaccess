@@ -1,0 +1,1802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Investment Planning Dashboard</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+  <!-- Chart.js for beautiful charts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    /* Integrate provided styles.css precisely */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #f7f6f2; --surface: #fff; --surface2: #f2f0eb;
+      --border: #e2dfd8; --border-strong: #c8c4bb;
+      --text: #1a1916; --text2: #6b6860; --text3: #a09d98;
+      --green: #1a6b47; --green-bg: #edf7f2;
+      --blue: #1a4a6b; --blue-bg: #edf3f7;
+      --red: #6b1a1a; --red-bg: #f7eded;
+      --gold: #6b4e1a; --gold-bg: #f7f2ed;
+      --orange: #b85c00; --amber: #c97a1a;
+      --r: 6px; --rl: 10px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); font-size:14px; line-height:1.5; min-height:100vh; }
+
+    /* ── TOPBAR ── */
+    .topbar { background:var(--surface); border-bottom:1px solid var(--border); padding:0 1.5rem; display:flex; align-items:center; justify-content:space-between; height:56px; position:sticky; top:0; z-index:200; }
+    .brand { display:flex; align-items:center; gap:10px; }
+    .brand-mark { width:28px; height:28px; background:var(--text); border-radius:6px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .brand-mark svg { width:14px; height:14px; fill: white; }
+    .brand-name { font-size:14px; font-weight:500; letter-spacing:-0.01em; }
+    .brand-sub { font-size:12px; color:var(--text3); margin-left:2px; }
+    .pill-nav { display:flex; background:var(--surface2); border-radius:20px; padding:3px; gap:2px; }
+    .pill-btn { padding:5px 16px; border-radius:16px; border:none; background:transparent; font-size:12px; font-family:'DM Sans',sans-serif; color:var(--text2); cursor:pointer; font-weight:400; transition:all .15s; }
+    .pill-btn.active { background:var(--surface); color:var(--text); font-weight:500; box-shadow:0 1px 2px rgba(0,0,0,.08); }
+
+    /* ── PAGE SHELLS ── */
+    .page { display:none; }
+    .page.active { display:flex; min-height:calc(100vh - 56px); }
+
+    /* ── ENTRY LAYOUT ── */
+    .sidebar { width:260px; flex-shrink:0; background:var(--surface); border-right:1px solid var(--border); position:sticky; top:56px; height:calc(100vh - 56px); overflow-y:auto; padding:1.25rem 0; }
+    .main-area { flex:1; padding:2rem; overflow-y:auto; min-width:0; }
+
+    /* sidebar nav */
+    .sb-label { font-size:10px; font-weight:500; letter-spacing:.08em; text-transform:uppercase; color:var(--text3); padding:0 1.25rem; margin-bottom:.5rem; }
+    .sb-item { display:flex; align-items:center; gap:10px; padding:9px 1.25rem; cursor:pointer; border-left:2px solid transparent; transition:all .12s; font-size:13px; color:var(--text2); text-decoration:none; }
+    .sb-item:hover { background:var(--surface2); color:var(--text); }
+    .sb-item.active { border-left-color:var(--text); color:var(--text); font-weight:500; background:var(--surface2); }
+    .sb-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+    .d1 { background:var(--green); } .d2 { background:var(--blue); } .d3 { background:var(--gold); } .d4 { background:var(--text3); }
+
+    /* progress */
+    .prog-wrap { padding:1.25rem 1.25rem .75rem; }
+    .prog-top { display:flex; justify-content:space-between; font-size:11px; color:var(--text3); margin-bottom:6px; }
+    .prog-track { height:3px; background:var(--surface2); border-radius:2px; overflow:hidden; }
+    .prog-fill { height:100%; background:var(--text); border-radius:2px; width:0%; transition:width .4s; }
+
+    /* per-segment sidebar summaries */
+    .seg-sum { display:none; margin:0 1rem .75rem; }
+    .seg-sum.on { display:block; }
+    .ss-head { color:#fff; font-size:10px; font-weight:500; letter-spacing:.06em; text-transform:uppercase; padding:6px 10px; border-radius:var(--r) var(--r) 0 0; }
+    .ss-body { background:var(--surface2); border-radius:0 0 var(--r) var(--r); padding:8px 10px; border:1px solid var(--border); border-top:none; }
+    .ss-row { display:flex; justify-content:space-between; align-items:baseline; padding:3px 0; font-size:11px; color:var(--text2); border-bottom:1px solid var(--border); }
+    .ss-row:last-child { border-bottom:none; }
+    .ss-row.neg { color:var(--red); }
+    .ss-v { font-family:'DM Mono',monospace; font-size:11px; color:var(--text); }
+    .ss-b { font-weight:500; }
+    .ss-div { height:1px; background:var(--border-strong); margin:5px 0; }
+    .ss-tot { display:flex; justify-content:space-between; align-items:baseline; padding:3px 0; font-size:11px; font-weight:500; }
+    .positive { color:var(--green); } .negative { color:var(--red); } .neutral { color:var(--blue); } .warning { color:var(--amber); }
+
+    /* ── SEGMENT CONTENT ── */
+    .segment { display:none; }
+    .segment.active { display:block; }
+    .seg-hdr { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:1.75rem; }
+    .seg-tag { display:inline-flex; align-items:center; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:500; margin-bottom:6px; }
+    .t1{background:var(--green-bg);color:var(--green);} .t2{background:var(--blue-bg);color:var(--blue);} .t3{background:var(--gold-bg);color:var(--gold);} .t4{background:var(--surface2);color:var(--text2);}
+    .seg-title { font-size:22px; font-weight:300; letter-spacing:-.03em; }
+    .seg-desc { font-size:13px; color:var(--text3); margin-top:4px; }
+    .seg-tot-box { text-align:right; background:var(--surface2); border-radius:var(--rl); padding:10px 16px; }
+    .tot-label { font-size:11px; color:var(--text3); }
+    .tot-val { font-size:20px; font-weight:500; font-family:'DM Mono',monospace; letter-spacing:-.03em; }
+
+    /* cards */
+    .card { background:var(--surface); border:1px solid var(--border); border-radius:var(--rl); margin-bottom:1.25rem; overflow:hidden; box-shadow:var(--shadow); }
+    .ch { display:flex; align-items:center; justify-content:space-between; padding:14px 18px; cursor:pointer; user-select:none; border-bottom:1px solid transparent; transition:background .12s; }
+    .ch:hover { background:var(--surface2); }
+    .ch.open { border-bottom-color:var(--border); }
+    .ch-left { display:flex; align-items:center; gap:12px; }
+    .ci { width:28px; height:28px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:13px; flex-shrink:0; }
+    .ci1{background:var(--green-bg); color:var(--green);} .ci2{background:var(--blue-bg); color:var(--blue);} .ci3{background:var(--gold-bg); color:var(--gold);} .ci-r{background:var(--red-bg); color:var(--red);} .ci-g{background:var(--surface2); color:var(--text2);}
+    .ch-title { font-size:14px; font-weight:500; }
+    .ch-sub { font-size:11px; color:var(--text3); margin-top:1px; }
+    .ch-right { display:flex; align-items:center; gap:10px; }
+    .ch-sum { font-family:'DM Mono',monospace; font-size:13px; color:var(--text2); }
+    .chev { width:16px; height:16px; color:var(--text3); transition:transform .2s; flex-shrink:0; }
+    .chev.open { transform:rotate(180deg); }
+    .cb { display:none; padding:16px 18px; }
+    .cb.open { display:block; }
+
+    /* fields */
+    .f-static { display:grid; grid-template-columns:240px 1fr ; gap:12px; align-items:center; padding:10px 0; border-bottom:1px solid var(--border); }
+    .f-static:last-of-type { border-bottom:none; }
+    .f-label { font-size:13px; font-weight: 500; }
+    .f-sub { font-size:11px; color:var(--text3); font-weight: normal; margin-top: 2px; }
+    .pfx-wrap { position:relative; width: 100%; }
+    .pfx { position:absolute; left:12px; top:50%; transform:translateY(-50%); font-size:12px; color:var(--text3); pointer-events:none; font-weight: 500; }
+    .inp { width:100%; height:36px; border:1px solid var(--border); border-radius:var(--r); padding:0 12px; font-size:13px; font-family:'DM Mono',monospace; color:var(--text); background:var(--surface); text-align:right; transition:border-color .12s; }
+    .inp:focus { outline:none; border-color:var(--text); }
+    .inp.pl { padding-left:36px; text-align:left; }
+    .inp-t { height:36px; border:1px solid var(--border); border-radius:var(--r); padding:0 12px; font-size:13px; font-family:'DM Sans',sans-serif; color:var(--text); background:var(--surface); width:100%; transition:border-color .12s; }
+    .inp-t:focus { outline:none; border-color:var(--text); }
+    
+    /* table style list items instead of standard dynamic inputs */
+    .table-container { overflow-x: auto; margin-top: 10px; border: 1px solid var(--border); border-radius: var(--r); }
+    .inv-table { width: 100%; border-collapse: collapse; min-width: 800px; text-align: left; }
+    .inv-table th { background: var(--surface2); padding: 10px 12px; font-size: 11px; font-weight: 500; text-transform: uppercase; color: var(--text2); border-bottom: 1px solid var(--border); }
+    .inv-table td { padding: 10px 12px; border-bottom: 1px solid var(--border-strong); vertical-align: middle; background: var(--surface); }
+    .inv-table tr:last-child td { border-bottom: none; }
+    
+    .exp-rows { margin-top:10px; }
+    .exp-row-4 { display:grid; grid-template-columns:130px 1fr 150px 30px; gap:6px; align-items:center; margin-bottom:6px; animation:fi .15s ease; }
+    @keyframes fi { from{opacity:0;transform:translateY(-4px)} to{opacity:1;transform:translateY(0)} }
+    .btn-rm { width:32px; height:32px; border:1px solid var(--border); border-radius:var(--r); background:transparent; cursor:pointer; color:var(--text3); display:flex; align-items:center; justify-content:center; font-size:14px; transition:all .12s; }
+    .btn-rm:hover { border-color:var(--red); color:var(--red); background:var(--red-bg); }
+    .btn-add { display:flex; align-items:center; justify-content:center; gap:6px; padding:8px 12px; border:1px dashed var(--border-strong); border-radius:var(--r); background:transparent; font-size:12px; font-family:'DM Sans',sans-serif; color:var(--text2); cursor:pointer; margin-top:12px; width:100%; transition:all .12s; font-weight: 500; }
+    .btn-add:hover { border-color:var(--text); color:var(--text); background:var(--surface2); }
+    
+    /* nav buttons */
+    .seg-nav { display:flex; justify-content:space-between; align-items:center; margin-top:2rem; padding-top:1.5rem; border-top:1px solid var(--border); }
+    .btn-nav { display:flex; align-items:center; gap:6px; padding:9px 18px; border:1px solid var(--border); border-radius:var(--r); background:transparent; font-size:13px; font-family:'DM Sans',sans-serif; color:var(--text2); cursor:pointer; transition:all .12s; }
+    .btn-nav:hover { border-color:var(--text); color:var(--text); }
+    .btn-pri { background:var(--text); color:#fff; border-color:var(--text); }
+    .btn-pri:hover { background:#333; }
+
+    /* ── ANALYSIS PAGE ── */
+    #page-analysis .main-area { max-width:1100px; margin:0 auto; }
+    .a-header { margin-bottom:1.75rem; display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; margin-bottom:1.75rem; flex-wrap:wrap; }
+    .a-title { font-size:28px; font-weight:300; letter-spacing:-.03em; }
+    .a-sub { font-size:13px; color:var(--text3); margin-top:4px; }
+    .sec-title { font-size:10px; font-weight:500; letter-spacing:.08em; text-transform:uppercase; color:var(--text3); margin-bottom:.75rem; margin-top:1.5rem; }
+
+    /* quadrant */
+    .quad-grid { display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:10px; margin-bottom:1rem; }
+    .quad-card { border-radius:var(--rl); overflow:hidden; border:1px solid var(--border); cursor:pointer; transition:transform .15s, box-shadow .15s; }
+    .quad-card:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(0,0,0,.1); }
+    .quad-card:active { transform:translateY(0); box-shadow:none; }
+    .q-hint { font-size:10px; color:rgba(255,255,255,.7); font-style:italic; float:right; font-weight:400; letter-spacing:0; }
+    .q-head { padding:8px 12px; font-size:11px; font-weight:500; letter-spacing:.05em; text-transform:uppercase; color:#fff; }
+    .qg{background:#1a6b47;} .qr{background:#8b2020;} .qb{background:#1a4a6b;} .qo{background:#b85c00;}
+    .q-body { background:var(--surface); padding:10px 12px; }
+    .q-row { display:flex; justify-content:space-between; padding:3px 0; font-size:12px; color:var(--text2); border-bottom:1px solid var(--surface2); }
+    .q-row:last-child { border-bottom:none; }
+    .q-val { font-family:'DM Mono',monospace; font-size:12px; font-weight:500; color:var(--text); }
+    .q-div { height:1px; background:var(--border); margin:6px 0; }
+    .q-foot { display:flex; justify-content:space-between; padding:4px 0 0; font-size:12px; font-weight:500; }
+    .q-fv { font-family:'DM Mono',monospace; font-size:13px; font-weight:500; }
+
+    /* matrix */
+    .mx-grid { display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:10px; margin-bottom:1.5rem; }
+    .mx-item { background:var(--surface); border:1px solid var(--border); border-radius:var(--rl); padding:1rem 1.25rem; }
+    .mx-lbl { font-size:11px; color:var(--text3); letter-spacing:.03em; margin-bottom:3px; }
+    .mx-fml { font-size:10px; color:var(--text3); opacity:.7; margin-bottom:8px; font-style:italic; }
+    .mx-val { font-size:22px; font-weight:500; font-family:'DM Mono',monospace; letter-spacing:-.03em; }
+    .mx-sub { font-size:11px; color:var(--text3); margin-top:3px; }
+
+    /* kpi strip */
+    .kpi-grid { display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:10px; margin-bottom:1.5rem; }
+    .kpi { background:var(--surface); border:1px solid var(--border); border-radius:var(--rl); padding:1rem 1.25rem; }
+    .kpi-lbl { font-size:11px; color:var(--text3); letter-spacing:.03em; margin-bottom:6px; }
+    .kpi-val { font-size:20px; font-weight:500; font-family:'DM Mono',monospace; letter-spacing:-.03em; }
+    .kpi-sub { font-size:11px; color:var(--text3); margin-top:4px; }
+
+    /* analysis cards */
+    .a-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--rl); padding:1.25rem; margin-bottom:1rem; }
+    .a-card-title { font-size:13px; font-weight:500; margin-bottom:1rem; display:flex; align-items:center; gap:8px; }
+    .a-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+    .two-col { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem; }
+    .chart-wrap { position:relative; min-height: 200px; display: flex; align-items: center; justify-content: center; }
+    .bar-list { display:flex; flex-direction:column; gap:10px; }
+    .bar-item-top { display:flex; justify-content:space-between; margin-bottom:5px; font-size:12px; }
+    .bar-lbl { color:var(--text2); }
+    .bar-val { font-family:'DM Mono',monospace; font-weight:500; }
+    .bar-track { height:6px; background:var(--surface2); border-radius:4px; overflow:hidden; }
+    .bar-fill { height:100%; border-radius:4px; transition:width .8s; }
+    .bk-table { width:100%; border-collapse:collapse; }
+    .bk-table th { font-size:11px; font-weight:500; color:var(--text3); text-align:left; padding:0 0 8px; border-bottom:1px solid var(--border); }
+    .bk-table th:last-child { text-align:right; }
+    .bk-table td { padding:8px 0; font-size:13px; border-bottom:1px solid var(--surface2); vertical-align:middle; }
+    .bk-table td:last-child { text-align:right; font-family:'DM Mono',monospace; font-weight:500; }
+    .bk-table tr:last-child td { border-bottom:none; }
+    .cat-badge { display:inline-flex; align-items:center; gap:5px; }
+    .cat-dot { width:6px; height:6px; border-radius:50%; }
+    .ratio-item { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+    .ratio-lbl { font-size:12px; color:var(--text2); width:130px; flex-shrink:0; }
+    .ratio-track { flex:1; background:var(--surface2); height:8px; border-radius:4px; overflow:hidden; }
+    .ratio-fill { height:100%; border-radius:4px; }
+    .ratio-pct { font-size:12px; font-family:'DM Mono',monospace; width:42px; text-align:right; }
+    
+    .kpi-val.surplus { color:#1a6b47; font-weight:700; }
+    .kpi-val.deficit { color:#8b2020; font-weight:700; }
+
+    /* reset/top actions */
+    .btn-reset-seg { display:inline-flex; align-items:center; gap:5px; padding:5px 12px; border:1px solid var(--border); border-radius:var(--r); background:transparent; font-size:11px; font-family:'DM Sans',sans-serif; color:var(--text3); cursor:pointer; transition:all .12s; }
+    .btn-reset-seg:hover { border-color:#c0392b; color:#c0392b; background:#fff5f5; }
+    .btn-reset-data { display:inline-flex; align-items:center; gap:4px; padding:4px 9px; border:1px solid var(--border); border-radius:var(--r); background:transparent; font-size:11px; font-family:'DM Sans',sans-serif; color:var(--text3); cursor:pointer; transition:all .12s; margin-left:6px; }
+    .btn-reset-data:hover { border-color:#c0392b; color:#c0392b; background:#fff5f5; }
+    .seg-hdr-actions { display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+
+    /* Commentary boxes */
+    .commentary-block { margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px dashed var(--border); }
+    .commentary-box { width:100%; min-height:80px; border:1px solid var(--border); border-radius:var(--rl); padding:10px 12px; font-size:13px; font-family:'DM Sans',sans-serif; color:var(--text); background:var(--surface2); resize:vertical; line-height:1.5; transition:border-color .12s; }
+    .commentary-box:focus { outline:none; border-color:var(--text); background:var(--surface); }
+    .commentary-box::placeholder { color:var(--text3); }
+    .commentary-lbl { font-size:11px; font-weight:500; letter-spacing:.06em; text-transform:uppercase; color:var(--text2); margin-bottom:6px; display:flex; align-items:center; gap:6px; }
+    .commentary-char { font-size:10px; color:var(--text3); margin-left:auto; font-weight:400; letter-spacing:0; text-transform:none; }
+    .commentary-print { display:none; font-size:11px; color:var(--text2); font-style:italic; margin-top:6px; white-space:pre-wrap; }
+
+    /* Print/PDF button style */
+    .btn-pdf { display:inline-flex; align-items:center; gap:7px; padding:8px 18px; background:var(--text); color:#fff; border:none; border-radius:var(--r); font-size:13px; font-family:'DM Sans',sans-serif; font-weight:500; cursor:pointer; transition:opacity .15s; white-space:nowrap; flex-shrink:0; }
+    .btn-pdf:hover { opacity:.85; }
+
+    /* Toggle switches (iOS Style) */
+    .toggle-wrap { display: flex; align-items: center; justify-content: space-between; background: var(--surface); padding: 14px 18px; border-radius: var(--rl); border: 1px solid var(--border); margin-bottom: 1.5rem; box-shadow: var(--shadow); }
+    .toggle-label-group { display: flex; flex-direction: column; }
+    .toggle-title { font-size: 14px; font-weight: 500; color: var(--text); }
+    .toggle-desc { font-size: 11px; color: var(--text3); margin-top: 2px; }
+    .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--border-strong); transition: .2s; border-radius: 24px; }
+    .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .2s; border-radius: 50%; }
+    input:checked + .slider { background-color: var(--green); }
+    input:checked + .slider:before { transform: translateX(20px); }
+
+    /* WACC display dashboard component */
+    .wacc-panel { margin-top: 1.5rem; animation: fi .2s ease; display: none; }
+    .wacc-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--rl); padding: 1.5rem; box-shadow: var(--shadow); }
+    .wacc-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 1rem; }
+    .wacc-item { background: var(--surface2); padding: 12px 16px; border-radius: var(--r); border: 1px solid var(--border); }
+    .wacc-lbl { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; }
+    .wacc-val { font-size: 20px; font-weight: 700; font-family: 'DM Mono', monospace; margin-top: 4px; }
+
+    /* Custom classes for alignment and spacing */
+    .text-right { text-align: right; }
+    .text-center { text-align: center; }
+    .mt-4 { margin-top: 1rem; }
+    .mb-4 { margin-bottom: 1rem; }
+    .d-none { display: none !important; }
+    .flex { display: flex; }
+    .flex-col { flex-direction: column; }
+    .align-center { align-items: center; }
+    .justify-between { justify-content: space-between; }
+    .gap-2 { gap: 8px; }
+    .gap-3 { gap: 12px; }
+    .bold { font-weight: 500; }
+    .mono { font-family: 'DM Mono', monospace; }
+    .relative { position: relative; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    @media(max-width: 768px) {
+      .grid-2 { grid-template-columns: 1fr; }
+    }
+
+    /* Print styling support */
+    @media print {
+      * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
+      body { background:#f7f6f2 !important; margin:0; }
+      .topbar, .sidebar, .btn-pdf, .pdf-overlay, .btn-reset-seg, .btn-reset-data, .seg-nav, .commentary-box, .commentary-lbl, .commentary-char, .pill-nav, .btn-add, .btn-rm, .btn-pri, button { display:none !important; }
+      .page { display:block !important; min-height:auto !important; }
+      .main-area { padding:12px !important; max-width:100% !important; }
+      .card { break-inside:avoid; page-break-inside:avoid; border: 1px solid #e2dfd8 !important; }
+      .inv-table { min-width: 100% !important; }
+      .commentary-print { display:block !important; border-top: 1px dashed var(--border); padding-top: 10px; }
+    }
+  </style>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../../assets/js/supabase-client.js"></script>
+  <script src="../../assets/js/supabase-store.js"></script>
+  <script src="../../assets/js/auth-guard.js"></script>
+</head>
+<body>
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark">
+        <!-- SVG Financial Leaf/Growth Emblem -->
+        <svg viewBox="0 0 24 24">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z"/>
+        </svg>
+      </div>
+      <div>
+        <span class="brand-name">ProsperFlow</span>
+        <span class="brand-sub">Premium Financial Advisory Suite</span>
+      </div>
+    </div>
+    
+    <div class="pill-nav">
+      <button class="pill-btn active" onclick="switchMainPage('page-entry')">Planner</button>
+      <button class="pill-btn" onclick="switchMainPage('page-analysis')">Analysis Report</button>
+    </div>
+
+    <div class="flex align-center gap-2">
+      <button class="btn-pdf" onclick="saveInvestmentToSupabase()">
+        <i class="fa-solid fa-save"></i> Save Data
+      </button>
+      <button class="btn-pdf" onclick="window.print()">
+        <i class="fa-solid fa-print"></i> Print Report
+      </button>
+    </div>
+  </header>
+
+  <!-- APP SHELL -->
+  <div id="appShell" style="display: flex;">
+    
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="prog-wrap">
+        <div class="prog-top">
+          <span>Planning Progress</span>
+          <span id="prog-pct">0%</span>
+        </div>
+        <div class="prog-track">
+          <div class="prog-fill" id="prog-bar" style="width: 0%;"></div>
+        </div>
+      </div>
+
+      <div class="sb-label">Portfolio Modules</div>
+      
+      <a href="#" class="sb-item active" id="sb-existing" onclick="scrollToElement('existing-inv-section')">
+        <span class="sb-dot d1"></span>
+        <span>Existing Portfolio</span>
+      </a>
+      
+      <a href="#" class="sb-item" id="sb-planner" onclick="scrollToElement('new-inv-section')">
+        <span class="sb-dot d2"></span>
+        <span>Target Goal Planner</span>
+      </a>
+
+      <div style="margin-top: 1.5rem;" class="sb-label">Inflation Benchmark</div>
+      <div style="padding: 0 1.25rem;">
+        <div class="pfx-wrap">
+          <span class="pfx"><i class="fa-solid fa-triangle-exclamation" style="color: var(--amber)"></i></span>
+          <input type="number" id="inflation-rate" class="inp" value="3.0" step="0.1" style="padding-left: 28px; text-align: right;" onchange="calculateAllExistingCAGR(); updateAnalysisDashboard();">
+          <span style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 11px; color: var(--text3);">%</span>
+        </div>
+        <div style="font-size: 10px; color: var(--text3); margin-top: 4px; line-height: 1.3;">
+          Used to evaluate whether your overall returns beat standard purchasing power erosion.
+        </div>
+      </div>
+
+      <!-- Quick Segment Summary Widget -->
+      <div class="seg-sum on" style="margin-top: 1.5rem;">
+        <div class="ss-head qg">Active Session Metrics</div>
+        <div class="ss-body">
+          <div class="ss-row">
+            <span>Existing Investments</span>
+            <span class="ss-v" id="side-total-existing">RM 0.00</span>
+          </div>
+          <div class="ss-row">
+            <span>Overall WACC/Return</span>
+            <span class="ss-v ss-b" id="side-wacc-val">0.00%</span>
+          </div>
+          <div class="ss-row">
+            <span>Goals Evaluated</span>
+            <span class="ss-v" id="side-goals-count">0</span>
+          </div>
+          <div class="ss-div"></div>
+          <div class="ss-tot">
+            <span>Inflation Margin</span>
+            <span id="side-inflation-margin" class="positive">0.00%</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN PLANNED ENTRY AREA -->
+    <main class="main-area page active" id="page-entry">
+      <div style="width: 100%; max-width: 1100px; margin: 0 auto;">
+        
+        <!-- Segment Header -->
+        <div class="seg-hdr">
+          <div>
+            <span class="seg-tag t1"><i class="fa-solid fa-chart-line"></i> Asset Management</span>
+            <h1 class="seg-title">Investment Analysis & Goal Formulation</h1>
+            <p class="seg-desc">Configure your current asset holdings to calculate weighted returns, and set future objectives to address wealth generation target gaps.</p>
+          </div>
+          <div class="seg-hdr-actions">
+            <button class="btn-reset-seg" onclick="resetAllFormData()">
+              <i class="fa-solid fa-rotate-left"></i> Reset Workspace
+            </button>
+          </div>
+        </div>
+
+        <!-- TOGGLE 1: EXISTING INVESTMENTS -->
+        <div class="toggle-wrap">
+          <div class="toggle-label-group">
+            <span class="toggle-title">Do you have existing investments?</span>
+            <span class="toggle-desc">Toggle on to construct an asset ledger and compute the Weighted Average Cost of Return (WACR/WACC).</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="toggle-existing" onchange="toggleExistingContainer()">
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <!-- EXISTING INVESTMENTS CONTAINER -->
+        <div id="existing-inv-section" style="display: none;">
+          <div class="card">
+            <!-- Header -->
+            <div class="ch open" onclick="toggleCardBody(this)">
+              <div class="ch-left">
+                <div class="ci ci1"><i class="fa-solid fa-wallet"></i></div>
+                <div>
+                  <div class="ch-title">Current Investment Asset Matrix</div>
+                  <div class="ch-sub">Add all active shares, unit trusts, property, or retirement accounts.</div>
+                </div>
+              </div>
+              <div class="ch-right">
+                <span class="ch-sum" id="total-existing-val-header">RM 0.00 Total</span>
+                <i class="fa-solid fa-chevron-down chev open"></i>
+              </div>
+            </div>
+
+            <!-- Expandable Body -->
+            <div class="cb open">
+              <div class="table-container">
+                <table class="inv-table" id="existing-table">
+                  <thead>
+                    <tr>
+                      <th style="width: 50px;">#</th>
+                      <th style="width: 250px;">Name of Investment</th>
+                      <th>Initial Inv. (PV)</th>
+                      <th>Annual Regular (PMT)</th>
+                      <th style="width: 100px;">Start Year</th>
+                      <th style="width: 100px;">Current Year</th>
+                      <th>Current Value (FV)</th>
+                      <th style="width: 110px;" class="text-right">CAGR</th>
+                      <th style="width: 50px;"></th>
+                    </tr>
+                  </thead>
+                  <tbody id="existing-tbody">
+                    <!-- Dynamic Rows Insertion -->
+                  </tbody>
+                </table>
+              </div>
+
+              <button class="btn-add" onclick="addExistingRow()">
+                <i class="fa-solid fa-plus"></i> Add New Investment Position
+              </button>
+
+              <div style="margin-top: 1.5rem; display: flex; justify-content: flex-end; gap: 10px;">
+                <button class="btn-nav btn-pri" onclick="calculateWACC()">
+                  <i class="fa-solid fa-calculator"></i> Calculate WACC
+                </button>
+              </div>
+
+              <!-- Weighted Average Cost of Return (WACC) Display Panel -->
+              <div class="wacc-panel" id="wacc-panel">
+                <div class="grp-label">WACC SUMMARY ANALYSIS</div>
+                
+                <div class="table-container" style="margin-bottom: 1.5rem;">
+                  <table class="inv-table" style="min-width: 600px;">
+                    <thead>
+                      <tr>
+                        <th>#</th>
+                        <th>Name of Investment</th>
+                        <th class="text-right">Market Value (RM)</th>
+                        <th class="text-right">CAGR (%)</th>
+                        <th class="text-right">% of Total Portfolio</th>
+                        <th class="text-right">WACC Weight Contribution</th>
+                      </tr>
+                    </thead>
+                    <tbody id="wacc-summary-tbody">
+                      <!-- Filled dynamically -->
+                    </tbody>
+                  </table>
+                </div>
+
+                <div class="wacc-grid">
+                  <div class="wacc-item" style="border-left: 4px solid var(--text);">
+                    <div class="wacc-lbl">Total Market Value</div>
+                    <div class="wacc-val" id="summary-total-mv">RM 0.00</div>
+                  </div>
+                  <div class="wacc-item" id="summary-wacc-card" style="border-left: 4px solid var(--blue);">
+                    <div class="wacc-lbl">Weighted Portfolio Return</div>
+                    <div class="wacc-val" id="summary-wacc-val">0.00%</div>
+                  </div>
+                  <div class="wacc-item" id="summary-benchmark-card" style="border-left: 4px solid var(--green);">
+                    <div class="wacc-lbl">vs Inflation Benchmark</div>
+                    <div class="wacc-val" id="summary-benchmark-val">Beating (0.00%)</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+        <!-- TOGGLE 2: PLAN NEW INVESTMENTS -->
+        <div class="toggle-wrap" style="margin-top: 2rem;">
+          <div class="toggle-label-group">
+            <span class="toggle-title">Do you want to plan new investments?</span>
+            <span class="toggle-desc">Toggle on to frame goal-oriented strategies, calculate compounding yields, and check targeting metrics.</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="toggle-new" onchange="toggleNewContainer()">
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <!-- NEW INVESTMENTS PLANNING SECTION -->
+        <div id="new-inv-section" style="display: none;">
+          <div class="seg-hdr" style="margin-bottom: 1rem;">
+            <div>
+              <h2 class="seg-title" style="font-size: 18px;">Target-Driven Investment Models</h2>
+              <p class="seg-desc">Configure separate accumulation schemes to test if regular savings compound sufficiently to fulfill prospective horizons.</p>
+            </div>
+          </div>
+
+          <div id="new-goals-container">
+            <!-- Goal Cards Inserted Dynamically -->
+          </div>
+
+          <button class="btn-add" onclick="addNewGoalCard()" style="border-style: solid; background: var(--surface); margin-bottom: 2rem;">
+            <i class="fa-solid fa-circle-plus"></i> Formulate a New Financial Objective
+          </button>
+        </div>
+
+        <!-- Navigation Section -->
+        <div class="seg-nav">
+          <div style="font-size: 12px; color: var(--text3);">
+            Ensure all calculated figures represent annualized rates.
+          </div>
+          <button class="btn-nav btn-pri" onclick="goToReportPage()">
+            Go to Report View <i class="fa-solid fa-arrow-right"></i>
+          </button>
+        </div>
+
+      </div>
+    </main>
+
+    <!-- ANALYSIS REPORT PAGE -->
+    <main class="main-area page" id="page-analysis">
+      <div style="width: 100%;">
+        
+        <div class="a-header">
+          <div class="a-header-left">
+            <span class="seg-tag t3"><i class="fa-solid fa-trophy"></i> Advisory Insight</span>
+            <h1 class="a-title">Consolidated Performance & Strategy Analysis</h1>
+            <p class="a-sub">Holistic metrics review for target returns, inflation preservation, and strategic portfolio optimization.</p>
+          </div>
+          <button class="btn-pdf" onclick="window.print()">
+            <i class="fa-solid fa-print"></i> Print PDF Report
+          </button>
+        </div>
+
+        <!-- MATRIX CARDS -->
+        <div class="mx-grid">
+          <div class="mx-item">
+            <div class="mx-lbl">Total Current Assets</div>
+            <div class="mx-fml">Aggregate Holdings Value</div>
+            <div class="mx-val" id="mx-current-assets">RM 0.00</div>
+            <div class="mx-sub" id="mx-assets-count">0 Positions</div>
+          </div>
+          <div class="mx-item">
+            <div class="mx-lbl">Portfolio Return (WACR)</div>
+            <div class="mx-fml">Weighted Asset Performance</div>
+            <div class="mx-val" id="mx-portfolio-return">0.00%</div>
+            <div class="mx-sub" id="mx-wacc-comparison">No comparison</div>
+          </div>
+          <div class="mx-item">
+            <div class="mx-lbl">Planned Future Savings</div>
+            <div class="mx-fml">Target Wealth Accumulations</div>
+            <div class="mx-val" id="mx-planned-fv">RM 0.00</div>
+            <div class="mx-sub" id="mx-goals-total">0 Objectives</div>
+          </div>
+          <div class="mx-item">
+            <div class="mx-lbl">Goal Accomplishment Rate</div>
+            <div class="mx-fml">FV projected vs. Targets</div>
+            <div class="mx-val" id="mx-accomplish-rate">0%</div>
+            <div class="mx-sub" id="mx-funding-status">No goals planned</div>
+          </div>
+        </div>
+
+        <!-- TWO COLUMNS FOR CHARTS & LISTS -->
+        <div class="grid-2">
+          
+          <!-- Column Left: Portfolio Allocations & WACC -->
+          <div class="a-card">
+            <div class="a-card-title">
+              <span class="a-dot d1"></span>
+              Portfolio Composition & Returns Weighting
+            </div>
+            <div class="chart-wrap" style="margin-bottom: 1.5rem;">
+              <canvas id="portfolioChart" style="max-height: 250px; max-width: 250px;"></canvas>
+            </div>
+            
+            <div class="table-container">
+              <table class="bk-table">
+                <thead>
+                  <tr>
+                    <th>Asset Class</th>
+                    <th style="text-align: right;">Value</th>
+                    <th style="text-align: right;">Return</th>
+                    <th style="text-align: right;">Weight</th>
+                  </tr>
+                </thead>
+                <tbody id="analysis-portfolio-rows">
+                  <tr>
+                    <td colspan="4" class="text-center" style="color: var(--text3); padding: 20px;">No investment data available. Please add positions.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Column Right: Growth Objective Projections -->
+          <div class="a-card">
+            <div class="a-card-title">
+              <span class="a-dot d2"></span>
+              Strategic Target Goals & Expected Values
+            </div>
+            <div class="chart-wrap" style="margin-bottom: 1.5rem;">
+              <canvas id="goalsChart" style="max-height: 250px; width: 100%;"></canvas>
+            </div>
+
+            <div class="table-container">
+              <table class="bk-table">
+                <thead>
+                  <tr>
+                    <th>Objective</th>
+                    <th style="text-align: right;">Target Amount</th>
+                    <th style="text-align: right;">Projected FV</th>
+                    <th style="text-align: right;">Surplus/Gap</th>
+                  </tr>
+                </thead>
+                <tbody id="analysis-goals-rows">
+                  <tr>
+                    <td colspan="4" class="text-center" style="color: var(--text3); padding: 20px;">No objectives modeled yet. Please switch on target planning.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- FULL SUMMARY COMMENTARY BLOCKS (NOW FULLY EDITABLE) -->
+        <div class="a-card" id="executive-commentary-section" style="margin-top: 1rem;">
+          <div class="a-card-title">
+            <span class="a-dot d3"></span>
+            Professional Executive Commentary & Advice
+          </div>
+          
+          <!-- General Executive commentary (Interactive) -->
+          <div class="commentary-block" style="margin-top: 0; padding-top: 0; border: none; margin-bottom: 1.5rem;">
+            <label class="commentary-lbl">
+              <i class="fa-solid fa-user-tie"></i> Overall General Executive Summary Advice
+              <span class="commentary-char" id="exec-comm-length">0 / 1000 chars</span>
+            </label>
+            <textarea 
+              id="exec-commentary-box"
+              class="commentary-box" 
+              style="min-height: 120px; font-size: 13px;"
+              maxlength="1000" 
+              placeholder="Provide general asset allocation recommendations, advisor assessments, risk profiles, or discretionary briefs here..."
+              oninput="updateGlobalExecutiveCommentary(this.value)"></textarea>
+            <div class="commentary-print" id="exec-comm-print">No general executive commentary entered.</div>
+          </div>
+
+          <div class="grp-label" style="font-size: 10px; margin-bottom: 0.75rem; color: var(--text3);">Tactical Strategy by Objective</div>
+          
+          <div id="executive-commentary-list">
+            <!-- Render dynamic editable commentary cards from objectives here -->
+          </div>
+        </div>
+
+      </div>
+    </main>
+
+  </div>
+
+  <script>
+    // In-memory state
+    let state = {
+      existingEnabled: false,
+      newGoalsEnabled: false,
+      existingInvestments: [
+        { id: 1, name: 'EPF Account 1', pv: 30000, pmt: 3600, startYear: 2021, currentYear: 2026, fv: 58000, cagr: 0 }
+      ],
+      newGoals: [
+        { id: 1, name: 'Retirement Wealth Nest', target: 500000, startYear: 2026, dueYear: 2046, pv: 25000, pmt: 6000, rate: 7.5, calculatedFv: 0, gap: 0, commentary: 'Targeting index trackers and high-yield trusts to secure 7.5% compound yield.', expanded: true }
+      ],
+      executiveCommentary: 'The proposed portfolio strategy aims to establish a highly resilient and diversified path to long-term wealth generation. Diversification across global indexes and selected debt instruments is advised to beat inflation benchmarks and protect purchasing power.'
+    };
+
+    // Charts references
+    let portfolioChartInst = null;
+    let goalsChartInst = null;
+
+    const MODULE_NAME = 'investment';
+
+    async function loadInvestmentFromSupabase() {
+      const clientEmail = window.WQPStore?.getClientEmailFromUrl?.();
+      if (!clientEmail) return false;
+      const saved = await window.WQPStore.loadModule(clientEmail, MODULE_NAME);
+      if (saved) {
+        state = { ...state, ...saved };
+        return true;
+      }
+      return false;
+    }
+
+    async function saveInvestmentToSupabase() {
+      try {
+        const clientEmail = window.WQPStore?.getClientEmailFromUrl?.();
+        if (!clientEmail) { alert('Client email not found. Please open this module from the Client Planning Page.'); return; }
+        calculateAllExistingCAGR(false);
+        calculateWACC(false);
+        calculateAllNewGoals(false);
+        await window.WQPStore.saveModule(clientEmail, MODULE_NAME, { ...state, savedAt: new Date().toISOString() });
+        alert('Investment data saved.');
+      } catch (error) {
+        console.error('Unable to save Investment data:', error);
+        alert('Unable to save data: ' + (error.message || error));
+      }
+    }
+
+    // Initialize state
+    window.onload = async function() {
+      let loadedFromSupabase = false;
+      try { loadedFromSupabase = await loadInvestmentFromSupabase(); } catch(e) { console.error('Unable to load Investment data:', e); }
+      if (!loadedFromSupabase) {
+        state.existingEnabled = true;
+        state.newGoalsEnabled = true;
+      }
+      document.getElementById('toggle-existing').checked = !!state.existingEnabled;
+      document.getElementById('toggle-new').checked = !!state.newGoalsEnabled;
+
+      // Initial layouts
+      toggleExistingContainer(false);
+      toggleNewContainer(false);
+      
+      // Render components
+      renderExistingTable();
+      renderAllGoals();
+      
+      // Set global commentary values
+      document.getElementById('exec-commentary-box').value = state.executiveCommentary || '';
+      document.getElementById('exec-comm-length').innerText = `${(state.executiveCommentary || '').length} / 1000 chars`;
+      document.getElementById('exec-comm-print').innerText = state.executiveCommentary || 'No general executive commentary entered.';
+
+      // Compute initial runs
+      calculateAllExistingCAGR(false);
+      calculateWACC(false);
+      calculateAllNewGoals(false);
+      
+      updateProgressBar();
+      updateAnalysisDashboard();
+    };
+
+    // Save State Utility
+    function saveState() {
+      // Data is saved to Supabase only when the Save Data button is clicked.
+    }
+
+    // Navigation Switching
+    function switchMainPage(pageId) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.pill-btn').forEach(b => b.classList.remove('active'));
+      
+      document.getElementById(pageId).classList.add('active');
+      
+      // Find matching pill button
+      if (pageId === 'page-entry') {
+        document.querySelectorAll('.pill-btn')[0].classList.add('active');
+      } else {
+        document.querySelectorAll('.pill-btn')[1].classList.add('active');
+        // Redraw charts on tab change to ensure container dimensions are ready
+        setTimeout(renderCharts, 100);
+      }
+      
+      updateProgressBar();
+    }
+
+    function goToReportPage() {
+      switchMainPage('page-analysis');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function scrollToElement(id) {
+      const element = document.getElementById(id);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+        // Set active state in sidebar
+        document.querySelectorAll('.sb-item').forEach(el => el.classList.remove('active'));
+        if (id === 'existing-inv-section') {
+          document.getElementById('sb-existing').classList.add('active');
+        } else {
+          document.getElementById('sb-planner').classList.add('active');
+        }
+      }
+    }
+
+    // Toggle Handlers
+    function toggleExistingContainer(shouldSave = true) {
+      const isChecked = document.getElementById('toggle-existing').checked;
+      state.existingEnabled = isChecked;
+      const el = document.getElementById('existing-inv-section');
+      if (isChecked) {
+        el.style.display = 'block';
+        document.getElementById('sb-existing').style.display = 'flex';
+      } else {
+        el.style.display = 'none';
+        document.getElementById('sb-existing').style.display = 'none';
+      }
+      if (shouldSave) {
+        saveState();
+        updateProgressBar();
+        updateAnalysisDashboard();
+      }
+    }
+
+    // Toggle Handlers
+    function toggleNewContainer(shouldSave = true) {
+      const isChecked = document.getElementById('toggle-new').checked;
+      state.newGoalsEnabled = isChecked;
+      const el = document.getElementById('new-inv-section');
+      if (isChecked) {
+        el.style.display = 'block';
+        document.getElementById('sb-planner').style.display = 'flex';
+      } else {
+        el.style.display = 'none';
+        document.getElementById('sb-planner').style.display = 'none';
+      }
+      if (shouldSave) {
+        saveState();
+        updateProgressBar();
+        updateAnalysisDashboard();
+      }
+    }
+
+    // Collapsible Matrix Card Trigger
+    function toggleCardBody(headerEl) {
+      headerEl.classList.toggle('open');
+      const chev = headerEl.querySelector('.chev');
+      if (chev) chev.classList.toggle('open');
+      const body = headerEl.nextElementSibling;
+      if (body) body.classList.toggle('open');
+    }
+
+    // Reset Strategy
+    function resetAllFormData() {
+      if (confirm('Are you sure you want to restore default entries? This action cannot be undone.')) {
+        state = {
+          existingEnabled: true,
+          newGoalsEnabled: true,
+          existingInvestments: [
+            { id: Date.now(), name: 'EPF Account 1', pv: 30000, pmt: 3600, startYear: 2021, currentYear: 2026, fv: 58000, cagr: 0 }
+          ],
+          newGoals: [
+            { id: Date.now() + 1, name: 'Retirement Wealth Nest', target: 500000, startYear: 2026, dueYear: 2046, pv: 25000, pmt: 6000, rate: 7.5, calculatedFv: 0, gap: 0, commentary: 'Targeting index trackers and high-yield trusts to secure 7.5% compound yield.', expanded: true }
+          ],
+          executiveCommentary: 'The proposed portfolio strategy aims to establish a highly resilient and diversified path to long-term wealth generation. Diversification across global indexes and selected debt instruments is advised to beat inflation benchmarks and protect purchasing power.'
+        };
+        
+        document.getElementById('toggle-existing').checked = true;
+        document.getElementById('toggle-new').checked = true;
+        
+        // Update general commentary text inputs
+        document.getElementById('exec-commentary-box').value = state.executiveCommentary;
+        document.getElementById('exec-comm-length').innerText = `${state.executiveCommentary.length} / 1000 chars`;
+        document.getElementById('exec-comm-print').innerText = state.executiveCommentary;
+
+        toggleExistingContainer(false);
+        toggleNewContainer(false);
+        renderExistingTable();
+        renderAllGoals();
+        calculateAllExistingCAGR(true);
+        calculateWACC(true);
+        calculateAllNewGoals(true);
+        updateProgressBar();
+        updateAnalysisDashboard();
+      }
+    }
+
+    // ── BISECTION RATE SOLVER FOR CAGR (Financial Rate Calculator) ──
+    // Finds 'r' where PV*(1+r)^N + PMT*((1+r)^N - 1)/r = FV
+    function solveCAGR(pv, fv, pmt, n) {
+      if (n <= 0) return 0;
+      if (pv <= 0 && pmt <= 0) return 0;
+
+      let low = -0.95; // Limit return loss to -95%
+      let high = 5.0;  // Limit return top to 500%
+      let mid = 0;
+      
+      function calcFV(r) {
+        if (Math.abs(r) < 1e-6) {
+          return pv + pmt * n;
+        }
+        return pv * Math.pow(1 + r, n) + pmt * (Math.pow(1 + r, n) - 1) / r;
+      }
+      
+      // Adjust boundary thresholds
+      let f_low = calcFV(low) - fv;
+      let f_high = calcFV(high) - fv;
+      if (f_low * f_high > 0) {
+        if (f_low > 0) {
+          low = -0.9999;
+        } else {
+          high = 50.0; // Extend to 5000% if astronomical returns
+        }
+      }
+      
+      for (let i = 0; i < 120; i++) {
+        mid = (low + high) / 2;
+        let f_mid = calcFV(mid) - fv;
+        if (Math.abs(f_mid) < 1e-6) {
+          return mid;
+        }
+        if ((calcFV(low) - fv) * f_mid < 0) {
+          high = mid;
+        } else {
+          low = mid;
+        }
+      }
+      return mid;
+    }
+
+    // ── PORTFOLIO SEGMENT: EXISTING PORTFOLIO RENDER ──
+    function renderExistingTable() {
+      const tbody = document.getElementById('existing-tbody');
+      tbody.innerHTML = '';
+
+      if (state.existingInvestments.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="9" class="text-center" style="padding: 24px; color: var(--text3);">
+              No assets configured. Click "Add New Investment Position" below to start.
+            </td>
+          </tr>
+        `;
+        document.getElementById('total-existing-val-header').innerText = 'RM 0.00 Total';
+        return;
+      }
+
+      state.existingInvestments.forEach((inv, idx) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="bold mono">${idx + 1}</td>
+          <td>
+            <input type="text" class="inp-t" value="${inv.name}" placeholder="e.g. Bluechip Equity Fund" onchange="updateExistingField(${inv.id}, 'name', this.value)">
+          </td>
+          <td>
+            <div class="pfx-wrap">
+              <span class="pfx">RM</span>
+              <input type="number" class="inp pl" value="${inv.pv}" step="1000" onchange="updateExistingField(${inv.id}, 'pv', parseFloat(this.value))">
+            </div>
+          </td>
+          <td>
+            <div class="pfx-wrap">
+              <span class="pfx">RM</span>
+              <input type="number" class="inp pl" value="${inv.pmt}" step="100" onchange="updateExistingField(${inv.id}, 'pmt', parseFloat(this.value))">
+            </div>
+          </td>
+          <td>
+            <input type="number" class="inp text-center" value="${inv.startYear}" step="1" onchange="updateExistingField(${inv.id}, 'startYear', parseInt(this.value))">
+          </td>
+          <td>
+            <input type="number" class="inp text-center" value="${inv.currentYear}" step="1" onchange="updateExistingField(${inv.id}, 'currentYear', parseInt(this.value))">
+          </td>
+          <td>
+            <div class="pfx-wrap">
+              <span class="pfx">RM</span>
+              <input type="number" class="inp pl" value="${inv.fv}" step="1000" onchange="updateExistingField(${inv.id}, 'fv', parseFloat(this.value))">
+            </div>
+          </td>
+          <td class="text-right bold mono" id="cagr-val-${inv.id}" style="font-size: 13px;">
+            ${(inv.cagr * 100).toFixed(2)}%
+          </td>
+          <td>
+            <button class="btn-rm" onclick="removeExistingRow(${inv.id})" title="Remove position">
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      calculateHeaderTotal();
+    }
+
+    function addExistingRow() {
+      const currentYear = new Date().getFullYear();
+      const newPos = {
+        id: Date.now(),
+        name: `Asset Matrix Position ${state.existingInvestments.length + 1}`,
+        pv: 5000,
+        pmt: 500,
+        startYear: currentYear - 3,
+        currentYear: currentYear,
+        fv: 8000,
+        cagr: 0
+      };
+      state.existingInvestments.push(newPos);
+      saveState();
+      renderExistingTable();
+      calculateAllExistingCAGR();
+      updateProgressBar();
+    }
+
+    function removeExistingRow(id) {
+      state.existingInvestments = state.existingInvestments.filter(item => item.id !== id);
+      saveState();
+      renderExistingTable();
+      calculateAllExistingCAGR();
+      calculateWACC();
+      updateProgressBar();
+    }
+
+    function updateExistingField(id, field, value) {
+      const item = state.existingInvestments.find(x => x.id === id);
+      if (item) {
+        if (field === 'name') {
+          item[field] = value;
+        } else {
+          item[field] = isNaN(value) ? 0 : value;
+        }
+        
+        // Auto recalibrate individual CAGR when values change
+        const yearsDiff = item.currentYear - item.startYear;
+        item.cagr = solveCAGR(item.pv, item.fv, item.pmt, yearsDiff);
+        
+        const cagrCell = document.getElementById(`cagr-val-${item.id}`);
+        if (cagrCell) {
+          cagrCell.innerText = `${(item.cagr * 100).toFixed(2)}%`;
+        }
+        
+        calculateHeaderTotal();
+        saveState();
+        updateProgressBar();
+      }
+    }
+
+    function calculateHeaderTotal() {
+      const total = state.existingInvestments.reduce((sum, item) => sum + (item.fv || 0), 0);
+      document.getElementById('total-existing-val-header').innerText = `${formatCurrency(total)} Total`;
+      document.getElementById('side-total-existing').innerText = formatCurrency(total);
+    }
+
+    function calculateAllExistingCAGR(shouldSave = true) {
+      state.existingInvestments.forEach(item => {
+        const yearsDiff = item.currentYear - item.startYear;
+        item.cagr = solveCAGR(item.pv, item.fv, item.pmt, yearsDiff);
+      });
+      if (shouldSave) {
+        saveState();
+        updateAnalysisDashboard();
+      }
+    }
+
+    // WACC Calculation Event
+    function calculateWACC(shouldSave = true) {
+      const totalMV = state.existingInvestments.reduce((sum, item) => sum + (item.fv || 0), 0);
+      const summaryTbody = document.getElementById('wacc-summary-tbody');
+      
+      if (totalMV === 0 || state.existingInvestments.length === 0) {
+        document.getElementById('wacc-panel').style.display = 'none';
+        document.getElementById('side-wacc-val').innerText = "0.00%";
+        return;
+      }
+
+      summaryTbody.innerHTML = '';
+      let runningWACC = 0;
+
+      state.existingInvestments.forEach((item, index) => {
+        const weight = item.fv / totalMV;
+        const weightedCont = item.cagr * weight;
+        runningWACC += weightedCont;
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="bold mono">${index + 1}</td>
+          <td class="bold">${item.name}</td>
+          <td class="text-right mono">${formatCurrency(item.fv)}</td>
+          <td class="text-right mono">${(item.cagr * 100).toFixed(2)}%</td>
+          <td class="text-right mono">${(weight * 100).toFixed(1)}%</td>
+          <td class="text-right mono bold" style="color: var(--blue)">${(weightedCont * 100).toFixed(2)}%</td>
+        `;
+        summaryTbody.appendChild(tr);
+      });
+
+      // Update summaries
+      document.getElementById('summary-total-mv').innerText = formatCurrency(totalMV);
+      document.getElementById('summary-wacc-val').innerText = `${(runningWACC * 100).toFixed(2)}%`;
+      document.getElementById('side-wacc-val').innerText = `${(runningWACC * 100).toFixed(2)}%`;
+
+      // Compare to Inflation rate
+      const inflation = parseFloat(document.getElementById('inflation-rate').value) || 3.0;
+      const margin = (runningWACC * 100) - inflation;
+      const marginBadge = document.getElementById('summary-benchmark-val');
+      const sideMarginBadge = document.getElementById('side-inflation-margin');
+      
+      const comparisonText = `${margin >= 0 ? 'Beating' : 'Trailing'} by ${Math.abs(margin).toFixed(2)}%`;
+      marginBadge.innerText = comparisonText;
+      sideMarginBadge.innerText = `${margin >= 0 ? '+' : ''}${margin.toFixed(2)}%`;
+
+      if (margin >= 0) {
+        marginBadge.className = "wacc-val positive";
+        document.getElementById('summary-benchmark-card').style.borderLeftColor = "var(--green)";
+        sideMarginBadge.className = "ss-v ss-b positive";
+      } else {
+        marginBadge.className = "wacc-val negative";
+        document.getElementById('summary-benchmark-card').style.borderLeftColor = "var(--red)";
+        sideMarginBadge.className = "ss-v ss-b negative";
+      }
+
+      document.getElementById('wacc-panel').style.display = 'block';
+      
+      if (shouldSave) {
+        saveState();
+        updateProgressBar();
+        updateAnalysisDashboard();
+      }
+    }
+
+
+    // ── PLANNER SECTION: GOALS Accumulator ──
+    function renderAllGoals() {
+      const container = document.getElementById('new-goals-container');
+      container.innerHTML = '';
+
+      if (state.newGoals.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <i class="fa-solid fa-compass-drafting" style="font-size: 32px; margin-bottom: 12px; display: block;"></i>
+            No active growth targets modeled. Click the button below to model your first target return objective.
+          </div>
+        `;
+        document.getElementById('side-goals-count').innerText = "0";
+        return;
+      }
+
+      document.getElementById('side-goals-count').innerText = state.newGoals.length;
+
+      state.newGoals.forEach((goal, index) => {
+        const isExpanded = goal.expanded !== false;
+        const card = document.createElement('div');
+        card.className = "card";
+        card.innerHTML = `
+          <div class="ch ${isExpanded ? 'open' : ''}" onclick="toggleGoalCardUI(${goal.id})">
+            <div class="ch-left">
+              <div class="ci ci2"><i class="fa-solid fa-bullseye"></i></div>
+              <div>
+                <div class="ch-title bold">${goal.name || 'Objective Matrix Target'}</div>
+                <div class="ch-sub">Period: ${goal.dueYear - goal.startYear} Years | Aim: ${formatCurrency(goal.target)}</div>
+              </div>
+            </div>
+            <div class="ch-right">
+              <span class="ch-sum" id="goal-header-summary-${goal.id}">
+                Projected: ${formatCurrency(goal.calculatedFv || 0)}
+              </span>
+              <i class="fa-solid fa-chevron-down chev ${isExpanded ? 'open' : ''}"></i>
+            </div>
+          </div>
+
+          <div class="cb ${isExpanded ? 'open' : ''}">
+            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; flex-wrap: wrap;">
+              
+              <!-- Core Inputs -->
+              <div class="flex flex-col gap-3">
+                <div class="f-static">
+                  <div>
+                    <span class="f-label">Investment Objective Name</span>
+                    <div class="f-sub">Give this strategy or financial goal a distinct name.</div>
+                  </div>
+                  <input type="text" class="inp-t" style="text-align: right;" value="${goal.name}" onchange="updateGoalField(${goal.id}, 'name', this.value)">
+                </div>
+
+                <div class="f-static">
+                  <div>
+                    <span class="f-label">Target Funding Goal</span>
+                    <div class="f-sub">What aggregate value do you need to accumulate?</div>
+                  </div>
+                  <div class="pfx-wrap">
+                    <span class="pfx">RM</span>
+                    <input type="number" class="inp pl" value="${goal.target}" step="1000" onchange="updateGoalField(${goal.id}, 'target', parseFloat(this.value))">
+                  </div>
+                </div>
+
+                <div class="grid-2" style="width: 100%; grid-column: span 2; border-bottom: 1px solid var(--border); padding-bottom: 10px;">
+                  <div class="f-static" style="grid-template-columns: 100px 1fr; border-bottom: none;">
+                    <span class="f-label">Start Year</span>
+                    <input type="number" class="inp" value="${goal.startYear}" step="1" onchange="updateGoalField(${goal.id}, 'startYear', parseInt(this.value))">
+                  </div>
+                  <div class="f-static" style="grid-template-columns: 100px 1fr; border-bottom: none;">
+                    <span class="f-label">Due Year</span>
+                    <input type="number" class="inp" value="${goal.dueYear}" step="1" onchange="updateGoalField(${goal.id}, 'dueYear', parseInt(this.value))">
+                  </div>
+                </div>
+
+                <div class="f-static">
+                  <div>
+                    <span class="f-label">Initial Capital Outlay (PV)</span>
+                    <div class="f-sub">Your immediate starting seed contribution.</div>
+                  </div>
+                  <div class="pfx-wrap">
+                    <span class="pfx">RM</span>
+                    <input type="number" class="inp pl" value="${goal.pv}" step="1000" onchange="updateGoalField(${goal.id}, 'pv', parseFloat(this.value))">
+                  </div>
+                </div>
+
+                <div class="f-static">
+                  <div>
+                    <span class="f-label">Annual Recurrent Deposit (PMT)</span>
+                    <div class="f-sub">Additional capital committed at year-ends.</div>
+                  </div>
+                  <div class="pfx-wrap">
+                    <span class="pfx">RM</span>
+                    <input type="number" class="inp pl" value="${goal.pmt}" step="100" onchange="updateGoalField(${goal.id}, 'pmt', parseFloat(this.value))">
+                  </div>
+                </div>
+
+                <div class="f-static">
+                  <div>
+                    <span class="f-label">Expected Growth Yield (Annual Rate)</span>
+                    <div class="f-sub">The projected rate of return on invested funds.</div>
+                  </div>
+                  <div class="pfx-wrap">
+                    <input type="number" class="inp" value="${goal.rate}" step="0.1" style="padding-right: 20px;" onchange="updateGoalField(${goal.id}, 'rate', parseFloat(this.value))">
+                    <span style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 11px; color: var(--text3);">%</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Quick Results Block & Gauge -->
+              <div style="background: var(--surface2); padding: 16px; border-radius: var(--rl); display: flex; flex-direction: column; justify-content: space-between; border: 1px solid var(--border);">
+                <div>
+                  <div class="tot-label">FORMULATED FUTURE VALUE PROJECTION</div>
+                  <div class="tot-val" id="goal-fv-calc-${goal.id}" style="font-size: 26px; color: var(--blue); margin-top: 5px;">
+                    ${formatCurrency(goal.calculatedFv || 0)}
+                  </div>
+                  
+                  <div class="ss-div" style="margin: 15px 0;"></div>
+
+                  <div class="tot-label">FUNDING TARGET STATUS</div>
+                  <div id="goal-status-${goal.id}" style="margin-top: 5px;">
+                    <!-- Gap analysis output -->
+                  </div>
+                </div>
+
+                <div style="margin-top: 20px;">
+                  <button class="btn-nav btn-pri" style="width: 100%; justify-content: center;" onclick="triggerGoalCalculation(${goal.id})">
+                    <i class="fa-solid fa-calculator"></i> Calculate Investment
+                  </button>
+                  <button class="btn-rm" style="width: 100%; margin-top: 8px; border-style: solid;" onclick="removeGoalCard(${goal.id})">
+                    <i class="fa-solid fa-trash-can"></i> Discard Objective
+                  </button>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Dedicated Commentary Box for target planning card -->
+            <div class="commentary-block">
+              <label class="commentary-lbl">
+                <i class="fa-solid fa-feather-pointed"></i> Commentary & Tactical Plan for ${goal.name || 'this goal'}
+                <span class="commentary-char" id="comm-length-${goal.id}">0 / 400 chars</span>
+              </label>
+              <textarea 
+                class="commentary-box" 
+                maxlength="400" 
+                placeholder="Detail tactical assumptions here (e.g. 'Targeting index trackers to secure 7.5% compound yield...')"
+                oninput="updateGoalCommentary(${goal.id}, this.value)">${goal.commentary || ''}</textarea>
+              <div class="commentary-print" id="comm-print-${goal.id}">${goal.commentary || 'No advisory commentary provided for this specific objective.'}</div>
+            </div>
+
+          </div>
+        `;
+        container.appendChild(card);
+        updateGoalStatusUI(goal);
+      });
+    }
+
+    function toggleGoalCardUI(id) {
+      const goal = state.newGoals.find(g => g.id === id);
+      if (goal) {
+        goal.expanded = !(goal.expanded !== false);
+        saveState();
+        renderAllGoals();
+      }
+    }
+
+    function addNewGoalCard() {
+      const currentYear = new Date().getFullYear();
+      const newG = {
+        id: Date.now(),
+        name: `Portfolio Growth Target ${state.newGoals.length + 1}`,
+        target: 100000,
+        startYear: currentYear,
+        dueYear: currentYear + 15,
+        pv: 10000,
+        pmt: 2400,
+        rate: 6.5,
+        calculatedFv: 0,
+        gap: 0,
+        commentary: '',
+        expanded: true
+      };
+      state.newGoals.push(newG);
+      saveState();
+      renderAllGoals();
+      triggerGoalCalculation(newG.id);
+      updateProgressBar();
+    }
+
+    function removeGoalCard(id) {
+      state.newGoals = state.newGoals.filter(g => g.id !== id);
+      saveState();
+      renderAllGoals();
+      updateProgressBar();
+      updateAnalysisDashboard();
+    }
+
+    function updateGoalField(id, field, value) {
+      const goal = state.newGoals.find(g => g.id === id);
+      if (goal) {
+        if (field === 'name') {
+          goal[field] = value;
+        } else {
+          goal[field] = isNaN(value) ? 0 : value;
+        }
+        saveState();
+      }
+    }
+
+    // Dynamic update from Planner view — synchronizes with Report tab immediately
+    function updateGoalCommentary(id, text) {
+      const goal = state.newGoals.find(g => g.id === id);
+      if (goal) {
+        goal.commentary = text;
+        const count = document.getElementById(`comm-length-${id}`);
+        if (count) count.innerText = `${text.length} / 400 chars`;
+        const pr = document.getElementById(`comm-print-${id}`);
+        if (pr) pr.innerText = text || 'No advisory commentary provided for this specific objective.';
+        
+        // Synchronize with report tab text fields
+        const repTextArea = document.querySelector(`#executive-commentary-list textarea[oninput*="updateGoalCommentaryFromReport(${id}"]`);
+        if (repTextArea) {
+          repTextArea.value = text;
+        }
+        const repLength = document.getElementById(`rep-comm-length-${id}`);
+        if (repLength) {
+          repLength.innerText = `${text.length} / 400 chars`;
+        }
+        const repPrint = document.getElementById(`rep-comm-print-${id}`);
+        if (repPrint) {
+          repPrint.innerText = text || 'No specific objective tactical commentary provided.';
+        }
+        
+        saveState();
+      }
+    }
+
+    // Dynamic update from Report view — synchronizes with Planner tab immediately
+    function updateGoalCommentaryFromReport(id, text) {
+      const goal = state.newGoals.find(g => g.id === id);
+      if (goal) {
+        goal.commentary = text;
+        
+        // Sync back with the Planner view text elements
+        const plannerTextAreas = document.querySelectorAll(`textarea[oninput*="updateGoalCommentary(${id}"]`);
+        plannerTextAreas.forEach(ta => {
+          ta.value = text;
+        });
+        const plannerCharCount = document.getElementById(`comm-length-${id}`);
+        if (plannerCharCount) {
+          plannerCharCount.innerText = `${text.length} / 400 chars`;
+        }
+        const plannerPrint = document.getElementById(`comm-print-${id}`);
+        if (plannerPrint) {
+          plannerPrint.innerText = text || 'No advisory commentary provided for this specific objective.';
+        }
+
+        // Sync report-specific length & print previews
+        const repLength = document.getElementById(`rep-comm-length-${id}`);
+        if (repLength) {
+          repLength.innerText = `${text.length} / 400 chars`;
+        }
+        const repPrint = document.getElementById(`rep-comm-print-${id}`);
+        if (repPrint) {
+          repPrint.innerText = text || 'No specific objective tactical commentary provided.';
+        }
+        
+        saveState();
+      }
+    }
+
+    // General overall commentary updates
+    function updateGlobalExecutiveCommentary(text) {
+      state.executiveCommentary = text;
+      const count = document.getElementById('exec-comm-length');
+      if (count) count.innerText = `${text.length} / 1000 chars`;
+      const pr = document.getElementById('exec-comm-print');
+      if (pr) pr.innerText = text || 'No general executive commentary entered.';
+      saveState();
+    }
+
+    // Compounding solver for expected Future Value
+    function triggerGoalCalculation(id) {
+      const goal = state.newGoals.find(g => g.id === id);
+      if (goal) {
+        const r = goal.rate / 100;
+        const n = goal.dueYear - goal.startYear;
+        const pv = goal.pv;
+        const pmt = goal.pmt;
+
+        let fv = 0;
+        if (n <= 0) {
+          fv = pv;
+        } else {
+          if (Math.abs(r) < 1e-6) {
+            fv = pv + pmt * n;
+          } else {
+            // Standard Compounding formulation: PV*(1+r)^N + PMT*(((1+r)^N - 1)/r)
+            fv = pv * Math.pow(1 + r, n) + pmt * (Math.pow(1 + r, n) - 1) / r;
+          }
+        }
+
+        goal.calculatedFv = fv;
+        goal.gap = fv - goal.target;
+
+        saveState();
+        
+        // Update direct subcomponents
+        const fvDisplay = document.getElementById(`goal-fv-calc-${id}`);
+        if (fvDisplay) fvDisplay.innerText = formatCurrency(fv);
+        
+        const headerSummary = document.getElementById(`goal-header-summary-${id}`);
+        if (headerSummary) headerSummary.innerText = `Projected: ${formatCurrency(fv)}`;
+
+        updateGoalStatusUI(goal);
+        updateProgressBar();
+        updateAnalysisDashboard();
+      }
+    }
+
+    function calculateAllNewGoals(shouldSave = true) {
+      state.newGoals.forEach(g => {
+        const r = g.rate / 100;
+        const n = g.dueYear - g.startYear;
+        const pv = g.pv;
+        const pmt = g.pmt;
+        let fv = 0;
+        if (n <= 0) {
+          fv = pv;
+        } else {
+          if (Math.abs(r) < 1e-6) {
+            fv = pv + pmt * n;
+          } else {
+            fv = pv * Math.pow(1 + r, n) + pmt * (Math.pow(1 + r, n) - 1) / r;
+          }
+        }
+        g.calculatedFv = fv;
+        g.gap = fv - g.target;
+      });
+      if (shouldSave) saveState();
+    }
+
+    function updateGoalStatusUI(goal) {
+      const statusBox = document.getElementById(`goal-status-${goal.id}`);
+      if (!statusBox) return;
+
+      const gap = goal.gap || 0;
+      if (gap >= 0) {
+        statusBox.innerHTML = `
+          <div class="positive bold" style="font-size: 14px;">
+            <i class="fa-solid fa-circle-check"></i> Surplus of ${formatCurrency(gap)}
+          </div>
+          <p style="font-size: 11px; color: var(--text3); margin-top: 4px;">Excellent progress. Model is fully capitalized to surpass standard objectives.</p>
+        `;
+      } else {
+        statusBox.innerHTML = `
+          <div class="negative bold" style="font-size: 14px;">
+            <i class="fa-solid fa-circle-exclamation"></i> Deficit of ${formatCurrency(Math.abs(gap))}
+          </div>
+          <p style="font-size: 11px; color: var(--text3); margin-top: 4px;">Model reveals capital shortage. Consider increasing recurring deposits, start year, or yield target.</p>
+        `;
+      }
+    }
+
+
+    // ── GENERAL WORKSPACE UTILITY: PROGRESS TRACKER ──
+    function updateProgressBar() {
+      let progressCount = 0;
+      let totalSteps = 2; // Basic setup sections
+
+      if (state.existingEnabled) {
+        totalSteps += 1;
+        // Verify if at least one position holds capital
+        const hasPositions = state.existingInvestments.length > 0;
+        if (hasPositions) progressCount += 1;
+      }
+      
+      if (state.newGoalsEnabled) {
+        totalSteps += 1;
+        const hasGoals = state.newGoals.length > 0;
+        if (hasGoals) progressCount += 1;
+      }
+
+      // Check toggles themselves
+      if (state.existingEnabled) progressCount += 1;
+      if (state.newGoalsEnabled) progressCount += 1;
+
+      const pct = Math.min(100, Math.round((progressCount / totalSteps) * 100));
+      const pBar = document.getElementById('prog-bar');
+      const pPct = document.getElementById('prog-pct');
+      
+      if (pBar) pBar.style.width = `${pct}%`;
+      if (pPct) pPct.innerText = `${pct}%`;
+    }
+
+    // ── CORE ADVISORY REPORT & METRIC SYNC ──
+    function updateAnalysisDashboard() {
+      // 1. Matrices
+      const totalCurrentAssets = state.existingEnabled 
+        ? state.existingInvestments.reduce((sum, item) => sum + (item.fv || 0), 0)
+        : 0;
+      
+      document.getElementById('mx-current-assets').innerText = formatCurrency(totalCurrentAssets);
+      document.getElementById('mx-assets-count').innerText = `${state.existingInvestments.length} Active Positions`;
+
+      // Return WACC
+      let portfolioWACC = 0;
+      if (state.existingEnabled && totalCurrentAssets > 0) {
+        state.existingInvestments.forEach(item => {
+          const weight = item.fv / totalCurrentAssets;
+          portfolioWACC += item.cagr * weight;
+        });
+      }
+      document.getElementById('mx-portfolio-return').innerText = `${(portfolioWACC * 100).toFixed(2)}%`;
+
+      const inflation = parseFloat(document.getElementById('inflation-rate').value) || 3.0;
+      const beat = (portfolioWACC * 100) - inflation;
+      document.getElementById('mx-wacc-comparison').innerText = totalCurrentAssets > 0 
+        ? `${beat >= 0 ? 'Beats' : 'Misses'} inflation by ${Math.abs(beat).toFixed(2)}%`
+        : 'Portfolio empty';
+
+      // Goals planned metrics
+      const totalGoalsTarget = state.newGoalsEnabled
+        ? state.newGoals.reduce((sum, item) => sum + (item.target || 0), 0)
+        : 0;
+      const totalGoalsProjected = state.newGoalsEnabled
+        ? state.newGoals.reduce((sum, item) => sum + (item.calculatedFv || 0), 0)
+        : 0;
+
+      document.getElementById('mx-planned-fv').innerText = formatCurrency(totalGoalsProjected);
+      document.getElementById('mx-goals-total').innerText = `${state.newGoals.length} Defined Objectives`;
+
+      const gapProgress = totalGoalsTarget > 0 
+        ? Math.min(100, Math.round((totalGoalsProjected / totalGoalsTarget) * 100))
+        : 0;
+      
+      document.getElementById('mx-accomplish-rate').innerText = `${gapProgress}%`;
+      document.getElementById('mx-funding-status').innerText = totalGoalsTarget > 0 
+        ? `Agg. Target: ${formatCurrency(totalGoalsTarget)}`
+        : 'No target targets';
+
+      // 2. Report Lists Tables
+      syncAnalysisReportTables(totalCurrentAssets, portfolioWACC);
+    }
+
+    function syncAnalysisReportTables(totalCurrentAssets, portfolioWACC) {
+      // Portfolio Allocation Matrix Table
+      const pBody = document.getElementById('analysis-portfolio-rows');
+      pBody.innerHTML = '';
+
+      if (!state.existingEnabled || state.existingInvestments.length === 0) {
+        pBody.innerHTML = `
+          <tr>
+            <td colspan="4" class="text-center" style="color: var(--text3); padding: 20px;">
+              Portfolio disabled or empty. Construct asset list in Planner tab.
+            </td>
+          </tr>
+        `;
+      } else {
+        state.existingInvestments.forEach(item => {
+          const weight = item.fv / totalCurrentAssets;
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>
+              <div class="cat-badge">
+                <span class="cat-dot" style="background: var(--blue);"></span>
+                <span class="bold">${item.name}</span>
+              </div>
+            </td>
+            <td style="text-align: right;" class="mono">${formatCurrency(item.fv)}</td>
+            <td style="text-align: right;" class="mono">${(item.cagr * 100).toFixed(2)}%</td>
+            <td style="text-align: right;" class="mono">${(weight * 100).toFixed(1)}%</td>
+          `;
+          pBody.appendChild(tr);
+        });
+      }
+
+      // Goals Target Table
+      const gBody = document.getElementById('analysis-goals-rows');
+      gBody.innerHTML = '';
+
+      if (!state.newGoalsEnabled || state.newGoals.length === 0) {
+        gBody.innerHTML = `
+          <tr>
+            <td colspan="4" class="text-center" style="color: var(--text3); padding: 20px;">
+              Planning disabled or empty. Construct objectives in Planner tab.
+            </td>
+          </tr>
+        `;
+      } else {
+        state.newGoals.forEach(g => {
+          const tr = document.createElement('tr');
+          const isSurplus = g.gap >= 0;
+          tr.innerHTML = `
+            <td>
+              <div class="cat-badge">
+                <span class="cat-dot" style="background: ${isSurplus ? 'var(--green)' : 'var(--amber)'};"></span>
+                <span class="bold">${g.name}</span>
+              </div>
+            </td>
+            <td style="text-align: right;" class="mono">${formatCurrency(g.target)}</td>
+            <td style="text-align: right;" class="mono" style="color: var(--blue);">${formatCurrency(g.calculatedFv)}</td>
+            <td style="text-align: right;" class="mono bold ${isSurplus ? 'positive' : 'negative'}">
+              ${isSurplus ? '+' : ''}${formatCurrency(g.gap)}
+            </td>
+          `;
+          gBody.appendChild(tr);
+        });
+      }
+
+      // 3. Sync Dynamic Printable Commentary Box List (All Editable)
+      syncExecutiveCommentaryReport();
+    }
+
+    function syncExecutiveCommentaryReport() {
+      const commContainer = document.getElementById('executive-commentary-list');
+      commContainer.innerHTML = '';
+      
+      let commentsAdded = 0;
+
+      if (state.newGoalsEnabled) {
+        state.newGoals.forEach(g => {
+          commentsAdded++;
+          const div = document.createElement('div');
+          div.className = "ss-body";
+          div.style.marginBottom = "15px";
+          div.style.border = "1px solid var(--border)";
+          div.style.borderRadius = "var(--r)";
+          div.style.background = "var(--surface)";
+          div.style.padding = "12px 14px";
+          div.innerHTML = `
+            <div style="font-weight: 500; font-size: 11px; text-transform: uppercase; color: var(--text2); margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center;">
+              <span>Objective Focus: ${g.name}</span>
+              <span style="font-weight: normal; text-transform: none; color: var(--text3);" id="rep-comm-length-${g.id}">${(g.commentary || '').length} / 400 chars</span>
+            </div>
+            <textarea 
+              class="commentary-box" 
+              maxlength="400" 
+              placeholder="Detail tactical strategic assumptions here..."
+              style="min-height: 70px; font-size: 13px; line-height: 1.5; background: var(--surface2);"
+              oninput="updateGoalCommentaryFromReport(${g.id}, this.value)">${g.commentary || ''}</textarea>
+            <div class="commentary-print" style="margin-top: 5px; font-size: 13px; font-style: italic; color: var(--text2);" id="rep-comm-print-${g.id}">${g.commentary || 'No specific objective tactical commentary provided.'}</div>
+          `;
+          commContainer.appendChild(div);
+        });
+      }
+
+      if (commentsAdded === 0) {
+        commContainer.innerHTML = `
+          <div style="font-size: 12px; color: var(--text3); font-style: italic; padding: 10px 0;">
+            No custom target planning models active. Turn on target planning to edit specific objective briefs.
+          </div>
+        `;
+      }
+    }
+
+
+    // ── CHARTING PREPARATION AND RENDER ──
+    function renderCharts() {
+      // Ensure canvas element is ready
+      const pCanvas = document.getElementById('portfolioChart');
+      const gCanvas = document.getElementById('goalsChart');
+      if (!pCanvas || !gCanvas) return;
+
+      // Destroy previous instances
+      if (portfolioChartInst) portfolioChartInst.destroy();
+      if (goalsChartInst) goalsChartInst.destroy();
+
+      // Chart 1: Portfolio Allocation Donut
+      const validAssets = state.existingEnabled ? state.existingInvestments.filter(item => item.fv > 0) : [];
+      if (validAssets.length === 0) {
+        // Render simple fallback label
+        const ctx = pCanvas.getContext('2d');
+        ctx.clearRect(0,0,250,250);
+        ctx.fillStyle = '#a09d98';
+        ctx.font = '12px DM Sans';
+        ctx.textAlign = 'center';
+        ctx.fillText('No portfolio holdings mapped.', 125, 125);
+      } else {
+        portfolioChartInst = new Chart(pCanvas, {
+          type: 'doughnut',
+          data: {
+            labels: validAssets.map(a => a.name),
+            datasets: [{
+              data: validAssets.map(a => a.fv),
+              backgroundColor: ['#1a4a6b', '#1a6b47', '#6b4e1a', '#b85c00', '#6b1a1a', '#a09d98'],
+              borderWidth: 1,
+              borderColor: '#f7f6f2'
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: { display: false }
+            },
+            cutout: '70%'
+          }
+        });
+      }
+
+      // Chart 2: Goals Bar Projections (Target vs. Projected)
+      const validGoals = state.newGoalsEnabled ? state.newGoals : [];
+      if (validGoals.length === 0) {
+        const ctx = gCanvas.getContext('2d');
+        ctx.clearRect(0,0,gCanvas.width,gCanvas.height);
+        ctx.fillStyle = '#a09d98';
+        ctx.font = '12px DM Sans';
+        ctx.textAlign = 'center';
+        ctx.fillText('No financial targets configured.', gCanvas.width/2, 100);
+      } else {
+        goalsChartInst = new Chart(gCanvas, {
+          type: 'bar',
+          data: {
+            labels: validGoals.map(g => g.name),
+            datasets: [
+              {
+                label: 'Required Goal (RM)',
+                data: validGoals.map(g => g.target),
+                backgroundColor: 'rgba(200, 196, 187, 0.45)',
+                borderWidth: 1,
+                borderRadius: 4
+              },
+              {
+                label: 'Projected Output (RM)',
+                data: validGoals.map(g => g.calculatedFv),
+                backgroundColor: '#1a4a6b',
+                borderWidth: 1,
+                borderRadius: 4
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            scales: {
+              y: {
+                beginAtZero: true,
+                grid: { color: '#e2dfd8' },
+                ticks: { color: '#6b6860', font: { family: 'DM Mono' } }
+              },
+              x: {
+                grid: { display: false },
+                ticks: { color: '#6b6860', font: { family: 'DM Sans', size: 10 } }
+              }
+            },
+            plugins: {
+              legend: { position: 'bottom', labels: { boxWidth: 12, font: { family: 'DM Sans', size: 11 } } }
+            }
+          }
+        });
+      }
+    }
+
+
+    // Formatting tools
+    function formatCurrency(v) {
+      return new Intl.NumberFormat('en-MY', {
+        style: 'currency',
+        currency: 'MYR',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }).format(v);
+    }
+
+  </script>
+</body>
+</html>

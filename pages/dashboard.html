@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Client Session & Planning Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/styles.css" />
+  <style>
+    .page.active { display: block; }
+    .main-area { max-width: 1120px; margin: 0 auto; }
+    .client-band {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--rl);
+      box-shadow: var(--shadow);
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .client-label { font-size: 10px; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; color: var(--text3); margin-bottom: 4px; }
+    .client-name { font-size: 24px; font-weight: 300; letter-spacing: -.03em; }
+    .ref-pill { font-size: 11px; color: var(--blue); background: var(--blue-bg); border-radius: 999px; padding: 4px 10px; }
+    .section-divider { height: 1px; background: var(--border); margin: 1.5rem 0; }
+    .session-head, .session-row {
+      display: grid;
+      grid-template-columns: 54px 170px minmax(260px, 1fr) 92px 36px;
+      gap: 8px;
+      align-items: center;
+    }
+    .session-head { padding: 0 0 8px; border-bottom: 1px solid var(--border); color: var(--text3); font-size: 11px; font-weight: 500; letter-spacing: .05em; text-transform: uppercase; }
+    .session-row { padding: 8px 0; border-bottom: 1px solid var(--surface2); animation: fi .15s ease; }
+    .row-num { font-family: 'DM Mono', monospace; color: var(--text3); font-size: 12px; }
+    .btn-save-small {
+      height: 34px;
+      border: 1px solid var(--text);
+      background: var(--text);
+      color: #fff;
+      border-radius: var(--r);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 12px;
+      cursor: pointer;
+      transition: opacity .12s;
+    }
+    .btn-save-small:hover { opacity: .85; }
+    .tile-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .planning-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+    .action-tile {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--rl);
+      padding: 1rem;
+      min-height: 94px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      cursor: pointer;
+      transition: transform .15s, box-shadow .15s, border-color .15s;
+    }
+    .action-tile:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,.08); border-color: var(--border-strong); }
+    .tile-top { display: flex; align-items: center; gap: 9px; }
+    .tile-icon { width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 13px; }
+    .tile-title { font-size: 13px; font-weight: 500; }
+    .tile-sub { font-size: 11px; color: var(--text3); margin-top: 8px; }
+    .tile-link { font-size: 11px; color: var(--text2); display: flex; justify-content: space-between; align-items: center; margin-top: 12px; padding-top: 8px; border-top: 1px solid var(--surface2); }
+    .toast {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      background: var(--text);
+      color: #fff;
+      padding: 10px 14px;
+      border-radius: var(--r);
+      font-size: 12px;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(6px);
+      transition: all .18s;
+      z-index: 500;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+
+    .btn-return-onboard {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      background: var(--surface);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all .12s;
+    }
+    .btn-return-onboard:hover {
+      background: var(--surface2);
+      border-color: var(--border-strong);
+    }
+    @media(max-width: 900px){
+      .planning-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .session-head { display: none; }
+      .session-row { grid-template-columns: 1fr; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--r); padding: 10px; margin-bottom: 8px; }
+    }
+    @media(max-width: 620px){ .tile-grid, .planning-grid { grid-template-columns: 1fr; } .main-area { padding: 1rem; } }
+  
+    .btn-logout { height:34px; padding:0 14px; border:1px solid var(--border); border-radius:var(--r); background:var(--surface); color:var(--text2); font-family:'DM Sans',sans-serif; font-size:12px; font-weight:500; cursor:pointer; }
+    .btn-logout:hover { background:var(--surface2); color:var(--text); }
+</style>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../assets/js/supabase-client.js"></script>
+  <script src="../assets/js/supabase-store.js"></script>
+  <script src="../assets/js/auth-guard.js"></script>
+  <script defer src="../assets/js/auth.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14M12 5l7 7-7 7" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div>
+        <div class="brand-name">Wealth Quadrant Pro Access</div>
+        <div class="brand-sub">Client Planning Workspace</div>
+      </div>
+    </div>
+    <a class="btn-return-onboard" href="onboarding.html">← Return to Client On-Board</a>
+    <button id="logoutBtn" class="btn-logout" type="button">Logout</button>
+  </header>
+
+  <main class="page active">
+    <section class="main-area">
+      <div class="a-header">
+        <div class="a-header-left">
+          <div class="a-title">Client Planning Dashboard</div>
+          <div class="a-sub">Session tracking, client data access and financial planning elements.</div>
+        </div>
+      </div>
+
+      <div class="client-band">
+        <div>
+          <div class="client-label">Client's Name</div>
+          <div class="client-name" id="clientName">Client Name</div>
+        </div>
+      
+      </div>
+
+      <div class="grp-block">
+        <div class="grp-label">Session Attended</div>
+        <div class="session-head">
+          <div>#</div><div>Session Date</div><div>Focused Topic(s)</div><div>Save</div><div></div>
+        </div>
+        <div id="sessionRows"></div>
+        <button class="btn-add" type="button" onclick="addSessionRow()">+ Add session</button>
+      </div>
+
+      <div class="section-divider"></div>
+
+      <div class="grp-block">
+        <div class="grp-label">Personal Information</div>
+        <div class="tile-grid">
+          <button class="action-tile" type="button" onclick="openModule('personal-data')">
+            <div>
+              <div class="tile-top"><span class="tile-icon ci1">👤</span><span class="tile-title">Personal Data</span></div>
+              <div class="tile-sub">Open client personal and family information.</div>
+            </div>
+            <div class="tile-link"><span>Open module</span><span>→</span></div>
+          </button>
+          <button class="action-tile" type="button" onclick="openModule('financial-objective')">
+            <div>
+              <div class="tile-top"><span class="tile-icon ci2">🎯</span><span class="tile-title">Financial Objective</span></div>
+              <div class="tile-sub">Review short, medium and long-term objectives.</div>
+            </div>
+            <div class="tile-link"><span>Open module</span><span>→</span></div>
+          </button>
+        </div>
+      </div>
+
+      <div class="section-divider"></div>
+
+      <div class="grp-block">
+        <div class="grp-label">Financial Data</div>
+        <div class="tile-grid">
+          <button class="action-tile" type="button" onclick="openModule('data-collection')">
+            <div>
+              <div class="tile-top"><span class="tile-icon ci3">📊</span><span class="tile-title">Data Collection</span></div>
+              <div class="tile-sub">Open income, expenses, assets and liabilities data.</div>
+            </div>
+            <div class="tile-link"><span>Open module</span><span>→</span></div>
+          </button>
+        </div>
+      </div>
+
+      <div class="grp-block">
+        <div class="grp-label">Financial Planning Element</div>
+        <div class="planning-grid">
+          <button class="action-tile" type="button" onclick="openModule('risk-takaful')"><div><div class="tile-top"><span class="tile-icon ci-r">🛡️</span><span class="tile-title">Risk & Takaful Planning</span></div><div class="tile-sub">Protection gap and coverage planning.</div></div><div class="tile-link"><span>Open</span><span>→</span></div></button>
+          <button class="action-tile" type="button" onclick="openModule('hajj')"><div><div class="tile-top"><span class="tile-icon ci3">🕋</span><span class="tile-title">Hajj Planning</span></div><div class="tile-sub">Target fund and timeline preparation.</div></div><div class="tile-link"><span>Open</span><span>→</span></div></button>
+          <button class="action-tile" type="button" onclick="openModule('investment')"><div><div class="tile-top"><span class="tile-icon ci1">📈</span><span class="tile-title">Investment Planning</span></div><div class="tile-sub">Portfolio direction and growth strategy.</div></div><div class="tile-link"><span>Open</span><span>→</span></div></button>
+          <button class="action-tile" type="button" onclick="openModule('retirement')"><div><div class="tile-top"><span class="tile-icon ci2">🏖️</span><span class="tile-title">Retirement Planning</span></div><div class="tile-sub">Retirement income and readiness plan.</div></div><div class="tile-link"><span>Open</span><span>→</span></div></button>
+          <button class="action-tile" type="button" onclick="openModule('child-education')"><div><div class="tile-top"><span class="tile-icon ci3">🎓</span><span class="tile-title">Child Education Planning</span></div><div class="tile-sub">Education cost and funding plan.</div></div><div class="tile-link"><span>Open</span><span>→</span></div></button>
+          <button class="action-tile" type="button" onclick="openModule('zakat-tax')"><div><div class="tile-top"><span class="tile-icon ci-g">🧾</span><span class="tile-title">Zakat & Tax Planning</span></div><div class="tile-sub">Annual obligations and optimization.</div></div><div class="tile-link"><span>Open</span><span>→</span></div></button>
+          <button class="action-tile" type="button" onclick="openModule('debt-management')"><div><div class="tile-top"><span class="tile-icon ci-r">💳</span><span class="tile-title">Debt Management Planning</span></div><div class="tile-sub">Debt control and repayment planning.</div></div><div class="tile-link"><span>Open</span><span>→</span></div></button>
+          <button class="action-tile" type="button" onclick="openModule('estate')"><div><div class="tile-top"><span class="tile-icon ci2">📜</span><span class="tile-title">Estate Planning</span></div><div class="tile-sub">Legacy, faraid and distribution planning.</div></div><div class="tile-link"><span>Open</span><span>→</span></div></button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="toast" id="toast">Saved</div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const clientEmail = (params.get('clientEmail') || params.get('client') || '').trim().toLowerCase();
+    let currentClient = null;
+
+    function showToast(message){
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 1600);
+    }
+
+    function collectSessions(){
+      return [...document.querySelectorAll('.session-row')].map(row => ({
+        date: row.querySelector('.session-date').value,
+        topic: row.querySelector('.session-topic').value
+      })).filter(item => item.date || item.topic);
+    }
+
+    async function saveAll(){
+      if (!clientEmail) {
+        showToast('Client email not found');
+        return;
+      }
+      await WQPStore.saveModule(clientEmail, 'sessions', {
+        sessions: collectSessions(),
+        savedAt: new Date().toISOString()
+      });
+    }
+
+    async function saveRow(btn){
+      try {
+        await saveAll();
+        showToast('Session saved');
+      } catch (error) {
+        console.error('Unable to save session:', error);
+        showToast('Unable to save session');
+      }
+    }
+
+    function renumberRows(){
+      document.querySelectorAll('.session-row .row-num').forEach((el, i) => el.textContent = String(i + 1).padStart(2, '0'));
+    }
+
+    function escapeHtml(value) {
+      return String(value || '').replace(/[&<>'"]/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
+    }
+
+    function addSessionRow(rowData = {}){
+      const wrap = document.getElementById('sessionRows');
+      const row = document.createElement('div');
+      row.className = 'session-row';
+      row.innerHTML = `
+        <div class="row-num"></div>
+        <input class="inp-t session-date" type="date" value="${escapeHtml(rowData.date || '')}" />
+        <input class="inp-t session-topic" type="text" placeholder="e.g. Risk planning, debt management" value="${escapeHtml(rowData.topic || '')}" />
+        <button class="btn-save-small" type="button" onclick="saveRow(this)">Save</button>
+        <button class="btn-rm" type="button" title="Remove row">×</button>
+      `;
+      row.querySelector('.btn-rm').addEventListener('click', async () => {
+        row.remove();
+        if (!wrap.children.length) addSessionRow();
+        renumberRows();
+        try { await saveAll(); } catch (error) { console.warn(error); }
+      });
+      wrap.appendChild(row);
+      renumberRows();
+    }
+
+    function getClientQuery(){
+      return clientEmail ? '?clientEmail=' + encodeURIComponent(clientEmail) : '';
+    }
+
+    function openModule(moduleName){
+      const routes = {
+        'personal-data': 'modules/personal-information.html',
+        'financial-objective': 'modules/financial-objectives.html',
+        'data-collection': 'modules/wealth-quadrant.html',
+        'wealth-quadrant': 'modules/wealth-quadrant.html',
+        'risk-takaful': 'modules/risk-takaful.html',
+        'hajj': 'modules/hajj.html',
+        'investment': 'modules/investment.html',
+        'retirement': 'modules/retirement.html',
+        'child-education': 'modules/child-education.html',
+        'zakat-tax': 'modules/zakat-tax.html',
+        'debt-management': 'modules/debt-management.html',
+        'estate': 'modules/estate-planning.html'
+      };
+      const route = routes[moduleName];
+      if (!route) { showToast('Module route not found'); return; }
+      window.location.href = route + getClientQuery();
+    }
+
+    async function initDashboard(){
+      if (!clientEmail) {
+        document.getElementById('clientName').textContent = 'Client Name';
+        addSessionRow();
+        showToast('Client email not found');
+        return;
+      }
+
+      try {
+        currentClient = await WQPStore.getClientByEmail(clientEmail);
+        if (currentClient && currentClient.client_name) {
+          document.getElementById('clientName').textContent = currentClient.client_name;
+        } else {
+          document.getElementById('clientName').textContent = clientEmail;
+        }
+
+        const sessionData = await WQPStore.loadModule(clientEmail, 'sessions');
+        const savedSessions = sessionData && sessionData.sessions && sessionData.sessions.length ? sessionData.sessions : [{}];
+        savedSessions.forEach(addSessionRow);
+      } catch (error) {
+        console.error('Unable to load dashboard data:', error);
+        document.getElementById('clientName').textContent = clientEmail;
+        addSessionRow();
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', initDashboard);
+  </script>
+</body>
+</html>

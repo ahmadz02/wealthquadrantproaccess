@@ -1,0 +1,1674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Risk & Takaful Planning System</title>
+  <!-- Google Fonts: DM Sans & DM Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap" rel="stylesheet">
+  <style>
+    /* Embed the uploaded styles.css directly */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #f7f6f2; --surface: #fff; --surface2: #f2f0eb;
+      --border: #e2dfd8; --border-strong: #c8c4bb;
+      --text: #1a1916; --text2: #6b6860; --text3: #a09d98;
+      --green: #1a6b47; --green-bg: #edf7f2;
+      --blue: #1a4a6b; --blue-bg: #edf3f7;
+      --red: #6b1a1a; --red-bg: #f7eded;
+      --gold: #6b4e1a; --gold-bg: #f7f2ed;
+      --orange: #b85c00; --amber: #c97a1a;
+      --r: 6px; --rl: 10px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); font-size:14px; line-height:1.5; min-height:100vh; }
+
+    /* ── TOPBAR ── */
+    .topbar { background:var(--surface); border-bottom:1px solid var(--border); padding:0 1.5rem; display:flex; align-items:center; justify-content:space-between; height:56px; position:sticky; top:0; z-index:200; }
+    .brand { display:flex; align-items:center; gap:10px; }
+    .brand-mark { width:28px; height:28px; background:var(--text); border-radius:6px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .brand-mark svg { width:14px; height:14px; fill: #fff; }
+    .brand-name { font-size:14px; font-weight:500; letter-spacing:-0.01em; }
+    .brand-sub { font-size:12px; color:var(--text3); margin-left:2px; }
+    .pill-nav { display:flex; background:var(--surface2); border-radius:20px; padding:3px; gap:2px; }
+    .pill-btn { padding:5px 16px; border-radius:16px; border:none; background:transparent; font-size:12px; font-family:'DM Sans',sans-serif; color:var(--text2); cursor:pointer; font-weight:400; transition:all .15s; }
+    .pill-btn.active { background:var(--surface); color:var(--text); font-weight:500; box-shadow:0 1px 2px rgba(0,0,0,.08); }
+
+    /* ── PAGE SHELLS ── */
+    .page { display:none; }
+    .page.active { display:flex; min-height:calc(100vh - 56px); }
+
+    /* ── ENTRY LAYOUT ── */
+    .sidebar { width:260px; flex-shrink:0; background:var(--surface); border-right:1px solid var(--border); position:sticky; top:56px; height:calc(100vh - 56px); overflow-y:auto; padding:1.25rem 0; }
+    .main-area { flex:1; padding:2rem; overflow-y:auto; min-width:0; }
+
+    /* sidebar nav */
+    .sb-label { font-size:10px; font-weight:500; letter-spacing:.08em; text-transform:uppercase; color:var(--text3); padding:0 1.25rem; margin-bottom:.5rem; }
+    .sb-item { display:flex; align-items:center; gap:10px; padding:9px 1.25rem; cursor:pointer; border-left:2px solid transparent; transition:all .12s; font-size:13px; color:var(--text2); text-decoration:none; }
+    .sb-item:hover { background:var(--surface2); color:var(--text); }
+    .sb-item.active { border-left-color:var(--text); color:var(--text); font-weight:500; background:var(--surface2); }
+    .sb-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+    .d1 { background:var(--green); } .d2 { background:var(--blue); } .d3 { background:var(--gold); } .d4 { background:var(--text3); }
+
+    /* progress */
+    .prog-wrap { padding:1.25rem 1.25rem .75rem; }
+    .prog-top { display:flex; justify-content:space-between; font-size:11px; color:var(--text3); margin-bottom:6px; }
+    .prog-track { height:3px; background:var(--surface2); border-radius:2px; overflow:hidden; }
+    .prog-fill { height:100%; background:var(--text); border-radius:2px; width:0%; transition:width .4s; }
+
+    /* per-segment sidebar summaries */
+    .seg-sum { display:none; margin:0 1rem .75rem; }
+    .seg-sum.on { display:block; }
+    .ss-head { color:#fff; font-size:10px; font-weight:500; letter-spacing:.06em; text-transform:uppercase; padding:6px 10px; border-radius:var(--r) var(--r) 0 0; }
+    .ss-body { background:var(--surface2); border-radius:0 0 var(--r) var(--r); padding:8px 10px; border:1px solid var(--border); border-top:none; }
+    .ss-row { display:flex; justify-content:space-between; align-items:baseline; padding:3px 0; font-size:11px; color:var(--text2); border-bottom:1px solid var(--border); }
+    .ss-row:last-child { border-bottom:none; }
+    .ss-row.neg { color:var(--red); }
+    .ss-v { font-family:'DM Mono',monospace; font-size:11px; color:var(--text); }
+    .ss-b { font-weight:500; }
+    .ss-div { height:1px; background:var(--border-strong); margin:5px 0; }
+    .ss-tot { display:flex; justify-content:space-between; align-items:baseline; padding:3px 0; font-size:11px; font-weight:500; }
+    .positive { color:var(--green); } .negative { color:var(--red); } .neutral { color:var(--blue); } .warning { color:var(--amber); }
+
+    /* ── SEGMENT CONTENT ── */
+    .segment { display:none; }
+    .segment.active { display:block; }
+    .seg-hdr { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:1.75rem; }
+    .seg-tag { display:inline-flex; align-items:center; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:500; margin-bottom:6px; }
+    .t1{background:var(--green-bg);color:var(--green);} .t2{background:var(--blue-bg);color:var(--blue);} .t3{background:var(--gold-bg);color:var(--gold);} .t4{background:var(--surface2);color:var(--text2);}
+    .seg-title { font-size:22px; font-weight:300; letter-spacing:-.03em; }
+    .seg-desc { font-size:13px; color:var(--text3); margin-top:4px; }
+    .seg-tot-box { text-align:right; background:var(--surface2); border-radius:var(--rl); padding:10px 16px; }
+    .tot-label { font-size:11px; color:var(--text3); }
+    .tot-val { font-size:20px; font-weight:500; font-family:'DM Mono',monospace; letter-spacing:-.03em; }
+
+    /* cards */
+    .card { background:var(--surface); border:1px solid var(--border); border-radius:var(--rl); margin-bottom:1rem; overflow:hidden; box-shadow:var(--shadow); }
+    .ch { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; cursor:pointer; user-select:none; border-bottom:1px solid transparent; transition:background .12s; }
+    .ch:hover { background:var(--surface2); }
+    .ch.open { border-bottom-color:var(--border); }
+    .ch-left { display:flex; align-items:center; gap:10px; }
+    .ci { width:28px; height:28px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:13px; flex-shrink:0; }
+    .ci1{background:var(--green-bg);} .ci2{background:var(--blue-bg);} .ci3{background:var(--gold-bg);} .ci-r{background:var(--red-bg);} .ci-g{background:var(--surface2);}
+    .ch-title { font-size:13px; font-weight:500; }
+    .ch-sub { font-size:11px; color:var(--text3); margin-top:1px; }
+    .ch-right { display:flex; align-items:center; gap:10px; }
+    .ch-sum { font-family:'DM Mono',monospace; font-size:13px; color:var(--text2); }
+    .chev { width:16px; height:16px; color:var(--text3); transition:transform .2s; flex-shrink:0; }
+    .chev.open { transform:rotate(180deg); }
+    .cb { display:none; padding:14px 16px; }
+    .cb.open { display:block; }
+
+    /* fields */
+    .f-static { display:grid; grid-template-columns:240px 1fr ; gap:8px; align-items:center; padding:8px 0; border-bottom:1px solid var(--border); }
+    .f-static:last-of-type { border-bottom:none; }
+    .f-label { font-size:13px; }
+    .f-sub { font-size:11px; color:var(--text3); }
+    .pfx-wrap { position:relative; }
+    .pfx { position:absolute; left:10px; top:50%; transform:translateY(-50%); font-size:12px; color:var(--text3); pointer-events:none; }
+    .inp { width:100%; height:34px; border:1px solid var(--border); border-radius:var(--r); padding:0 10px; font-size:13px; font-family:'DM Mono',monospace; color:var(--text); background:var(--surface); text-align:right; transition:border-color .12s; }
+    .inp:focus { outline:none; border-color:var(--text); }
+    .inp.pl { padding-left:26px; text-align:left; }
+    .inp-t { height:34px; border:1px solid var(--border); border-radius:var(--r); padding:0 10px; font-size:13px; font-family:'DM Sans',sans-serif; color:var(--text); background:var(--surface); width:100%; transition:border-color .12s; }
+    .inp-t:focus { outline:none; border-color:var(--text); }
+    .exp-rows { margin-top:10px; }
+    .exp-row { display:grid; grid-template-columns:1fr 160px 30px; gap:6px; align-items:center; margin-bottom:6px; animation:fi .15s ease; }
+    .exp-row-4 { display:grid; grid-template-columns:130px 1fr 150px 30px; gap:6px; align-items:center; margin-bottom:6px; animation:fi .15s ease; }
+    @keyframes fi { from{opacity:0;transform:translateY(-4px)} to{opacity:1;transform:translateY(0)} }
+    .btn-rm { width:28px; height:28px; border:1px solid var(--border); border-radius:var(--r); background:transparent; cursor:pointer; color:var(--text3); display:flex; align-items:center; justify-content:center; font-size:16px; transition:all .12s; }
+    .btn-rm:hover { border-color:var(--red); color:var(--red); background:var(--red-bg); }
+    .btn-add { display:flex; align-items:center; gap:6px; padding:6px 10px; border:1px dashed var(--border-strong); border-radius:var(--r); background:transparent; font-size:12px; font-family:'DM Sans',sans-serif; color:var(--text3); cursor:pointer; margin-top:4px; width:100%; transition:all .12s; }
+    .btn-add:hover { border-color:var(--text); color:var(--text2); background:var(--surface2); }
+    .ded-section { margin-top:1.5rem; padding-top:1.25rem; border-top:1px dashed var(--border); }
+    .ded-lbl { font-size:11px; font-weight:500; letter-spacing:.06em; text-transform:uppercase; color:var(--red); margin-bottom:.75rem; }
+    .age-input{text-align:left;}
+
+    /* nav buttons */
+    .seg-nav { display:flex; justify-content:space-between; align-items:center; margin-top:2rem; padding-top:1.5rem; border-top:1px solid var(--border); }
+    .btn-nav { display:flex; align-items:center; gap:6px; padding:9px 18px; border:1px solid var(--border); border-radius:var(--r); background:transparent; font-size:13px; font-family:'DM Sans',sans-serif; color:var(--text2); cursor:pointer; transition:all .12s; }
+    .btn-nav:hover { border-color:var(--text); color:var(--text); }
+    .btn-pri { background:var(--text); color:#fff; border-color:var(--text); }
+    .btn-pri:hover { background:#333; }
+
+    /* ── ANALYSIS PAGE ── */
+    #page-analysis .main-area { max-width:1100px; margin:0 auto; }
+    .a-header { margin-bottom:1.75rem; }
+    .a-title { font-size:28px; font-weight:300; letter-spacing:-.03em; }
+    .a-sub { font-size:13px; color:var(--text3); margin-top:4px; }
+    .sec-title { font-size:10px; font-weight:500; letter-spacing:.08em; text-transform:uppercase; color:var(--text3); margin-bottom:.75rem; margin-top:1.5rem; }
+
+    /* quadrant */
+    .quad-grid { display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:10px; margin-bottom:1rem; }
+    .quad-card { border-radius:var(--rl); overflow:hidden; border:1px solid var(--border); cursor:pointer; transition:transform .15s, box-shadow .15s; }
+    .quad-card:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(0,0,0,.1); }
+    .quad-card:active { transform:translateY(0); box-shadow:none; }
+    .q-hint { font-size:10px; color:rgba(255,255,255,.7); font-style:italic; float:right; font-weight:400; letter-spacing:0; }
+    .q-head { padding:8px 12px; font-size:11px; font-weight:500; letter-spacing:.05em; text-transform:uppercase; color:#fff; }
+    .qg{background:#1a6b47;} .qr{background:#8b2020;} .qb{background:#1a4a6b;} .qo{background:#b85c00;}
+    .q-body { background:var(--surface); padding:10px 12px; }
+    .q-row { display:flex; justify-content:space-between; padding:3px 0; font-size:12px; color:var(--text2); border-bottom:1px solid var(--surface2); }
+    .q-row:last-child { border-bottom:none; }
+    .q-val { font-family:'DM Mono',monospace; font-size:12px; font-weight:500; color:var(--text); }
+    .q-div { height:1px; background:var(--border); margin:6px 0; }
+    .q-foot { display:flex; justify-content:space-between; padding:4px 0 0; font-size:12px; font-weight:500; }
+    .q-fv { font-family:'DM Mono',monospace; font-size:13px; font-weight:500; }
+
+    /* matrix */
+    .mx-grid { display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:10px; margin-bottom:1.5rem; }
+    .mx-item { background:var(--surface); border:1px solid var(--border); border-radius:var(--rl); padding:1rem 1.25rem; }
+    .mx-lbl { font-size:11px; color:var(--text3); letter-spacing:.03em; margin-bottom:3px; }
+    .mx-fml { font-size:10px; color:var(--text3); opacity:.7; margin-bottom:8px; font-style:italic; }
+    .mx-val { font-size:22px; font-weight:500; font-family:'DM Mono',monospace; letter-spacing:-.03em; }
+    .mx-sub { font-size:11px; color:var(--text3); margin-top:3px; }
+
+    /* kpi strip */
+    .kpi-grid { display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:10px; margin-bottom:1.5rem; }
+    .kpi { background:var(--surface); border:1px solid var(--border); border-radius:var(--rl); padding:1rem 1.25rem; }
+    .kpi-lbl { font-size:11px; color:var(--text3); letter-spacing:.03em; margin-bottom:6px; }
+    .kpi-val { font-size:20px; font-weight:500; font-family:'DM Mono',monospace; letter-spacing:-.03em; }
+    .kpi-sub { font-size:11px; color:var(--text3); margin-top:4px; }
+
+    /* analysis cards */
+    .a-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--rl); padding:1.25rem; margin-bottom:1rem; }
+    .a-card-title { font-size:13px; font-weight:500; margin-bottom:1rem; display:flex; align-items:center; gap:8px; }
+    .a-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+    .two-col { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem; }
+    .chart-wrap { position:relative; }
+    .bar-list { display:flex; flex-direction:column; gap:10px; }
+    .bar-item-top { display:flex; justify-content:space-between; margin-bottom:5px; font-size:12px; }
+    .bar-lbl { color:var(--text2); }
+    .bar-val { font-family:'DM Mono',monospace; font-weight:500; }
+    .bar-track { height:6px; background:var(--surface2); border-radius:4px; overflow:hidden; }
+    .bar-fill { height:100%; border-radius:4px; transition:width .8s; }
+    .bk-table { width:100%; border-collapse:collapse; }
+    .bk-table th { font-size:11px; font-weight:500; color:var(--text3); text-align:left; padding:0 0 8px; border-bottom:1px solid var(--border); }
+    .bk-table th:last-child { text-align:right; }
+    .bk-table td { padding:8px 0; font-size:13px; border-bottom:1px solid var(--surface2); vertical-align:middle; }
+    .bk-table td:last-child { text-align:right; font-family:'DM Mono',monospace; font-weight:500; }
+    .bk-table tr:last-child td { border-bottom:none; }
+    .cat-badge { display:inline-flex; align-items:center; gap:5px; }
+    .cat-dot { width:6px; height:6px; border-radius:50%; }
+    .ratio-item { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+    .ratio-lbl { font-size:12px; color:var(--text2); width:130px; flex-shrink:0; }
+    .ratio-track { flex:1; background:var(--surface2); height:8px; border-radius:4px; overflow:hidden; }
+    .ratio-fill { height:100%; border-radius:4px; }
+    .ratio-pct { font-size:12px; font-family:'DM Mono',monospace; width:42px; text-align:right; }
+    .health-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; }
+    .h-item { background:var(--surface2); border-radius:var(--r); padding:10px 12px; }
+    .h-score { font-size:18px; font-weight:500; font-family:'DM Mono',monospace; margin-bottom:2px; }
+    .h-lbl { font-size:11px; color:var(--text3); }
+    .h-tag { font-size:10px; font-weight:500; padding:2px 8px; border-radius:10px; margin-top:6px; display:inline-block; }
+    .tg{background:var(--green-bg);color:var(--green);} .tw{background:#fff8e8;color:var(--amber);} .tb{background:var(--red-bg);color:var(--red);}
+    .nw-val { font-size:32px; font-weight:300; font-family:'DM Mono',monospace; letter-spacing:-.04em; }
+
+    .empty-state { text-align:center; padding:4rem 1rem; color:var(--text3); }
+    .empty-state a { color:var(--blue); text-decoration:none; font-weight:500; cursor:pointer; }
+
+    /* net worth duo */
+    .nw-duo-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:.5rem; }
+    .nw-card { background:var(--surface2); border:1px solid var(--border); border-radius:var(--rl); padding:1rem 1.25rem; }
+    .nw-card-lbl { font-size:12px; font-weight:500; color:var(--text2); margin-bottom:3px; display:flex; align-items:center; gap:6px; }
+    .nw-card-fml { font-size:11px; color:var(--text3); font-style:italic; margin-bottom:10px; }
+    .nw-card-val { font-size:24px; font-weight:500; font-family:'DM Mono',monospace; letter-spacing:-.03em; }
+    .nw-epf-tag { font-size:10px; font-weight:500; padding:2px 7px; border-radius:10px; }
+    .with-epf { background:#e8f5ee; color:#1a6b47; }
+    .no-epf   { background:#f5ede8; color:#8b3a1a; }
+
+    /* group blocks */
+    .grp-block { background:var(--surface); border:1px solid var(--border); border-radius:var(--rl); padding:1.25rem 1.5rem; margin-bottom:1.25rem; }
+    .grp-label { font-size:11px; font-weight:500; letter-spacing:.1em; text-transform:uppercase; color:var(--text3); margin-bottom:1rem; margin-top:1.25rem; padding-bottom:.5rem; border-bottom:1px solid var(--border); }
+    .grp-block .grp-label { margin-top:0; }
+    .grp-sub { font-size:12px; font-weight:500; color:var(--text2); margin-bottom:.6rem; margin-top:1.25rem; display:flex; align-items:center; gap:6px; }
+    .grp-sub::before { content:''; display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--text3); flex-shrink:0; }
+
+    /* financial health table */
+    .fh-grid { display:flex; flex-direction:column; gap:0; border:1px solid var(--border); border-radius:var(--rl); overflow:hidden; }
+    .fh-row { display:grid; grid-template-columns:1fr 140px; align-items:start; padding:14px 14px; border-bottom:1px solid var(--surface2); background:var(--surface); gap:12px; }
+    .fh-row:last-child { border-bottom:none; }
+    .fh-row:nth-child(even) { background:#fafaf8; }
+    .fh-name { font-size:13px; font-weight:500; color:var(--text); margin-bottom:1px; }
+    .fh-fml { font-size:11px; color:var(--text3); font-style:italic; }
+    .fh-bench { font-size:10px; color:var(--amber); margin-top:1px; }
+    .fh-right { display:flex; flex-direction:column; align-items:flex-end; gap:3px; }
+    .fh-val { font-family:'DM Mono',monospace; font-size:15px; font-weight:500; }
+
+    .kpi-val.surplus { color:#1a6b47; font-weight:700; }
+    .kpi-val.deficit { color:#8b2020; font-weight:700; }
+
+    /* commentary */
+    .commentary-wrap { margin-top:8px; }
+    .commentary-lbl { font-size:10px; font-weight:500; letter-spacing:.05em; text-transform:uppercase; color:var(--text3); margin-bottom:4px; display:flex; align-items:center; gap:4px; }
+    .commentary-char { font-weight:400; letter-spacing:0; text-transform:none; margin-left:auto; }
+    .commentary-box { width:100%; border:1px solid var(--border); border-radius:var(--r); padding:8px 10px; font-size:12px; font-family:'DM Sans',sans-serif; color:var(--text); background:var(--surface2); resize:vertical; line-height:1.5; transition:border-color .12s; }
+    .commentary-box:focus { outline:none; border-color:var(--text); background:var(--surface); }
+    .commentary-box::placeholder { color:var(--text3); }
+    .commentary-print { display:none; font-size:11px; color:var(--text2); font-style:italic; margin-top:6px; white-space:pre-wrap; }
+
+    /* Reset buttons */
+    .btn-reset-seg { display:inline-flex; align-items:center; gap:5px; padding:5px 12px; border:1px solid var(--border); border-radius:var(--r); background:transparent; font-size:11px; font-family:'DM Sans',sans-serif; color:var(--text3); cursor:pointer; transition:all .12s; }
+    .btn-reset-seg:hover { border-color:#c0392b; color:#c0392b; background:#fff5f5; }
+    .btn-reset-data { display:inline-flex; align-items:center; gap:4px; padding:4px 9px; border:1px solid var(--border); border-radius:var(--r); background:transparent; font-size:11px; font-family:'DM Sans',sans-serif; color:var(--text3); cursor:pointer; transition:all .12s; margin-left:6px; }
+    .btn-reset-data:hover { border-color:#c0392b; color:#c0392b; background:#fff5f5; }
+    .seg-hdr-actions { display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+
+    /* Commentary block */
+    .commentary-block { margin-bottom:1.25rem; }
+    .commentary-box { width:100%; min-height:100px; border:1px solid var(--border); border-radius:var(--rl); padding:12px 14px; font-size:13px; font-family:'DM Sans',sans-serif; color:var(--text); background:var(--surface); resize:vertical; line-height:1.6; transition:border-color .12s; }
+    .commentary-box:focus { outline:none; border-color:var(--text); }
+    .commentary-box::placeholder { color:var(--text3); }
+    .commentary-lbl { font-size:11px; font-weight:500; letter-spacing:.06em; text-transform:uppercase; color:var(--text3); margin-bottom:6px; display:flex; align-items:center; gap:6px; }
+    .commentary-char { font-size:10px; color:var(--text3); margin-left:auto; font-weight:400; letter-spacing:0; text-transform:none; }
+
+    /* Print button — replaces PDF btn */
+    .btn-pdf { display:inline-flex; align-items:center; gap:7px; padding:8px 18px; background:var(--text); color:#fff; border:none; border-radius:var(--r); font-size:13px; font-family:'DM Sans',sans-serif; font-weight:500; cursor:pointer; transition:opacity .15s; white-space:nowrap; flex-shrink:0; }
+    .btn-pdf:hover { opacity:.85; }
+    .a-header { display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; margin-bottom:1.75rem; flex-wrap:wrap; }
+    .a-header-left .a-title { font-size:28px; font-weight:300; letter-spacing:-.03em; }
+    .a-header-left .a-sub { font-size:13px; color:var(--text3); margin-top:4px; }
+    .pdf-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:9999; align-items:center; justify-content:center; }
+    .pdf-overlay.show { display:flex; }
+    .pdf-box { background:var(--surface); border-radius:var(--rl); padding:1.5rem 2rem; text-align:center; min-width:240px; box-shadow:0 8px 32px rgba(0,0,0,.18); }
+    .pdf-box p { font-size:13px; color:var(--text2); margin-top:8px; }
+    .pdf-spinner { width:32px; height:32px; border:3px solid var(--border); border-top-color:var(--text); border-radius:50%; animation:spin .7s linear infinite; margin:0 auto 8px; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+
+    /* Additional features and UI enhancements */
+    .custom-toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--text);
+      color: #fff;
+      padding: 12px 18px;
+      border-radius: var(--r);
+      font-size: 13px;
+      z-index: 1000;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.2s ease-in-out;
+      pointer-events: none;
+    }
+    .custom-toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    
+    .badge-gap {
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-weight: 500;
+      display: inline-block;
+      margin-top: 5px;
+    }
+    
+    .badge-danger { background: var(--red-bg); color: var(--red); }
+    .badge-success { background: var(--green-bg); color: var(--green); }
+    .badge-warning { background: #fff8e8; color: var(--amber); }
+
+    .formula-badge {
+      display: inline-block;
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      background: var(--surface2);
+      color: var(--text2);
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-left: 6px;
+    }
+
+    .info-card-sub {
+      font-size: 12px;
+      color: var(--text2);
+      background: var(--surface2);
+      padding: 8px 12px;
+      border-radius: var(--r);
+      margin-bottom: 1rem;
+      border-left: 3px solid var(--blue);
+    }
+
+    /* Print additions */
+    @media print {
+      * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
+      body { background:#f7f6f2 !important; margin:0; }
+      .topbar, .sidebar, #page-entry, .btn-pdf, .pdf-overlay,
+      .btn-reset-seg, .btn-reset-data, .seg-nav, .commentary-box,
+      .commentary-lbl, .commentary-char, .pill-nav, .btn-add, .btn-rm, .btn-pri, .btn-nav { display:none !important; }
+      #page-analysis { display:block !important; min-height:auto !important; }
+      #page-analysis .main-area { padding:12px !important; max-width:100% !important; }
+      .page.active { display:block !important; }
+      .commentary-print { display:block !important; }
+      .grp-block { break-inside:avoid; page-break-inside:avoid; margin-bottom:10px !important; padding:12px !important; border:1px solid #e2dfd8 !important; border-radius:8px !important; }
+      .quad-grid, .quad-card { break-inside:avoid; page-break-inside:avoid; }
+      .fh-row { break-inside:avoid; page-break-inside:avoid; }
+      .a-card { break-inside:avoid; page-break-inside:avoid; margin-bottom:8px !important; }
+      .nw-duo-grid { break-inside:avoid; page-break-inside:avoid; }
+      .kpi-grid { grid-template-columns:repeat(4,1fr) !important; break-inside:avoid; }
+      .two-col { break-inside:avoid; }
+      .chart-wrap { break-inside:avoid; }
+      .a-header { break-after:avoid; }
+      .grp-label { break-after:avoid; font-size:9px !important; }
+    }
+
+    @media(max-width:768px){
+      .sidebar{display:none;}
+      .kpi-grid,.mx-grid,.quad-grid{grid-template-columns:1fr;}
+      .two-col{grid-template-columns:1fr;}
+      .fh-row{grid-template-columns:1fr;}
+      .f-static { grid-template-columns: 1fr; gap: 4px; align-items: flex-start; }
+      .inp { text-align: left; }
+    }
+  </style>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../../assets/js/supabase-client.js"></script>
+  <script src="../../assets/js/supabase-store.js"></script>
+  <script src="../../assets/js/auth-guard.js"></script>
+</head>
+<body>
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark">
+        <svg viewBox="0 0 24 24">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z"/>
+        </svg>
+      </div>
+      <div>
+        <span class="brand-name">Risk & Takaful Planning</span>
+        <span class="brand-sub">Malaysia Advisor Suite</span>
+      </div>
+    </div>
+
+    <!-- Navigation between Input & Live Dashboard -->
+    <div class="pill-nav">
+      <button class="pill-btn active" id="pill-btn-planner" onclick="switchPage('planner')">Data Inputs</button>
+      <button class="pill-btn" id="pill-btn-dashboard" onclick="switchPage('dashboard')">Results & Commentary</button>
+    </div>
+
+    <div class="seg-hdr-actions">
+      <button class="btn-reset-data" onclick="resetAllPlannerData()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 3px;">
+          <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+        </svg>
+        Reset Workspace
+      </button>
+      <button class="btn-pdf" onclick="saveRiskTakafulToSupabase()">Save Data</button>
+      <button class="btn-pdf" onclick="triggerPrint()">Print Report</button>
+    </div>
+  </header>
+
+  <!-- PAGE: PLANNER INPUT PAGE -->
+  <main class="page active" id="page-planner">
+    
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="prog-wrap">
+        <div class="prog-top">
+          <span>Module Progress</span>
+          <span id="progress-percent">0%</span>
+        </div>
+        <div class="prog-track">
+          <div class="prog-fill" id="progress-fill-bar" style="width: 0%;"></div>
+        </div>
+      </div>
+
+      <nav style="margin-top: 1rem;">
+        <span class="sb-label">A) Total Needs</span>
+        <a class="sb-item active" onclick="scrollToElement('sec-expenses')">
+          <span class="sb-dot d1"></span>
+          Expenses Fund (FV)
+        </a>
+        <a class="sb-item" onclick="scrollToElement('sec-debts')">
+          <span class="sb-dot d1"></span>
+          Outstanding Debts
+        </a>
+        <a class="sb-item" onclick="scrollToElement('sec-education')">
+          <span class="sb-dot d1"></span>
+          Education Reserves
+        </a>
+
+        <span class="sb-label" style="margin-top: 1.5rem; display: block;">B) Resources</span>
+        <a class="sb-item" onclick="scrollToElement('sec-epf')">
+          <span class="sb-dot d2"></span>
+          EPF Resources
+        </a>
+        <a class="sb-item" onclick="scrollToElement('sec-takaful')">
+          <span class="sb-dot d2"></span>
+          Takaful Coverage
+        </a>
+        <a class="sb-item" onclick="scrollToElement('sec-assets')">
+          <span class="sb-dot d2"></span>
+          Savings & Investments
+        </a>
+      </nav>
+
+      <!-- Sidebar summary box -->
+      <div class="seg-sum on" style="margin-top: 2rem;">
+        <div class="ss-head qg">Live Balance Summary</div>
+        <div class="ss-body">
+          <div class="ss-row">
+            <span>Total Needs (A)</span>
+            <span class="ss-v ss-b" id="side-total-needs">RM 0</span>
+          </div>
+          <div class="ss-row">
+            <span>Total Resources (B)</span>
+            <span class="ss-v ss-b" id="side-total-resources">RM 0</span>
+          </div>
+          <div class="ss-div"></div>
+          <div class="ss-tot">
+            <span>Protection Gap</span>
+            <span class="ss-v warning" id="side-gap">RM 0</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN EDITING AREA -->
+    <section class="main-area">
+      <div class="seg-hdr">
+        <div>
+          <span class="seg-tag t1">Risk Assessment & Takaful Planning</span>
+          <h1 class="seg-title">Evaluation of Protection Adequacy</h1>
+          <p class="seg-desc">Evaluates fund requirements to guarantee dependents' living expenses, debt settlement, and education goals in the event of Death, TPD, or Critical Illness.</p>
+        </div>
+        <div class="seg-tot-box">
+          <span class="tot-label">Target Youngest Child Age 25 Support Gap</span>
+          <div class="tot-val" id="global-support-years">0 Years Gap</div>
+        </div>
+      </div>
+
+      <!-- PART A: INCOME NEED -->
+      <div class="grp-label">Part A: Total Income Needs</div>
+      
+      <!-- CARD 1: Expenses Fund (FV) -->
+      <div class="card" id="sec-expenses">
+        <div class="ch open" onclick="toggleCardBody(this)">
+          <div class="ch-left">
+            <div class="ci ci1">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1a6b47" stroke-width="2">
+                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+              </svg>
+            </div>
+            <div>
+              <div class="ch-title">1. Expenses Fund (Future Value with Inflation)</div>
+              <div class="ch-sub">Calculate target cost of living support based on youngest child's remaining gap years to age 25.</div>
+            </div>
+          </div>
+          <div class="ch-right">
+            <span class="ch-sum" id="card-sum-expenses">RM 0</span>
+            <svg class="chev open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+        </div>
+        <div class="cb open">
+          <div class="info-card-sub">
+            <strong>Calculation basis:</strong> Youngest child support is sustained until they reach 25 years old. The future expenses fund accounts for compounding inflation over this critical duration window.
+          </div>
+          
+          <div class="f-static">
+            <div>
+              <span class="f-label">Youngest Child Current Age</span>
+              <div class="f-sub">Age of youngest dependent today (Years)</div>
+            </div>
+            <div>
+              <input type="number" id="youngest-child-age" class="inp pl age-input" value="5" min="0" max="25" oninput="calculateFVExpenses()">
+            </div>
+          </div>
+
+          <div class="f-static">
+            <div>
+              <span class="f-label">Inflation Rate (%)</span>
+              <div class="f-sub">Compound rate to preserve purchasing power</div>
+            </div>
+            <div class="pfx-wrap">
+              <span class="pfx">%</span>
+              <input type="number" id="inflation-rate" class="inp" value="3.5" step="0.1" oninput="calculateFVExpenses()">
+            </div>
+          </div>
+
+          <div class="f-static">
+            <div>
+              <span class="f-label">Expense Benchmark Target Mode</span>
+              <div class="f-sub">Choose living cost formula parameters</div>
+            </div>
+            <div>
+              <select id="expense-mode" class="inp-t" onchange="toggleExpenseFields(); calculateFVExpenses();">
+                <option value="salary">Salary Percentage Mode (30% - 100%)</option>
+                <option value="direct">Direct Specific Monthly Expenses</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Mode A: Salary Percentage Row -->
+          <div id="row-salary-mode">
+            <div class="f-static">
+              <div>
+                <span class="f-label">Current Monthly Salary (RM)</span>
+                <div class="f-sub">Current household benchmark salary</div>
+              </div>
+              <div class="pfx-wrap">
+                <span class="pfx">RM</span>
+                <input type="number" id="monthly-salary" class="inp" value="8000" oninput="calculateFVExpenses()">
+              </div>
+            </div>
+            <div class="f-static">
+              <div>
+                <span class="f-label">Percentage Allocation to Living Costs (%)</span>
+                <div class="f-sub">Ratio needed for dependents' lifestyle survival</div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <input type="range" id="salary-percent" min="30" max="100" value="70" class="inp-t" style="flex: 1;" oninput="updateSalaryRangeVal(this.value); calculateFVExpenses();">
+                <span id="salary-percent-val" class="ss-v ss-b" style="min-width: 40px; text-align: right;">70%</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Mode B: Direct Expenses Row (Hidden by default) -->
+          <div id="row-direct-mode" style="display: none;">
+            <div class="f-static">
+              <div>
+                <span class="f-label">Current Monthly Expenses (RM)</span>
+                <div class="f-sub">Direct estimate of critical monthly expenditure</div>
+              </div>
+              <div class="pfx-wrap">
+                <span class="pfx">RM</span>
+                <input type="number" id="monthly-expenses" class="inp" value="5000" oninput="calculateFVExpenses()">
+              </div>
+            </div>
+          </div>
+
+          <!-- Calc Result Output Detail -->
+          <div class="ded-section">
+            <div class="ded-lbl">Future Value Calculation Result Breakdown</div>
+            <div class="fh-grid">
+              <div class="fh-row">
+                <div>
+                  <div class="fh-name">Annual Cost Benchmark Basis (PMT)</div>
+                  <div class="fh-fml" id="fv-formula-pmt">Monthly RM 5,600 * 12 months</div>
+                </div>
+                <div class="fh-right">
+                  <span class="fh-val" id="out-annual-pmt">RM 67,200</span>
+                </div>
+              </div>
+              <div class="fh-row">
+                <div>
+                  <div class="fh-name">Support Duration (Years to Age 25)</div>
+                  <div class="fh-fml">25 - Youngest Child's Age</div>
+                </div>
+                <div class="fh-right">
+                  <span class="fh-val" id="out-duration-years">20 Years</span>
+                </div>
+              </div>
+              <div class="fh-row">
+                <div>
+                  <div class="fh-name">Compound Inflated Expenses Fund Target <span class="formula-badge">FV = PMT × Duration × (1+r)ⁿ</span></div>
+                  <div class="fh-fml">Compounded to protect dependents from inflation</div>
+                </div>
+                <div class="fh-right">
+                  <span class="fh-val positive" id="out-inflated-fv">RM 1,344,000</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- CARD 2: Remaining Balance of Debt -->
+      <div class="card" id="sec-debts">
+        <div class="ch" onclick="toggleCardBody(this)">
+          <div class="ch-left">
+            <div class="ci ci-r">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b1a1a" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </div>
+            <div>
+              <div class="ch-title">2. Outstanding Debt Settlement</div>
+              <div class="ch-sub">List of liabilities to be paid off immediately to relieve heirs.</div>
+            </div>
+          </div>
+          <div class="ch-right">
+            <span class="ch-sum" id="card-sum-debts">RM 0</span>
+            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+        </div>
+        <div class="cb">
+          <div class="info-card-sub">
+            Include outstanding balances such as home financing, car financing, personal financing, or credit card balances.
+          </div>
+          <div class="exp-rows" id="debts-list-container">
+            <!-- Dynamic debt rows loaded via JS -->
+          </div>
+          <button class="btn-add" onclick="addNewDebtRow()">+ Add Debt Item</button>
+        </div>
+      </div>
+
+      <!-- CARD 3: Planned Education Fund -->
+      <div class="card" id="sec-education">
+        <div class="ch" onclick="toggleCardBody(this)">
+          <div class="ch-left">
+            <div class="ci ci3">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b4e1a" stroke-width="2">
+                <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+                <path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"/>
+              </svg>
+            </div>
+            <div>
+              <div class="ch-title">3. Planned Education Reserves</div>
+              <div class="ch-sub">Target tertiary education fund targets for all children.</div>
+            </div>
+          </div>
+          <div class="ch-right">
+            <span class="ch-sum" id="card-sum-edu">RM 0</span>
+            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+        </div>
+        <div class="cb">
+          <div class="info-card-sub">
+            Add planned education reserve requirements for each child to guarantee academic progression.
+          </div>
+          <div class="exp-rows" id="edu-list-container">
+            <!-- Dynamic education rows loaded via JS -->
+          </div>
+          <button class="btn-add" onclick="addNewEduRow()">+ Add Child Education Goal</button>
+        </div>
+      </div>
+
+      <!-- CALCULATE TARGET A TRIGGER -->
+      <div class="grp-block" style="text-align: right; background: var(--surface2);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+          <div style="text-align: left;">
+            <div class="fh-name" style="font-size: 14px;">Total Protection Capital Needed (A)</div>
+            <div class="fh-fml">FV Expenses + Total Outstanding Debts + Planned Education Reserves</div>
+          </div>
+          <div class="tot-val" id="calc-display-needs" style="font-size: 24px; color: var(--red);">RM 0</div>
+        </div>
+        <button class="btn-nav btn-pri" style="margin-left: auto;" onclick="runNeedsAComputation()">Calculate Needs (A)</button>
+      </div>
+
+
+      <!-- PART B: RESOURCES -->
+      <div class="grp-label" style="margin-top: 2rem;">Part B: Available Resources & Assets</div>
+
+      <!-- CARD 4: EPF & Takaful Coverage -->
+      <div class="card" id="sec-epf">
+        <div class="ch" onclick="toggleCardBody(this)">
+          <div class="ch-left">
+            <div class="ci ci2">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1a4a6b" stroke-width="2">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                <line x1="9" y1="3" x2="9" y2="21"/>
+              </svg>
+            </div>
+            <div>
+              <div class="ch-title">4. EPF and Current Takaful Policies</div>
+              <div class="ch-sub">Existing safety nets that immediately convert to liquidity.</div>
+            </div>
+          </div>
+          <div class="ch-right">
+            <span class="ch-sum" id="card-sum-takaful">RM 0</span>
+            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+        </div>
+        <div class="cb">
+          <div class="info-card-sub">
+            Enter current EPF balances and all active life or critical illness insurance/takaful policy benefits.
+          </div>
+          
+          <div class="f-static">
+            <div>
+              <span class="f-label">EPF Account Total Balance (RM)</span>
+              <div class="f-sub">Employee Provident Fund current accessible balance</div>
+            </div>
+            <div class="pfx-wrap">
+              <span class="pfx">RM</span>
+              <input type="number" id="epf-balance" class="inp" value="120000" oninput="calculateResourcesB()">
+            </div>
+          </div>
+
+          <div class="grp-sub">Existing Takaful Benefit Coverages</div>
+          <div class="exp-rows" id="takaful-list-container">
+            <!-- Dynamic rows via JS -->
+          </div>
+          <button class="btn-add" onclick="addNewTakafulRow()">+ Add Takaful Policy Benefit</button>
+        </div>
+      </div>
+
+      <!-- CARD 5: Liquid Savings & Other Assets -->
+      <div class="card" id="sec-assets">
+        <div class="ch" onclick="toggleCardBody(this)">
+          <div class="ch-left">
+            <div class="ci ci-g">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a09d98" stroke-width="2">
+                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+              </svg>
+            </div>
+            <div>
+              <div class="ch-title">5. Cash Savings, Investments & Other Assets</div>
+              <div class="ch-sub">Liquid deposits, stocks, mutual funds, or secondary real estate assets.</div>
+            </div>
+          </div>
+          <div class="ch-right">
+            <span class="ch-sum" id="card-sum-investments">RM 0</span>
+            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+        </div>
+        <div class="cb">
+          <div class="info-card-sub">
+            Add bank savings (ASB, Tabung Haji, deposits) and other investments (Unit trusts, stock portfolios, gold).
+          </div>
+
+          <div class="grp-sub">Cash and Liquid Savings</div>
+          <div class="exp-rows" id="savings-list-container">
+            <!-- Dynamic rows via JS -->
+          </div>
+          <button class="btn-add" onclick="addNewSavingsRow()">+ Add Savings Account</button>
+
+          <div class="grp-sub" style="margin-top: 1.5rem;">Existing Investments</div>
+          <div class="exp-rows" id="investments-list-container">
+            <!-- Dynamic rows via JS -->
+          </div>
+          <button class="btn-add" onclick="addNewInvestmentsRow()">+ Add Investment Product</button>
+
+          <div class="grp-sub" style="margin-top: 1.5rem;">Other Liquidity Instruments</div>
+          <div class="exp-rows" id="others-list-container">
+            <!-- Dynamic rows via JS -->
+          </div>
+          <button class="btn-add" onclick="addNewOthersRow()">+ Add Other Asset Instrument</button>
+        </div>
+      </div>
+
+      <!-- CALCULATE TARGET B TRIGGER -->
+      <div class="grp-block" style="text-align: right; background: var(--surface2);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+          <div style="text-align: left;">
+            <div class="fh-name" style="font-size: 14px;">Total Current Protection Resources (B)</div>
+            <div class="fh-fml">EPF + Existing Takaful Coverage + Savings + Investments + Others</div>
+          </div>
+          <div class="tot-val" id="calc-display-resources" style="font-size: 24px; color: var(--green);">RM 0</div>
+        </div>
+        <button class="btn-nav btn-pri" style="margin-left: auto;" onclick="runResourcesBComputation()">Calculate Resources (B)</button>
+      </div>
+
+      <!-- PART C: GAP ANALYSIS INTERFACE -->
+      <div class="grp-block" style="margin-top: 2rem; border: 2px solid var(--text); padding: 2rem;">
+        <div style="text-align: center; margin-bottom: 1.5rem;">
+          <h2 class="seg-title" style="font-size: 24px; font-weight: 500;">Evaluate Takaful Protection Gap</h2>
+          <p class="seg-desc">Find the shortfall between total income safety requirements and current accumulated assets.</p>
+        </div>
+
+        <div style="display: flex; justify-content: center; margin-bottom: 1.5rem;">
+          <button class="btn-pdf" style="padding: 12px 32px; font-size: 15px; border-radius: 30px; background: var(--orange);" onclick="executeGapAnalysis()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 6px;">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="16" x2="12" y2="12"></line>
+              <line x1="12" y1="8" x2="12.01" y2="8"></line>
+            </svg>
+            Find The Protection Gap (A - B)
+          </button>
+        </div>
+
+        <div id="gap-analysis-reveal" style="display: none;">
+          <div class="fh-grid" style="margin-bottom: 1.5rem;">
+            <div class="fh-row" style="grid-template-columns: 1fr 180px;">
+              <div>
+                <div class="fh-name" style="font-size: 15px;">Required Takaful Capital Fund Needs (A)</div>
+                <div class="fh-fml">Comprehensive safety requirements target</div>
+              </div>
+              <div class="fh-right">
+                <span class="fh-val" id="result-lbl-a" style="font-size: 18px; color: var(--red);">RM 0</span>
+              </div>
+            </div>
+            <div class="fh-row" style="grid-template-columns: 1fr 180px;">
+              <div>
+                <div class="fh-name" style="font-size: 15px;">Active Financial Reserves (B)</div>
+                <div class="fh-fml">Total accumulated liquid + non-liquid resources</div>
+              </div>
+              <div class="fh-right">
+                <span class="fh-val" id="result-lbl-b" style="font-size: 18px; color: var(--green);">RM 0</span>
+              </div>
+            </div>
+            <div class="fh-row" style="grid-template-columns: 1fr 180px; background: var(--surface2);">
+              <div>
+                <div class="fh-name" style="font-size: 16px; font-weight: 700;">Protection Shortfall Gap (A - B)</div>
+                <div class="fh-fml">Capital sum needed in case of structural event</div>
+                <div id="badge-analysis-gap" class="badge-gap">Status: Uncalculated</div>
+              </div>
+              <div class="fh-right">
+                <span class="fh-val" id="result-lbl-gap" style="font-size: 22px; font-weight: 700; color: var(--orange);">RM 0</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- COMMENTARY CARD BOX (End of Card Requirement) -->
+        <div class="commentary-block" style="margin-top: 1.5rem;">
+          <div class="commentary-lbl">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+            Advisor Professional Planning Commentary
+            <span class="commentary-char" id="char-count-display">0 / 800 characters</span>
+          </div>
+          <textarea class="commentary-box" id="advisor-commentary" maxlength="800" placeholder="Type customized tactical recommendation, risk strategy advice or takaful asset allocation targets here..." oninput="updateCommentaryCounter()"></textarea>
+          <div class="commentary-print" id="print-commentary-text">No planner comment provided.</div>
+        </div>
+      </div>
+
+    </section>
+  </main>
+
+
+  <!-- PAGE: RESULTS & ANALYTICS DASHBOARD -->
+  <main class="page" id="page-dashboard">
+    <section class="main-area" style="max-width: 1100px; margin: 0 auto;">
+      
+      <div class="a-header">
+        <div class="a-header-left">
+          <span class="seg-tag t2">Portfolio Analytics Suite</span>
+          <h1 class="a-title">Advisor Recommendations & Performance Matrix</h1>
+          <p class="a-sub">Consolidated view of safety margins, asset liquidity ratios, and critical coverage allocations.</p>
+        </div>
+      </div>
+
+      <!-- KPI METRIC STRIP -->
+      <div class="kpi-grid">
+        <div class="kpi">
+          <div class="kpi-lbl">Total Protection Needs</div>
+          <div class="kpi-val" id="kpi-val-needs" style="color: var(--text);">RM 0</div>
+          <div class="kpi-sub">Critical liabilities & support fund</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-lbl">Total Financial Capital</div>
+          <div class="kpi-val" id="kpi-val-resources" style="color: var(--text);">RM 0</div>
+          <div class="kpi-sub">Liquified security resources</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-lbl">Required Insurance Cover</div>
+          <div class="kpi-val" id="kpi-val-gap" style="color: var(--orange);">RM 0</div>
+          <div class="kpi-sub">Identified security gap</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-lbl">Protection Adequacy Score</div>
+          <div class="kpi-val" id="kpi-val-score" style="color: var(--green);">0%</div>
+          <div class="kpi-sub">Buffer status target 100%</div>
+        </div>
+      </div>
+
+      <!-- QUADRANT GRAPHIC & CHART -->
+      <div class="two-col">
+        
+        <!-- Live Visual Interactive SVG Chart -->
+        <div class="a-card">
+          <div class="a-card-title">
+            <span class="a-dot" style="background: var(--blue);"></span>
+            Needs (A) vs. Resources (B) Comparison Chart
+          </div>
+          <div class="chart-wrap" style="text-align: center; padding: 10px;">
+            <svg id="svg-comparison-chart" viewBox="0 0 400 240" style="width: 100%; max-height: 240px; background: #fff;">
+              <!-- Default chart grid -->
+              <rect x="10" y="10" width="380" height="220" rx="4" fill="#fafaf9" />
+              <!-- Chart Bars loaded dynamically with JavaScript -->
+              <text x="50" y="120" fill="#a09d98" font-size="11" text-anchor="middle">Input data & press 'Find The Protection Gap' to render visual comparison.</text>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Portfolio Health Parameters Matrix -->
+        <div class="a-card">
+          <div class="a-card-title">
+            <span class="a-dot" style="background: var(--gold);"></span>
+            Takaful Buffer Asset Liquidity Benchmark
+          </div>
+          <div class="health-grid">
+            <div class="h-item">
+              <div class="h-score" id="mat-lbl-num-children">5</div>
+              <div class="h-lbl">Youngest Support</div>
+              <div class="h-tag tw" id="mat-tag-years">15 Years Gap</div>
+            </div>
+            <div class="h-item">
+              <div class="h-score" id="mat-lbl-ratio-debt">0%</div>
+              <div class="h-lbl">Debt Concentration</div>
+              <div class="h-tag tb" id="mat-tag-debt">Liability Burden</div>
+            </div>
+            <div class="h-item">
+              <div class="h-score" id="mat-lbl-takaful-cover">0%</div>
+              <div class="h-lbl">Takaful Protection Weight</div>
+              <div class="h-tag tg" id="mat-tag-takaful">Takaful Ratio</div>
+            </div>
+          </div>
+
+          <div style="margin-top: 1.5rem;">
+            <div class="grp-sub" style="margin-top: 0;">Protection Gap Quadrant Analysis</div>
+            <div class="fh-grid" style="margin-top: 0.5rem;">
+              <div class="fh-row">
+                <div>
+                  <div class="fh-name">Expenses Protection Weight</div>
+                  <div class="fh-fml">Proportion of total protection gap assigned for survival maintenance.</div>
+                </div>
+                <div class="fh-right">
+                  <span class="fh-val" id="anal-weight-exp">0%</span>
+                </div>
+              </div>
+              <div class="fh-row">
+                <div>
+                  <div class="fh-name">Debt Erasure Safety Ratio</div>
+                  <div class="fh-fml">Does accumulated cash completely satisfy liabilities in a worst-case scenario?</div>
+                </div>
+                <div class="fh-right">
+                  <span class="fh-val" id="anal-weight-debt">0% Covered</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- PORTFOLIO RECOMMENDATIONS & MATRIX -->
+      <div class="a-card">
+        <div class="a-card-title">
+          <span class="a-dot" style="background: var(--text);"></span>
+          Consolidated Risk Advisor Findings & Plan Report
+        </div>
+        
+        <div class="fh-grid">
+          <div class="fh-row" style="grid-template-columns: 1fr;">
+            <div>
+              <div class="fh-name">Advisory Strategy Plan</div>
+              <div id="anal-dashboard-commentary-mirror" style="background: var(--bg); border: 1px solid var(--border); padding: 12px 16px; border-radius: var(--r); margin-top: 8px; font-size: 13px; font-style: italic; color: var(--text);">
+                (Please write planning notes in the Commentary Field in "Data Inputs" view to populate this report automatically).
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top: 1.5rem; text-align: center; display: flex; gap: 10px; justify-content: center;">
+          <button class="btn-nav" onclick="switchPage('planner')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="transform: rotate(180deg);">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+            Review Entry Forms
+          </button>
+          <button class="btn-pdf" onclick="triggerPrint()">Compile Complete PDF/Print Report</button>
+        </div>
+      </div>
+
+    </section>
+  </main>
+
+
+  <!-- TOAST NOTIFICATION CONTAINER -->
+  <div class="custom-toast" id="toast-notif">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#27ae60" stroke-width="2" id="toast-icon">
+      <polyline points="20 6 9 17 4 12"></polyline>
+    </svg>
+    <span id="toast-message">Task updated successfully!</span>
+  </div>
+
+
+  <!-- PRINT OVERLAY LOADER -->
+  <div class="pdf-overlay" id="print-overlay">
+    <div class="pdf-box">
+      <div class="pdf-spinner"></div>
+      <h3 style="font-size: 16px; font-weight: 500;">Generating Planner PDF</h3>
+      <p>Formatting responsive print layout grid...</p>
+    </div>
+  </div>
+
+
+  <!-- JAVASCRIPT LOGIC -->
+  <script>
+    // In-memory data states with comprehensive defaults
+    let state = {
+      youngestChildAge: 5,
+      inflationRate: 3.5,
+      expenseMode: 'salary', // 'salary' or 'direct'
+      monthlySalary: 8000,
+      salaryPercentage: 70,
+      monthlyExpenses: 5000,
+      
+      debts: [
+        { id: 'd-1', label: 'Home Financing Outstanding', value: 320000 },
+        { id: 'd-2', label: 'Car Financing Loan', value: 45000 }
+      ],
+      education: [
+        { id: 'e-1', label: 'Zuhair - Bachelor Degree Goal', value: 80000 },
+        { id: 'e-2', label: 'Zara - Foundation & Degree Goal', value: 95000 }
+      ],
+      
+      epfBalance: 120000,
+      takaful: [
+        { id: 't-1', label: 'Prudential BSN Term Coverage', value: 250000 },
+        { id: 't-2', label: 'Great Eastern Critical Illness Rider', value: 100000 }
+      ],
+      savings: [
+        { id: 's-1', label: 'Amanah Saham Bumiputera (ASB)', value: 45000 },
+        { id: 's-2', label: 'Tabung Haji Security Deposit', value: 15000 }
+      ],
+      investments: [
+        { id: 'i-1', label: 'Bursa Malaysia Dividend Stock Fund', value: 30000 }
+      ],
+      others: [
+        { id: 'o-1', label: 'Surrender Value of Endowment Account', value: 12000 }
+      ],
+      commentary: '',
+      calculatedNeedsA: 0,
+      calculatedResourcesB: 0,
+      isGapAnalyzed: false
+    };
+
+    const MODULE_NAME = 'risk_takaful';
+
+    async function loadRiskTakafulFromSupabase() {
+      const clientEmail = window.WQPStore?.getClientEmailFromUrl?.();
+      if (!clientEmail) return;
+      const saved = await window.WQPStore.loadModule(clientEmail, MODULE_NAME);
+      if (saved) {
+        state = { ...state, ...saved };
+      }
+    }
+
+    async function saveRiskTakafulToSupabase() {
+      try {
+        const clientEmail = window.WQPStore?.getClientEmailFromUrl?.();
+        if (!clientEmail) { alert('Client email not found. Please open this module from the Client Planning Page.'); return; }
+        updateCommentaryCounter();
+        calculateFVExpenses();
+        calculateResourcesB();
+        updateNeedsTotals();
+        await window.WQPStore.saveModule(clientEmail, MODULE_NAME, { ...state, savedAt: new Date().toISOString() });
+        showToast('Risk & Takaful data saved.', 'success');
+      } catch (error) {
+        console.error('Unable to save Risk & Takaful data:', error);
+        alert('Unable to save data: ' + (error.message || error));
+      }
+    }
+
+    function applyRiskTakafulStateToInputs() {
+      document.getElementById('youngest-child-age').value = state.youngestChildAge ?? 0;
+      document.getElementById('inflation-rate').value = state.inflationRate ?? 3.5;
+      document.getElementById('expense-mode').value = state.expenseMode || 'salary';
+      document.getElementById('monthly-salary').value = state.monthlySalary ?? 0;
+      document.getElementById('salary-percent').value = state.salaryPercentage ?? 70;
+      document.getElementById('monthly-expenses').value = state.monthlyExpenses ?? 0;
+      document.getElementById('epf-balance').value = state.epfBalance ?? 0;
+      document.getElementById('advisor-commentary').value = state.commentary || '';
+      toggleExpenseFields();
+      updateSalaryRangeVal(state.salaryPercentage ?? 70);
+      updateCommentaryCounter();
+    }
+
+    // Initialize application interface
+    window.onload = async function() {
+      try { await loadRiskTakafulFromSupabase(); } catch (error) { console.error('Unable to load Risk & Takaful data:', error); }
+      applyRiskTakafulStateToInputs();
+      renderAllRows();
+      calculateFVExpenses();
+      calculateResourcesB();
+      runNeedsAComputation();
+      executeGapAnalysis();
+      updateProgressBar();
+    };
+
+    // Navigation trigger
+    function switchPage(pageKey) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.pill-btn').forEach(btn => btn.classList.remove('active'));
+
+      if (pageKey === 'planner') {
+        document.getElementById('page-planner').classList.add('active');
+        document.getElementById('pill-btn-planner').classList.add('active');
+      } else {
+        document.getElementById('page-dashboard').classList.add('active');
+        document.getElementById('pill-btn-dashboard').classList.add('active');
+        // Refresh calculations and UI
+        syncCalculations();
+        renderSVGChart();
+      }
+    }
+
+    // Toggle Accordion Cards
+    function toggleCardBody(element) {
+      const parent = element.parentElement;
+      const body = parent.querySelector('.cb');
+      const chev = parent.querySelector('.chev');
+      
+      body.classList.toggle('open');
+      element.classList.toggle('open');
+      if (chev) chev.classList.toggle('open');
+    }
+
+    // Sync input fields
+    function toggleExpenseFields() {
+      const mode = document.getElementById('expense-mode').value;
+      state.expenseMode = mode;
+      if (mode === 'salary') {
+        document.getElementById('row-salary-mode').style.display = 'block';
+        document.getElementById('row-direct-mode').style.display = 'none';
+      } else {
+        document.getElementById('row-salary-mode').style.display = 'none';
+        document.getElementById('row-direct-mode').style.display = 'block';
+      }
+    }
+
+    function updateSalaryRangeVal(val) {
+      document.getElementById('salary-percent-val').innerText = val + '%';
+      state.salaryPercentage = parseFloat(val);
+    }
+
+    // Dynamic Lists Rendering System
+    function renderAllRows() {
+      renderList('debts', 'debts-list-container', 'deb-lbl', 'RM', 'Outstanding Debt', addNewDebtRow);
+      renderList('education', 'edu-list-container', 'edu-lbl', 'RM', 'Education Benefit', addNewEduRow);
+      renderList('takaful', 'takaful-list-container', 'tak-lbl', 'RM', 'Takaful Coverage Name', addNewTakafulRow);
+      renderList('savings', 'savings-list-container', 'sav-lbl', 'RM', 'Savings Repository', addNewSavingsRow);
+      renderList('investments', 'investments-list-container', 'inv-lbl', 'RM', 'Investment Product Name', addNewInvestmentsRow);
+      renderList('others', 'others-list-container', 'oth-lbl', 'RM', 'Other Asset Category', addNewOthersRow);
+    }
+
+    function renderList(stateKey, containerId, rowPrefix, placeholderLabel, namePlaceholder, addAction) {
+      const container = document.getElementById(containerId);
+      container.innerHTML = '';
+      
+      if (state[stateKey].length === 0) {
+        container.innerHTML = `<div style="text-align:center; padding: 10px; color: var(--text3); font-size:12px;">No items entered yet. Click add row below.</div>`;
+        return;
+      }
+
+      state[stateKey].forEach((item, index) => {
+        const row = document.createElement('div');
+        row.className = 'exp-row';
+        row.innerHTML = `
+          <input type="text" class="inp-t" style="text-align: left;" placeholder="${namePlaceholder}" value="${item.label}" oninput="updateItemLabel('${stateKey}', '${item.id}', this.value)">
+          <div class="pfx-wrap">
+            <span class="pfx">${placeholderLabel}</span>
+            <input type="number" class="inp" placeholder="0" value="${item.value}" oninput="updateItemValue('${stateKey}', '${item.id}', this.value)">
+          </div>
+          <button class="btn-rm" onclick="removeItem('${stateKey}', '${item.id}')">&times;</button>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    // Mutation triggers
+    function updateItemLabel(stateKey, id, val) {
+      const target = state[stateKey].find(x => x.id === id);
+      if (target) {
+        target.label = val;
+      }
+      autoCalculateSums();
+    }
+
+    function updateItemValue(stateKey, id, val) {
+      const target = state[stateKey].find(x => x.id === id);
+      if (target) {
+        target.value = val === '' ? 0 : parseFloat(val);
+      }
+      autoCalculateSums();
+    }
+
+    function removeItem(stateKey, id) {
+      state[stateKey] = state[stateKey].filter(x => x.id !== id);
+      renderAllRows();
+      autoCalculateSums();
+      showToast('Item removed', 'warning');
+    }
+
+    // Add row triggers
+    function addNewDebtRow() {
+      state.debts.push({ id: 'd-' + Date.now(), label: '', value: 0 });
+      renderList('debts', 'debts-list-container', 'deb-lbl', 'RM', 'E.g., Credit Card Balance', addNewDebtRow);
+    }
+
+    function addNewEduRow() {
+      state.education.push({ id: 'e-' + Date.now(), label: '', value: 0 });
+      renderList('education', 'edu-list-container', 'edu-lbl', 'RM', 'Child Name & Target Year', addNewEduRow);
+    }
+
+    function addNewTakafulRow() {
+      state.takaful.push({ id: 't-' + Date.now(), label: '', value: 0 });
+      renderList('takaful', 'takaful-list-container', 'tak-lbl', 'RM', 'Takaful Term Plan Benefit', addNewTakafulRow);
+    }
+
+    function addNewSavingsRow() {
+      state.savings.push({ id: 's-' + Date.now(), label: '', value: 0 });
+      renderList('savings', 'savings-list-container', 'sav-lbl', 'RM', 'E.g., ASB Balance', addNewSavingsRow);
+    }
+
+    function addNewInvestmentsRow() {
+      state.investments.push({ id: 'i-' + Date.now(), label: '', value: 0 });
+      renderList('investments', 'investments-list-container', 'inv-lbl', 'RM', 'E.g., Stocks portfolio', addNewInvestmentsRow);
+    }
+
+    function addNewOthersRow() {
+      state.others.push({ id: 'o-' + Date.now(), label: '', value: 0 });
+      renderList('others', 'others-list-container', 'oth-lbl', 'RM', 'E.g., Precious metal reserves', addNewOthersRow);
+    }
+
+    // Interactive updates
+    function autoCalculateSums() {
+      // Direct update calculations for simple reactive responsive feel
+      calculateFVExpenses();
+      calculateResourcesB();
+      updateProgressBar();
+    }
+
+    // FV Expenses Fund algorithm
+    function calculateFVExpenses() {
+      const ageInput = document.getElementById('youngest-child-age');
+      let age = parseInt(ageInput.value);
+      if (isNaN(age) || age < 0) age = 0;
+      if (age > 25) age = 25;
+      state.youngestChildAge = age;
+
+      // Rate
+      const infInput = document.getElementById('inflation-rate');
+      let inflation = parseFloat(infInput.value);
+      if (isNaN(inflation)) inflation = 0;
+      state.inflationRate = inflation;
+
+      // Duration: Gap to age 25
+      const duration = Math.max(0, 25 - age);
+      document.getElementById('global-support-years').innerText = `${duration} Years Gap`;
+      document.getElementById('out-duration-years').innerText = `${duration} Years`;
+
+      // PMT Target mode
+      let pmt = 0;
+      let breakdownText = "";
+      if (state.expenseMode === 'salary') {
+        const salary = parseFloat(document.getElementById('monthly-salary').value) || 0;
+        state.monthlySalary = salary;
+        pmt = (state.salaryPercentage / 100) * salary;
+        breakdownText = `Monthly RM ${formatNumber(pmt)} (${state.salaryPercentage}% of RM ${formatNumber(salary)}) × 12 months`;
+      } else {
+        const directExpenses = parseFloat(document.getElementById('monthly-expenses').value) || 0;
+        state.monthlyExpenses = directExpenses;
+        pmt = directExpenses;
+        breakdownText = `Monthly RM ${formatNumber(pmt)} (Specific) × 12 months`;
+      }
+
+      const annualPmt = pmt * 12;
+      document.getElementById('fv-formula-pmt').innerText = breakdownText;
+      document.getElementById('out-annual-pmt').innerText = 'RM ' + formatNumber(annualPmt);
+
+      // FV compound calculation standard formula
+      // FV = PMT * duration * (1 + rate)^duration
+      const rateDecimal = inflation / 100;
+      const inflationFactor = Math.pow(1 + rateDecimal, duration);
+      const rawFV = annualPmt * duration * inflationFactor;
+
+      document.getElementById('out-inflated-fv').innerText = 'RM ' + formatNumber(rawFV);
+      document.getElementById('card-sum-expenses').innerText = 'RM ' + formatNumber(rawFV);
+
+      // Save calculation component to state
+      state.calculatedExpensesFV = rawFV;
+      
+      updateNeedsTotals();
+    }
+
+    // Dynamic Updates of State Totals
+    function updateNeedsTotals() {
+      const sumDebts = state.debts.reduce((sum, item) => sum + item.value, 0);
+      const sumEdu = state.education.reduce((sum, item) => sum + item.value, 0);
+
+      document.getElementById('card-sum-debts').innerText = 'RM ' + formatNumber(sumDebts);
+      document.getElementById('card-sum-edu').innerText = 'RM ' + formatNumber(sumEdu);
+
+      const totalNeeds = (state.calculatedExpensesFV || 0) + sumDebts + sumEdu;
+      document.getElementById('calc-display-needs').innerText = 'RM ' + formatNumber(totalNeeds);
+      state.calculatedNeedsA = totalNeeds;
+
+      updateLiveSidebarSum();
+    }
+
+    function calculateResourcesB() {
+      const epfVal = parseFloat(document.getElementById('epf-balance').value) || 0;
+      state.epfBalance = epfVal;
+
+      const sumTakaful = state.takaful.reduce((sum, item) => sum + item.value, 0);
+      const sumSavings = state.savings.reduce((sum, item) => sum + item.value, 0);
+      const sumInvestments = state.investments.reduce((sum, item) => sum + item.value, 0);
+      const sumOthers = state.others.reduce((sum, item) => sum + item.value, 0);
+
+      const sumTotalTakaful = sumTakaful;
+      const sumTotalSavingsInvest = sumSavings + sumInvestments + sumOthers;
+
+      document.getElementById('card-sum-takaful').innerText = 'RM ' + formatNumber(sumTakaful);
+      document.getElementById('card-sum-investments').innerText = 'RM ' + formatNumber(sumTotalSavingsInvest);
+
+      const totalResources = epfVal + sumTakaful + sumSavings + sumInvestments + sumOthers;
+      document.getElementById('calc-display-resources').innerText = 'RM ' + formatNumber(totalResources);
+      state.calculatedResourcesB = totalResources;
+
+      updateLiveSidebarSum();
+    }
+
+    function runNeedsAComputation() {
+      updateNeedsTotals();
+      showToast('Needs Calculated Successfully (A)', 'success');
+    }
+
+    function runResourcesBComputation() {
+      calculateResourcesB();
+      showToast('Resources Recalculated Successfully (B)', 'success');
+    }
+
+    // Core Protection Gap Trigger (A - B)
+    function executeGapAnalysis() {
+      runNeedsAComputation();
+      calculateResourcesB();
+
+      const A = state.calculatedNeedsA;
+      const B = state.calculatedResourcesB;
+      const gap = A - B;
+
+      state.isGapAnalyzed = true;
+
+      // Reveal visual elements
+      const revealEl = document.getElementById('gap-analysis-reveal');
+      revealEl.style.display = 'block';
+
+      document.getElementById('result-lbl-a').innerText = 'RM ' + formatNumber(A);
+      document.getElementById('result-lbl-b').innerText = 'RM ' + formatNumber(B);
+
+      const gapLabel = document.getElementById('result-lbl-gap');
+      const badge = document.getElementById('badge-analysis-gap');
+
+      if (gap > 0) {
+        gapLabel.innerText = 'RM ' + formatNumber(gap);
+        gapLabel.style.color = 'var(--red)';
+        badge.innerText = '⚠️ Action Needed: Protection Deficit';
+        badge.className = 'badge-gap badge-danger';
+      } else {
+        gapLabel.innerText = 'RM ' + formatNumber(Math.abs(gap)) + ' (Surplus)';
+        gapLabel.style.color = 'var(--green)';
+        badge.innerText = '✓ Safe: Protection Surplus';
+        badge.className = 'badge-gap badge-success';
+      }
+
+      updateLiveSidebarSum();
+      syncCalculations();
+      showToast('Protection Gap Analysis Updated', 'success');
+    }
+
+    function syncCalculations() {
+      const A = state.calculatedNeedsA;
+      const B = state.calculatedResourcesB;
+      const gap = A - B;
+
+      // Update Dashboard KPIs
+      document.getElementById('kpi-val-needs').innerText = 'RM ' + formatNumber(A);
+      document.getElementById('kpi-val-resources').innerText = 'RM ' + formatNumber(B);
+
+      const gapValKpi = document.getElementById('kpi-val-gap');
+      if (gap > 0) {
+        gapValKpi.innerText = 'RM ' + formatNumber(gap);
+        gapValKpi.style.color = 'var(--red)';
+      } else {
+        gapValKpi.innerText = 'RM 0 (Surplus)';
+        gapValKpi.style.color = 'var(--green)';
+      }
+
+      const scorePct = A > 0 ? Math.min(100, Math.round((B / A) * 100)) : 100;
+      const scoreKpi = document.getElementById('kpi-val-score');
+      scoreKpi.innerText = scorePct + '%';
+      if (scorePct < 40) {
+        scoreKpi.style.color = 'var(--red)';
+      } else if (scorePct < 90) {
+        scoreKpi.style.color = 'var(--amber)';
+      } else {
+        scoreKpi.style.color = 'var(--green)';
+      }
+
+      // Matrix parameters
+      document.getElementById('mat-lbl-num-children').innerText = state.youngestChildAge;
+      const duration = Math.max(0, 25 - state.youngestChildAge);
+      document.getElementById('mat-tag-years').innerText = `${duration} Years Gap`;
+
+      // Debt concentration computation
+      const sumDebts = state.debts.reduce((sum, item) => sum + item.value, 0);
+      const debtConc = A > 0 ? Math.round((sumDebts / A) * 100) : 0;
+      document.getElementById('mat-lbl-ratio-debt').innerText = debtConc + '%';
+      const dTag = document.getElementById('mat-tag-debt');
+      if (debtConc > 50) {
+        dTag.innerText = 'Critical Risk';
+        dTag.className = 'h-tag tb';
+      } else if (debtConc > 20) {
+        dTag.innerText = 'Moderate Risk';
+        dTag.className = 'h-tag tw';
+      } else {
+        dTag.innerText = 'Secure Load';
+        dTag.className = 'h-tag tg';
+      }
+
+      // Takaful coverage concentration
+      const sumTakaful = state.takaful.reduce((sum, item) => sum + item.value, 0);
+      const takConc = B > 0 ? Math.round((sumTakaful / B) * 100) : 0;
+      document.getElementById('mat-lbl-takaful-cover').innerText = takConc + '%';
+      const tTag = document.getElementById('mat-tag-takaful');
+      if (takConc > 60) {
+        tTag.innerText = 'Takaful Dependent';
+        tTag.className = 'h-tag tg';
+      } else {
+        tTag.innerText = 'Diversified Guard';
+        tTag.className = 'h-tag tw';
+      }
+
+      // Specific quadrant weights
+      const totalExpWeight = A > 0 ? Math.round(((state.calculatedExpensesFV || 0) / A) * 100) : 0;
+      document.getElementById('anal-weight-exp').innerText = totalExpWeight + '% Need Weight';
+
+      const liquidAssets = state.savings.reduce((sum, item) => sum + item.value, 0) + state.epfBalance;
+      const debtSafety = sumDebts > 0 ? Math.round((liquidAssets / sumDebts) * 100) : 100;
+      document.getElementById('anal-weight-debt').innerText = debtSafety >= 100 ? 'Fully Secure' : `${debtSafety}% Covered`;
+
+      // Update Commentary in analytical panel
+      const textVal = document.getElementById('advisor-commentary').value;
+      const mirror = document.getElementById('anal-dashboard-commentary-mirror');
+      mirror.innerText = textVal.trim() === '' ? 'No customized advisor planner recommendations written yet.' : textVal;
+    }
+
+    // Interactive custom SVG comparisons chart
+    function renderSVGChart() {
+      const A = state.calculatedNeedsA || 0;
+      const B = state.calculatedResourcesB || 0;
+      const maxVal = Math.max(A, B, 100000);
+
+      const scale = 160 / maxVal; // Limit chart heights to maximum container boundaries
+      const heightA = A * scale;
+      const heightB = B * scale;
+
+      const yA = 200 - heightA;
+      const yB = 200 - heightB;
+
+      const svg = document.getElementById('svg-comparison-chart');
+      svg.innerHTML = `
+        <rect x="10" y="10" width="380" height="220" rx="6" fill="#fcfbf7" stroke="var(--border)" stroke-width="1" />
+        
+        <!-- Y Axis Grid Labels -->
+        <line x1="60" y1="40" x2="350" y2="40" stroke="#f2f0eb" stroke-dasharray="3,3" />
+        <line x1="60" y1="120" x2="350" y2="120" stroke="#f2f0eb" stroke-dasharray="3,3" />
+        <line x1="60" y1="200" x2="350" y2="200" stroke="var(--border-strong)" />
+
+        <text x="355" y="45" fill="var(--text3)" font-size="9" font-family="sans-serif">Target High</text>
+        <text x="355" y="205" fill="var(--text3)" font-size="9" font-family="sans-serif">Zero</text>
+
+        <!-- Bar A: Needs -->
+        <rect x="90" y="${yA}" width="65" height="${heightA}" fill="var(--red)" rx="4" />
+        <text x="122.5" y="${Math.min(yA - 8, 190)}" fill="var(--red)" font-family="'DM Mono', monospace" font-size="11" font-weight="bold" text-anchor="middle">RM ${formatCompactNumber(A)}</text>
+        <text x="122.5" y="218" fill="var(--text2)" font-size="11" font-weight="500" text-anchor="middle">Needs (A)</text>
+
+        <!-- Bar B: Resources -->
+        <rect x="225" y="${yB}" width="65" height="${heightB}" fill="var(--green)" rx="4" />
+        <text x="257.5" y="${Math.min(yB - 8, 190)}" fill="var(--green)" font-family="'DM Mono', monospace" font-size="11" font-weight="bold" text-anchor="middle">RM ${formatCompactNumber(B)}</text>
+        <text x="257.5" y="218" fill="var(--text2)" font-size="11" font-weight="500" text-anchor="middle">Resources (B)</text>
+      `;
+    }
+
+    // Real-time Sidebar Summary updating
+    function updateLiveSidebarSum() {
+      const A = state.calculatedNeedsA || 0;
+      const B = state.calculatedResourcesB || 0;
+      const gap = A - B;
+
+      document.getElementById('side-total-needs').innerText = 'RM ' + formatNumber(A);
+      document.getElementById('side-total-resources').innerText = 'RM ' + formatNumber(B);
+
+      const sideGapEl = document.getElementById('side-gap');
+      if (gap > 0) {
+        sideGapEl.innerText = 'RM ' + formatNumber(gap);
+        sideGapEl.className = 'ss-v ss-b warning';
+      } else {
+        sideGapEl.innerText = 'RM ' + formatNumber(Math.abs(gap)) + ' (Surp)';
+        sideGapEl.className = 'ss-v ss-b positive';
+      }
+    }
+
+    // Sidebar Interactive Form Progress calculation
+    function updateProgressBar() {
+      let fieldsCompleted = 0;
+      let totalFields = 6; // Youngest child age, EPF, and the non-empty lists check
+
+      if (state.youngestChildAge > 0) fieldsCompleted++;
+      if (state.epfBalance > 0) fieldsCompleted++;
+      if (state.debts.length > 0) fieldsCompleted++;
+      if (state.education.length > 0) fieldsCompleted++;
+      if (state.takaful.length > 0) fieldsCompleted++;
+      if (state.savings.length > 0 || state.investments.length > 0) fieldsCompleted++;
+
+      const percent = Math.round((fieldsCompleted / totalFields) * 100);
+      document.getElementById('progress-percent').innerText = percent + '%';
+      document.getElementById('progress-fill-bar').style.width = percent + '%';
+    }
+
+    // Commentary text formatting
+    function updateCommentaryCounter() {
+      const text = document.getElementById('advisor-commentary').value;
+      state.commentary = text;
+      document.getElementById('char-count-display').innerText = `${text.length} / 800 characters`;
+      
+      // Update standard printable mirror text
+      const printBox = document.getElementById('print-commentary-text');
+      printBox.innerText = text.trim() === '' ? 'No planner commentary provided.' : text;
+
+      // Sync dashboards
+      const mirror = document.getElementById('anal-dashboard-commentary-mirror');
+      if (mirror) {
+        mirror.innerText = text.trim() === '' ? 'No customized advisor planner recommendations written yet.' : text;
+      }
+    }
+
+    // Helper formatting functions
+    function formatNumber(num) {
+      return Math.round(num).toLocaleString('en-US');
+    }
+
+    function formatCompactNumber(num) {
+      if (num >= 1000000) {
+        return (num / 1000000).toFixed(2) + 'M';
+      } else if (num >= 1000) {
+        return (num / 1000).toFixed(0) + 'k';
+      }
+      return Math.round(num).toString();
+    }
+
+    // Reset workspace utilities
+    function resetAllPlannerData() {
+      state = {
+        youngestChildAge: 0,
+        inflationRate: 3.5,
+        expenseMode: 'salary',
+        monthlySalary: 0,
+        salaryPercentage: 70,
+        monthlyExpenses: 0,
+        debts: [],
+        education: [],
+        epfBalance: 0,
+        takaful: [],
+        savings: [],
+        investments: [],
+        others: [],
+        commentary: '',
+        calculatedNeedsA: 0,
+        calculatedResourcesB: 0,
+        isGapAnalyzed: false
+      };
+
+      document.getElementById('youngest-child-age').value = '0';
+      document.getElementById('inflation-rate').value = '3.5';
+      document.getElementById('expense-mode').value = 'salary';
+      document.getElementById('monthly-salary').value = '0';
+      document.getElementById('salary-percent').value = '70';
+      document.getElementById('monthly-expenses').value = '0';
+      document.getElementById('epf-balance').value = '0';
+      document.getElementById('advisor-commentary').value = '';
+
+      toggleExpenseFields();
+      updateSalaryRangeVal(70);
+      renderAllRows();
+      autoCalculateSums();
+      executeGapAnalysis();
+
+      showToast('Planning Workspace Cleared!', 'warning');
+    }
+
+    // Toast Alert Engine
+    function showToast(message, type = 'success') {
+      const toast = document.getElementById('toast-notif');
+      const text = document.getElementById('toast-message');
+      text.innerText = message;
+      
+      toast.className = 'custom-toast show';
+      setTimeout(() => {
+        toast.className = 'custom-toast';
+      }, 2500);
+    }
+
+    // Native browser window print optimization trigger
+    function triggerPrint() {
+      // Sync analytical commentary text
+      updateCommentaryCounter();
+      
+      // Make sure computations are updated
+      executeGapAnalysis();
+      syncCalculations();
+      
+      // Temporarily show dashboard for print spooler capture
+      const originalPageIsPlanner = document.getElementById('page-planner').classList.contains('active');
+      if (originalPageIsPlanner) {
+        switchPage('dashboard');
+      }
+
+      const overlay = document.getElementById('print-overlay');
+      overlay.classList.add('show');
+
+      setTimeout(() => {
+        overlay.classList.remove('show');
+        window.print();
+        
+        // Revert page back to user's original selection
+        if (originalPageIsPlanner) {
+          switchPage('planner');
+        }
+      }, 1000);
+    }
+
+    function scrollToElement(id) {
+      const element = document.getElementById(id);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+  </script>
+</body>
+</html>

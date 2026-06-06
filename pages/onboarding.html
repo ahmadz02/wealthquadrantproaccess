@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Client On-board Page</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/styles.css" />
+  <style>
+    .onboard-wrap {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    .onboard-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .onboard-title {
+      font-size: 28px;
+      font-weight: 300;
+      letter-spacing: -0.03em;
+      margin-bottom: 4px;
+    }
+
+    .onboard-sub {
+      color: var(--text3);
+      font-size: 13px;
+    }
+
+    .client-table-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--rl);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .client-row,
+    .client-head {
+      display: grid;
+      grid-template-columns: 46px 1.4fr 1fr 1.35fr 150px 86px 52px 34px;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .client-head {
+      padding: 11px 14px;
+      background: var(--surface2);
+      border-bottom: 1px solid var(--border);
+      color: var(--text3);
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .client-row {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      animation: fi .15s ease;
+    }
+
+    .client-row:last-child {
+      border-bottom: none;
+    }
+
+    .row-no {
+      font-family: 'DM Mono', monospace;
+      font-size: 12px;
+      color: var(--text2);
+      text-align: center;
+    }
+
+    .client-row .inp-t {
+      height: 36px;
+    }
+
+    .save-btn,
+    .next-btn {
+      height: 36px;
+      border-radius: var(--r);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all .12s;
+    }
+
+    .save-btn {
+      border: 1px solid var(--text);
+      background: var(--text);
+      color: #fff;
+    }
+
+    .save-btn:hover {
+      opacity: .85;
+    }
+
+    .next-btn {
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text2);
+      font-size: 18px;
+      line-height: 1;
+    }
+
+    .next-btn:hover {
+      border-color: var(--blue);
+      color: var(--blue);
+      background: var(--blue-bg);
+    }
+
+    .btn-rm {
+      width: 34px;
+      height: 36px;
+    }
+
+    .client-actions {
+      padding: 14px;
+      border-top: 1px dashed var(--border);
+      background: var(--surface);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .status-text {
+      color: var(--text3);
+      font-size: 12px;
+    }
+
+    .saved-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 9px;
+      border-radius: 999px;
+      background: var(--green-bg);
+      color: var(--green);
+      font-size: 11px;
+      font-weight: 500;
+      opacity: 0;
+      transform: translateY(2px);
+      transition: all .2s;
+    }
+
+    .saved-chip.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .empty-note {
+      margin-top: 1rem;
+      color: var(--text3);
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    @media (max-width: 980px) {
+      .client-table-card {
+        overflow-x: auto;
+      }
+
+      .client-row,
+      .client-head {
+        min-width: 960px;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .onboard-wrap {
+        padding: 1rem;
+      }
+    }
+  
+    .btn-logout { height:34px; padding:0 14px; border:1px solid var(--border); border-radius:var(--r); background:var(--surface); color:var(--text2); font-family:'DM Sans',sans-serif; font-size:12px; font-weight:500; cursor:pointer; }
+    .btn-logout:hover { background:var(--surface2); color:var(--text); }
+</style>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../assets/js/supabase-client.js"></script>
+  <script src="../assets/js/supabase-store.js"></script>
+  <script src="../assets/js/auth-guard.js"></script>
+  <script defer src="../assets/js/auth.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none">
+          <path d="M6 17L12 5L18 17H6Z" fill="white"/>
+        </svg>
+      </div>
+      <div>
+        <div class="brand-name">Wealth Quadrant Pro Access</div>
+        <div class="brand-sub">Client On-board</div>
+      </div>
+    </div>
+    <button id="logoutBtn" class="btn-logout" type="button">Logout</button>
+  </header>
+
+  <main class="onboard-wrap">
+    <section class="onboard-header">
+      <div>
+        <div class="seg-tag t1">Client Registry</div>
+        <h1 class="onboard-title">Client On-board Dashboard</h1>
+        <p class="onboard-sub">Add client details, save records locally, and use the arrow button later to enter the client workspace.</p>
+      </div>
+      <button class="btn-pdf" type="button" onclick="print()">Print</button>
+    </section>
+
+    <section class="client-table-card" aria-label="Client onboarding table">
+      <div class="client-head">
+        <div>#</div>
+        <div>Name</div>
+        <div>Phone Number</div>
+        <div>Email</div>
+        <div>On-board Date</div>
+        <div>Save</div>
+        <div>Next</div>
+        <div></div>
+      </div>
+
+      <div id="clientRows"></div>
+
+      <div class="client-actions">
+        <button class="btn-add" type="button" onclick="addClientRow()">+ Add Client</button>
+        <div class="status-text">
+          <span id="savedChip" class="saved-chip">✓ Saved</span>
+          <span id="rowCount">0 client row</span>
+        </div>
+      </div>
+    </section>
+
+    <p class="empty-note">
+      Note: Client data MUST BE SAVED before proceeding to the next step. Click the "Save" button after filling in the client details, and ensure you see the "Saved" confirmation before clicking the arrow button to enter the client workspace. This ensures your data is securely stored and accessible for future sessions.
+    </p>
+  </main>
+
+  <script>
+    const rowsContainer = document.getElementById('clientRows');
+    const rowCount = document.getElementById('rowCount');
+    const savedChip = document.getElementById('savedChip');
+
+    let clients = [createBlankClient()];
+
+    function createBlankClient() {
+      return {
+        id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()),
+        name: '',
+        phone: '',
+        email: '',
+        onboardDate: new Date().toISOString().slice(0, 10)
+      };
+    }
+
+    function showSaved() {
+      savedChip.classList.add('show');
+      setTimeout(() => savedChip.classList.remove('show'), 1400);
+    }
+
+    function updateClient(id, field, value) {
+      const client = clients.find(item => item.id === id);
+      if (!client) return;
+      client[field] = value;
+    }
+
+    function addClientRow() {
+      clients.push(createBlankClient());
+      renderRows();
+    }
+
+    async function removeClientRow(id) {
+      if (clients.length === 1) {
+        clients = [createBlankClient()];
+      } else {
+        clients = clients.filter(item => item.id !== id);
+      }
+      renderRows();
+    }
+
+    async function saveClientRow(id) {
+      const row = document.querySelector(`[data-row-id="${id}"]`);
+      if (!row) return null;
+
+      const name = row.querySelector('[data-field="name"]').value.trim();
+      const phone = row.querySelector('[data-field="phone"]').value.trim();
+      const email = row.querySelector('[data-field="email"]').value.trim();
+      const onboardDate = row.querySelector('[data-field="onboardDate"]').value;
+
+      updateClient(id, 'name', name);
+      updateClient(id, 'phone', phone);
+      updateClient(id, 'email', email);
+      updateClient(id, 'onboardDate', onboardDate);
+
+      if (!email) {
+        alert('Please insert client email before saving.');
+        return null;
+      }
+
+      try {
+        const saved = await WQPStore.upsertClient({
+          name,
+          phone,
+          email,
+          onboardDate
+        });
+        showSaved();
+        return saved;
+      } catch (error) {
+        console.error('Unable to save client:', error);
+        alert('Unable to save client. Please check Supabase setup and RLS policies.');
+        return null;
+      }
+    }
+
+    async function goToClient(id) {
+      const saved = await saveClientRow(id);
+      const client = clients.find(item => item.id === id);
+      if (!saved || !client || !client.email) return;
+      window.location.href = 'dashboard.html?clientEmail=' + encodeURIComponent(client.email);
+    }
+
+    function updateRowCount() {
+      const total = clients.length;
+      rowCount.textContent = `${total} client row${total === 1 ? '' : 's'}`;
+    }
+
+    function renderRows() {
+      rowsContainer.innerHTML = clients.map((client, index) => `
+        <div class="client-row" data-row-id="${client.id}">
+          <div class="row-no">${index + 1}</div>
+          <input class="inp-t" data-field="name" type="text" placeholder="Client name" value="${escapeHTML(client.name)}" oninput="updateClient('${client.id}', 'name', this.value)">
+          <input class="inp-t" data-field="phone" type="tel" placeholder="012-3456789" value="${escapeHTML(client.phone)}" oninput="updateClient('${client.id}', 'phone', this.value)">
+          <input class="inp-t" data-field="email" type="email" placeholder="client@email.com" value="${escapeHTML(client.email)}" oninput="updateClient('${client.id}', 'email', this.value)">
+          <input class="inp-t" data-field="onboardDate" type="date" value="${escapeHTML(client.onboardDate)}" oninput="updateClient('${client.id}', 'onboardDate', this.value)">
+          <button class="save-btn" type="button" onclick="saveClientRow('${client.id}')">Save</button>
+          <button class="next-btn" type="button" title="Open client workspace" onclick="goToClient('${client.id}')">→</button>
+          <button class="btn-rm" type="button" title="Remove row" onclick="removeClientRow('${client.id}')">×</button>
+        </div>
+      `).join('');
+
+      updateRowCount();
+    }
+
+    function escapeHTML(value) {
+      return String(value || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    async function initClients() {
+      try {
+        const data = await WQPStore.listClients();
+        clients = data.length ? data.map(item => ({
+          id: item.id,
+          name: item.client_name || '',
+          phone: item.phone || '',
+          email: item.client_email || '',
+          onboardDate: item.onboard_date || new Date().toISOString().slice(0, 10)
+        })) : [createBlankClient()];
+      } catch (error) {
+        console.error('Unable to load clients:', error);
+        clients = [createBlankClient()];
+      }
+      renderRows();
+    }
+
+    document.addEventListener('DOMContentLoaded', initClients);
+  </script>
+</body>
+</html>

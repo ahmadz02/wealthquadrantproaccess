@@ -1,0 +1,1272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wealth Quadrant Online</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #f7f6f2; --surface: #fff; --surface2: #f2f0eb;
+  --border: #e2dfd8; --border-strong: #c8c4bb;
+  --text: #1a1916; --text2: #6b6860; --text3: #a09d98;
+  --green: #1a6b47; --green-bg: #edf7f2;
+  --blue: #1a4a6b; --blue-bg: #edf3f7;
+  --red: #6b1a1a; --red-bg: #f7eded;
+  --gold: #6b4e1a; --gold-bg: #f7f2ed;
+  --orange: #b85c00; --amber: #c97a1a;
+  --r: 6px; --rl: 10px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); font-size:14px; line-height:1.5; min-height:100vh; }
+
+/* ── TOPBAR ── */
+.topbar { background:var(--surface); border-bottom:1px solid var(--border); padding:0 1.5rem; display:flex; align-items:center; justify-content:space-between; height:56px; position:sticky; top:0; z-index:200; }
+.brand { display:flex; align-items:center; gap:10px; }
+.brand-mark { width:28px; height:28px; background:var(--text); border-radius:6px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.brand-mark svg { width:14px; height:14px; }
+.brand-name { font-size:14px; font-weight:500; letter-spacing:-0.01em; }
+.brand-sub { font-size:12px; color:var(--text3); margin-left:2px; }
+.pill-nav { display:flex; background:var(--surface2); border-radius:20px; padding:3px; gap:2px; }
+.pill-btn { padding:5px 16px; border-radius:16px; border:none; background:transparent; font-size:12px; font-family:'DM Sans',sans-serif; color:var(--text2); cursor:pointer; font-weight:400; transition:all .15s; }
+.pill-btn.active { background:var(--surface); color:var(--text); font-weight:500; box-shadow:0 1px 2px rgba(0,0,0,.08); }
+
+/* ── PAGE SHELLS ── */
+.page { display:none; }
+.page.active { display:flex; min-height:calc(100vh - 56px); }
+
+/* ── ENTRY LAYOUT ── */
+.sidebar { width:240px; flex-shrink:0; background:var(--surface); border-right:1px solid var(--border); position:sticky; top:56px; height:calc(100vh - 56px); overflow-y:auto; padding:1.25rem 0; }
+.main-area { flex:1; padding:2rem; overflow-y:auto; min-width:0; }
+
+/* sidebar nav */
+.sb-label { font-size:10px; font-weight:500; letter-spacing:.08em; text-transform:uppercase; color:var(--text3); padding:0 1.25rem; margin-bottom:.5rem; }
+.sb-item { display:flex; align-items:center; gap:10px; padding:9px 1.25rem; cursor:pointer; border-left:2px solid transparent; transition:all .12s; font-size:13px; color:var(--text2); text-decoration:none; }
+.sb-item:hover { background:var(--surface2); color:var(--text); }
+.sb-item.active { border-left-color:var(--text); color:var(--text); font-weight:500; background:var(--surface2); }
+.sb-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+.d1 { background:var(--green); } .d2 { background:var(--blue); } .d3 { background:var(--gold); } .d4 { background:var(--text3); }
+
+/* progress */
+.prog-wrap { padding:1.25rem 1.25rem .75rem; }
+.prog-top { display:flex; justify-content:space-between; font-size:11px; color:var(--text3); margin-bottom:6px; }
+.prog-track { height:3px; background:var(--surface2); border-radius:2px; overflow:hidden; }
+.prog-fill { height:100%; background:var(--text); border-radius:2px; width:0%; transition:width .4s; }
+
+/* per-segment sidebar summaries */
+.seg-sum { display:none; margin:0 1rem .75rem; }
+.seg-sum.on { display:block; }
+.ss-head { color:#fff; font-size:10px; font-weight:500; letter-spacing:.06em; text-transform:uppercase; padding:6px 10px; border-radius:var(--r) var(--r) 0 0; }
+.ss-body { background:var(--surface2); border-radius:0 0 var(--r) var(--r); padding:8px 10px; border:1px solid var(--border); border-top:none; }
+.ss-row { display:flex; justify-content:space-between; align-items:baseline; padding:3px 0; font-size:11px; color:var(--text2); border-bottom:1px solid var(--border); }
+.ss-row:last-child { border-bottom:none; }
+.ss-row.neg { color:var(--red); }
+.ss-v { font-family:'DM Mono',monospace; font-size:11px; color:var(--text); }
+.ss-b { font-weight:500; }
+.ss-div { height:1px; background:var(--border-strong); margin:5px 0; }
+.ss-tot { display:flex; justify-content:space-between; align-items:baseline; padding:3px 0; font-size:11px; font-weight:500; }
+.positive { color:var(--green); } .negative { color:var(--red); } .neutral { color:var(--blue); } .warning { color:var(--amber); }
+
+/* ── SEGMENT CONTENT ── */
+.segment { display:none; }
+.segment.active { display:block; }
+.seg-hdr { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:1.75rem; }
+.seg-tag { display:inline-flex; align-items:center; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:500; margin-bottom:6px; }
+.t1{background:var(--green-bg);color:var(--green);} .t2{background:var(--blue-bg);color:var(--blue);} .t3{background:var(--gold-bg);color:var(--gold);} .t4{background:var(--surface2);color:var(--text2);}
+.seg-title { font-size:22px; font-weight:300; letter-spacing:-.03em; }
+.seg-desc { font-size:13px; color:var(--text3); margin-top:4px; }
+.seg-tot-box { text-align:right; background:var(--surface2); border-radius:var(--rl); padding:10px 16px; }
+.tot-label { font-size:11px; color:var(--text3); }
+.tot-val { font-size:20px; font-weight:500; font-family:'DM Mono',monospace; letter-spacing:-.03em; }
+
+/* cards */
+.card { background:var(--surface); border:1px solid var(--border); border-radius:var(--rl); margin-bottom:1rem; overflow:hidden; box-shadow:var(--shadow); }
+.ch { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; cursor:pointer; user-select:none; border-bottom:1px solid transparent; transition:background .12s; }
+.ch:hover { background:var(--surface2); }
+.ch.open { border-bottom-color:var(--border); }
+.ch-left { display:flex; align-items:center; gap:10px; }
+.ci { width:28px; height:28px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:13px; flex-shrink:0; }
+.ci1{background:var(--green-bg);} .ci2{background:var(--blue-bg);} .ci3{background:var(--gold-bg);} .ci-r{background:var(--red-bg);} .ci-g{background:var(--surface2);}
+.ch-title { font-size:13px; font-weight:500; }
+.ch-sub { font-size:11px; color:var(--text3); margin-top:1px; }
+.ch-right { display:flex; align-items:center; gap:10px; }
+.ch-sum { font-family:'DM Mono',monospace; font-size:13px; color:var(--text2); }
+.chev { width:16px; height:16px; color:var(--text3); transition:transform .2s; flex-shrink:0; }
+.chev.open { transform:rotate(180deg); }
+.cb { display:none; padding:14px 16px; }
+.cb.open { display:block; }
+
+/* fields */
+.f-static { display:grid; grid-template-columns:1fr 180px; gap:8px; align-items:center; padding:8px 0; border-bottom:1px solid var(--border); }
+.f-static:last-of-type { border-bottom:none; }
+.f-label { font-size:13px; }
+.f-sub { font-size:11px; color:var(--text3); }
+.pfx-wrap { position:relative; }
+.pfx { position:absolute; left:10px; top:50%; transform:translateY(-50%); font-size:12px; color:var(--text3); pointer-events:none; }
+.inp { width:100%; height:34px; border:1px solid var(--border); border-radius:var(--r); padding:0 10px; font-size:13px; font-family:'DM Mono',monospace; color:var(--text); background:var(--surface); text-align:right; transition:border-color .12s; }
+.inp:focus { outline:none; border-color:var(--text); }
+.inp.pl { padding-left:26px; text-align:left; }
+.inp-t { height:34px; border:1px solid var(--border); border-radius:var(--r); padding:0 10px; font-size:13px; font-family:'DM Sans',sans-serif; color:var(--text); background:var(--surface); width:100%; transition:border-color .12s; }
+.inp-t:focus { outline:none; border-color:var(--text); }
+.exp-rows { margin-top:10px; }
+.exp-row { display:grid; grid-template-columns:1fr 160px 30px; gap:6px; align-items:center; margin-bottom:6px; animation:fi .15s ease; }
+.exp-row-4 { display:grid; grid-template-columns:130px 1fr 150px 30px; gap:6px; align-items:center; margin-bottom:6px; animation:fi .15s ease; }
+@keyframes fi { from{opacity:0;transform:translateY(-4px)} to{opacity:1;transform:translateY(0)} }
+.btn-rm { width:28px; height:28px; border:1px solid var(--border); border-radius:var(--r); background:transparent; cursor:pointer; color:var(--text3); display:flex; align-items:center; justify-content:center; font-size:16px; transition:all .12s; }
+.btn-rm:hover { border-color:var(--red); color:var(--red); background:var(--red-bg); }
+.btn-add { display:flex; align-items:center; gap:6px; padding:6px 10px; border:1px dashed var(--border-strong); border-radius:var(--r); background:transparent; font-size:12px; font-family:'DM Sans',sans-serif; color:var(--text3); cursor:pointer; margin-top:4px; width:100%; transition:all .12s; }
+.btn-add:hover { border-color:var(--text); color:var(--text2); background:var(--surface2); }
+.ded-section { margin-top:1.5rem; padding-top:1.25rem; border-top:1px dashed var(--border); }
+.ded-lbl { font-size:11px; font-weight:500; letter-spacing:.06em; text-transform:uppercase; color:var(--red); margin-bottom:.75rem; }
+
+/* nav buttons */
+.seg-nav { display:flex; justify-content:space-between; align-items:center; margin-top:2rem; padding-top:1.5rem; border-top:1px solid var(--border); }
+.btn-nav { display:flex; align-items:center; gap:6px; padding:9px 18px; border:1px solid var(--border); border-radius:var(--r); background:transparent; font-size:13px; font-family:'DM Sans',sans-serif; color:var(--text2); cursor:pointer; transition:all .12s; }
+.btn-nav:hover { border-color:var(--text); color:var(--text); }
+.btn-pri { background:var(--text); color:#fff; border-color:var(--text); }
+.btn-pri:hover { background:#333; }
+
+/* ── ANALYSIS PAGE ── */
+#page-analysis .main-area { max-width:1100px; margin:0 auto; }
+.a-header { margin-bottom:1.75rem; }
+.a-title { font-size:28px; font-weight:300; letter-spacing:-.03em; }
+.a-sub { font-size:13px; color:var(--text3); margin-top:4px; }
+.sec-title { font-size:10px; font-weight:500; letter-spacing:.08em; text-transform:uppercase; color:var(--text3); margin-bottom:.75rem; margin-top:1.5rem; }
+
+/* quadrant */
+.quad-grid { display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:10px; margin-bottom:1rem; }
+.quad-card { border-radius:var(--rl); overflow:hidden; border:1px solid var(--border); cursor:pointer; transition:transform .15s, box-shadow .15s; }
+.quad-card:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(0,0,0,.1); }
+.quad-card:active { transform:translateY(0); box-shadow:none; }
+.q-hint { font-size:10px; color:rgba(255,255,255,.7); font-style:italic; float:right; font-weight:400; letter-spacing:0; }
+.q-head { padding:8px 12px; font-size:11px; font-weight:500; letter-spacing:.05em; text-transform:uppercase; color:#fff; }
+.qg{background:#1a6b47;} .qr{background:#8b2020;} .qb{background:#1a4a6b;} .qo{background:#b85c00;}
+.q-body { background:var(--surface); padding:10px 12px; }
+.q-row { display:flex; justify-content:space-between; padding:3px 0; font-size:12px; color:var(--text2); border-bottom:1px solid var(--surface2); }
+.q-row:last-child { border-bottom:none; }
+.q-val { font-family:'DM Mono',monospace; font-size:12px; font-weight:500; color:var(--text); }
+.q-div { height:1px; background:var(--border); margin:6px 0; }
+.q-foot { display:flex; justify-content:space-between; padding:4px 0 0; font-size:12px; font-weight:500; }
+.q-fv { font-family:'DM Mono',monospace; font-size:13px; font-weight:500; }
+
+/* matrix */
+.mx-grid { display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:10px; margin-bottom:1.5rem; }
+.mx-item { background:var(--surface); border:1px solid var(--border); border-radius:var(--rl); padding:1rem 1.25rem; }
+.mx-lbl { font-size:11px; color:var(--text3); letter-spacing:.03em; margin-bottom:3px; }
+.mx-fml { font-size:10px; color:var(--text3); opacity:.7; margin-bottom:8px; font-style:italic; }
+.mx-val { font-size:22px; font-weight:500; font-family:'DM Mono',monospace; letter-spacing:-.03em; }
+.mx-sub { font-size:11px; color:var(--text3); margin-top:3px; }
+
+/* kpi strip */
+.kpi-grid { display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:10px; margin-bottom:1.5rem; }
+.kpi { background:var(--surface); border:1px solid var(--border); border-radius:var(--rl); padding:1rem 1.25rem; }
+.kpi-lbl { font-size:11px; color:var(--text3); letter-spacing:.03em; margin-bottom:6px; }
+.kpi-val { font-size:20px; font-weight:500; font-family:'DM Mono',monospace; letter-spacing:-.03em; }
+.kpi-sub { font-size:11px; color:var(--text3); margin-top:4px; }
+
+/* analysis cards */
+.a-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--rl); padding:1.25rem; margin-bottom:1rem; }
+.a-card-title { font-size:13px; font-weight:500; margin-bottom:1rem; display:flex; align-items:center; gap:8px; }
+.a-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.two-col { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem; }
+.chart-wrap { position:relative; }
+.bar-list { display:flex; flex-direction:column; gap:10px; }
+.bar-item-top { display:flex; justify-content:space-between; margin-bottom:5px; font-size:12px; }
+.bar-lbl { color:var(--text2); }
+.bar-val { font-family:'DM Mono',monospace; font-weight:500; }
+.bar-track { height:6px; background:var(--surface2); border-radius:4px; overflow:hidden; }
+.bar-fill { height:100%; border-radius:4px; transition:width .8s; }
+.bk-table { width:100%; border-collapse:collapse; }
+.bk-table th { font-size:11px; font-weight:500; color:var(--text3); text-align:left; padding:0 0 8px; border-bottom:1px solid var(--border); }
+.bk-table th:last-child { text-align:right; }
+.bk-table td { padding:8px 0; font-size:13px; border-bottom:1px solid var(--surface2); vertical-align:middle; }
+.bk-table td:last-child { text-align:right; font-family:'DM Mono',monospace; font-weight:500; }
+.bk-table tr:last-child td { border-bottom:none; }
+.cat-badge { display:inline-flex; align-items:center; gap:5px; }
+.cat-dot { width:6px; height:6px; border-radius:50%; }
+.ratio-item { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+.ratio-lbl { font-size:12px; color:var(--text2); width:130px; flex-shrink:0; }
+.ratio-track { flex:1; background:var(--surface2); height:8px; border-radius:4px; overflow:hidden; }
+.ratio-fill { height:100%; border-radius:4px; }
+.ratio-pct { font-size:12px; font-family:'DM Mono',monospace; width:42px; text-align:right; }
+.health-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; }
+.h-item { background:var(--surface2); border-radius:var(--r); padding:10px 12px; }
+.h-score { font-size:18px; font-weight:500; font-family:'DM Mono',monospace; margin-bottom:2px; }
+.h-lbl { font-size:11px; color:var(--text3); }
+.h-tag { font-size:10px; font-weight:500; padding:2px 8px; border-radius:10px; margin-top:6px; display:inline-block; }
+.tg{background:var(--green-bg);color:var(--green);} .tw{background:#fff8e8;color:var(--amber);} .tb{background:var(--red-bg);color:var(--red);}
+.nw-val { font-size:32px; font-weight:300; font-family:'DM Mono',monospace; letter-spacing:-.04em; }
+
+.empty-state { text-align:center; padding:4rem 1rem; color:var(--text3); }
+.empty-state a { color:var(--blue); text-decoration:none; font-weight:500; cursor:pointer; }
+
+/* net worth duo */
+.nw-duo-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:.5rem; }
+.nw-card { background:var(--surface2); border:1px solid var(--border); border-radius:var(--rl); padding:1rem 1.25rem; }
+.nw-card-lbl { font-size:12px; font-weight:500; color:var(--text2); margin-bottom:3px; display:flex; align-items:center; gap:6px; }
+.nw-card-fml { font-size:11px; color:var(--text3); font-style:italic; margin-bottom:10px; }
+.nw-card-val { font-size:24px; font-weight:500; font-family:'DM Mono',monospace; letter-spacing:-.03em; }
+.nw-epf-tag { font-size:10px; font-weight:500; padding:2px 7px; border-radius:10px; }
+.with-epf { background:#e8f5ee; color:#1a6b47; }
+.no-epf   { background:#f5ede8; color:#8b3a1a; }
+
+/* group blocks */
+.grp-block { background:var(--surface); border:1px solid var(--border); border-radius:var(--rl); padding:1.25rem 1.5rem; margin-bottom:1.25rem; }
+.grp-label { font-size:11px; font-weight:500; letter-spacing:.1em; text-transform:uppercase; color:var(--text3); margin-bottom:1rem; margin-top:1.25rem; padding-bottom:.5rem; border-bottom:1px solid var(--border); }
+.grp-block .grp-label { margin-top:0; }
+.grp-sub { font-size:12px; font-weight:500; color:var(--text2); margin-bottom:.6rem; margin-top:1.25rem; display:flex; align-items:center; gap:6px; }
+.grp-sub::before { content:''; display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--text3); flex-shrink:0; }
+
+/* financial health table */
+.fh-grid { display:flex; flex-direction:column; gap:0; border:1px solid var(--border); border-radius:var(--rl); overflow:hidden; }
+.fh-row { display:grid; grid-template-columns:1fr 140px; align-items:start; padding:14px 14px; border-bottom:1px solid var(--surface2); background:var(--surface); gap:12px; }
+.fh-row:last-child { border-bottom:none; }
+.fh-row:nth-child(even) { background:#fafaf8; }
+.fh-name { font-size:13px; font-weight:500; color:var(--text); margin-bottom:1px; }
+.fh-fml { font-size:11px; color:var(--text3); font-style:italic; }
+.fh-bench { font-size:10px; color:var(--amber); margin-top:1px; }
+.fh-right { display:flex; flex-direction:column; align-items:flex-end; gap:3px; }
+.fh-val { font-family:'DM Mono',monospace; font-size:15px; font-weight:500; }
+
+.kpi-val.surplus { color:#1a6b47; font-weight:700; }
+.kpi-val.deficit { color:#8b2020; font-weight:700; }
+/* commentary */
+.commentary-wrap { margin-top:8px; }
+.commentary-lbl { font-size:10px; font-weight:500; letter-spacing:.05em; text-transform:uppercase; color:var(--text3); margin-bottom:4px; display:flex; align-items:center; gap:4px; }
+.commentary-char { font-weight:400; letter-spacing:0; text-transform:none; margin-left:auto; }
+.commentary-box { width:100%; border:1px solid var(--border); border-radius:var(--r); padding:8px 10px; font-size:12px; font-family:'DM Sans',sans-serif; color:var(--text); background:var(--surface2); resize:vertical; line-height:1.5; transition:border-color .12s; }
+.commentary-box:focus { outline:none; border-color:var(--text); background:var(--surface); }
+.commentary-box::placeholder { color:var(--text3); }
+.commentary-print { display:none; font-size:11px; color:var(--text2); font-style:italic; margin-top:6px; white-space:pre-wrap; }
+/* Reset buttons */
+.btn-reset-seg { display:inline-flex; align-items:center; gap:5px; padding:5px 12px; border:1px solid var(--border); border-radius:var(--r); background:transparent; font-size:11px; font-family:'DM Sans',sans-serif; color:var(--text3); cursor:pointer; transition:all .12s; }
+.btn-reset-seg:hover { border-color:#c0392b; color:#c0392b; background:#fff5f5; }
+.btn-reset-data { display:inline-flex; align-items:center; gap:4px; padding:4px 9px; border:1px solid var(--border); border-radius:var(--r); background:transparent; font-size:11px; font-family:'DM Sans',sans-serif; color:var(--text3); cursor:pointer; transition:all .12s; margin-left:6px; }
+.btn-reset-data:hover { border-color:#c0392b; color:#c0392b; background:#fff5f5; }
+.seg-hdr-actions { display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+
+/* Commentary box */
+.commentary-block { margin-bottom:1.25rem; }
+.commentary-box { width:100%; min-height:100px; border:1px solid var(--border); border-radius:var(--rl); padding:12px 14px; font-size:13px; font-family:'DM Sans',sans-serif; color:var(--text); background:var(--surface); resize:vertical; line-height:1.6; transition:border-color .12s; }
+.commentary-box:focus { outline:none; border-color:var(--text); }
+.commentary-box::placeholder { color:var(--text3); }
+.commentary-lbl { font-size:11px; font-weight:500; letter-spacing:.06em; text-transform:uppercase; color:var(--text3); margin-bottom:6px; display:flex; align-items:center; gap:6px; }
+.commentary-char { font-size:10px; color:var(--text3); margin-left:auto; font-weight:400; letter-spacing:0; text-transform:none; }
+
+/* Print styles */
+@media print {
+  * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
+  body { background:#f7f6f2 !important; margin:0; }
+  .topbar, .sidebar, #page-entry, .btn-pdf, .pdf-overlay,
+  .btn-reset-seg, .btn-reset-data, .seg-nav, .commentary-box,
+  .commentary-lbl, .commentary-char, .pill-nav { display:none !important; }
+  #page-analysis { display:block !important; min-height:auto !important; }
+  #page-analysis .main-area { padding:12px !important; max-width:100% !important; }
+  .page.active { display:block !important; }
+  /* Print commentary text in place of textarea */
+  .commentary-print { display:block !important; }
+  /* Prevent frames splitting across pages */
+  .grp-block { break-inside:avoid; page-break-inside:avoid; margin-bottom:10px !important; padding:12px !important; border:1px solid #e2dfd8 !important; border-radius:8px !important; }
+  .quad-grid, .quad-card { break-inside:avoid; page-break-inside:avoid; }
+  .fh-row { break-inside:avoid; page-break-inside:avoid; }
+  .a-card { break-inside:avoid; page-break-inside:avoid; margin-bottom:8px !important; }
+  .nw-duo-grid { break-inside:avoid; page-break-inside:avoid; }
+  .kpi-grid { grid-template-columns:repeat(4,1fr) !important; break-inside:avoid; }
+  .two-col { break-inside:avoid; }
+  .chart-wrap { break-inside:avoid; }
+  .chart-wrap canvas { max-height:200px !important; }
+  .a-header { break-after:avoid; }
+  .grp-label { break-after:avoid; font-size:9px !important; }
+}
+
+/* Print button — replaces PDF btn */
+.btn-pdf { display:inline-flex; align-items:center; gap:7px; padding:8px 18px; background:var(--text); color:#fff; border:none; border-radius:var(--r); font-size:13px; font-family:'DM Sans',sans-serif; font-weight:500; cursor:pointer; transition:opacity .15s; white-space:nowrap; flex-shrink:0; }
+.btn-pdf:hover { opacity:.85; }
+.a-header { display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; margin-bottom:1.75rem; flex-wrap:wrap; }
+.a-header-left .a-title { font-size:28px; font-weight:300; letter-spacing:-.03em; }
+.a-header-left .a-sub { font-size:13px; color:var(--text3); margin-top:4px; }
+.pdf-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:9999; align-items:center; justify-content:center; }
+.pdf-overlay.show { display:flex; }
+.pdf-box { background:var(--surface); border-radius:var(--rl); padding:1.5rem 2rem; text-align:center; min-width:240px; box-shadow:0 8px 32px rgba(0,0,0,.18); }
+.pdf-box p { font-size:13px; color:var(--text2); margin-top:8px; }
+.pdf-spinner { width:32px; height:32px; border:3px solid var(--border); border-top-color:var(--text); border-radius:50%; animation:spin .7s linear infinite; margin:0 auto 8px; }
+@keyframes spin { to { transform:rotate(360deg); } }
+
+@media(max-width:680px){
+  .sidebar{display:none;}
+  .kpi-grid,.mx-grid,.quad-grid{grid-template-columns:1fr 1fr;}
+  .two-col{grid-template-columns:1fr;}
+  .fh-row{grid-template-columns:1fr;}
+}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../../assets/js/supabase-client.js"></script>
+  <script src="../../assets/js/supabase-store.js"></script>
+  <script src="../../assets/js/auth-guard.js"></script>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-mark">
+      <svg viewBox="0 0 14 14" fill="none"><rect x="1" y="1" width="5" height="5" rx="1" fill="white"/><rect x="8" y="1" width="5" height="5" rx="1" fill="white" opacity=".6"/><rect x="1" y="8" width="5" height="5" rx="1" fill="white" opacity=".6"/><rect x="8" y="8" width="5" height="5" rx="1" fill="white" opacity=".3"/></svg>
+    </div>
+    <div>
+      <span class="brand-name">Wealth Quadrant</span>
+      <span class="brand-sub">Online</span>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end">
+    <div class="pill-nav">
+      <button class="pill-btn active" id="tab-entry" onclick="showPage('entry')">Data Entry</button>
+      <button class="pill-btn" id="tab-analysis" onclick="showPage('analysis')">Analysis</button>
+    </div>
+    <button class="btn-pdf" type="button" onclick="saveWealthQuadrantToSupabase()">Save Data</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     PAGE: DATA ENTRY
+══════════════════════════════════════ -->
+<div class="page active" id="page-entry">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="prog-wrap">
+      <div class="prog-top"><span>Progress</span><span id="prog-pct">0%</span></div>
+      <div class="prog-track"><div class="prog-fill" id="prog-bar"></div></div>
+    </div>
+    <div style="height:1px;background:var(--border);margin:.5rem 0"></div>
+    <div class="sb-label">Segments</div>
+    <a class="sb-item active" onclick="goSeg(1)" href="#"><span class="sb-dot d1"></span><div><div>Inflow</div><div style="font-size:11px;color:var(--text3)">Salary &amp; Income</div></div></a>
+    <a class="sb-item" onclick="goSeg(2)" href="#"><span class="sb-dot d2"></span><div><div>Outflow</div><div style="font-size:11px;color:var(--text3)">Expenses &amp; Commitments</div></div></a>
+    <a class="sb-item" onclick="goSeg(3)" href="#"><span class="sb-dot d3"></span><div><div>Assets</div><div style="font-size:11px;color:var(--text3)">Holdings &amp; Investments</div></div></a>
+    <a class="sb-item" onclick="goSeg(4)" href="#"><span class="sb-dot d4"></span><div><div>Liabilities</div><div style="font-size:11px;color:var(--text3)">Debts &amp; Obligations</div></div></a>
+    <div style="height:1px;background:var(--border);margin:.75rem 0"></div>
+
+    <!-- Seg 1 Summary -->
+    <div class="seg-sum on" id="ss-1">
+      <div class="ss-head" style="background:#1a6b47">Segment 1 — Inflow</div>
+      <div class="ss-body">
+        <div class="ss-row"><span>Basic Salary</span><span class="ss-v" id="ss1-salary">RM 0</span></div>
+        <div class="ss-row"><span>Allowances</span><span class="ss-v" id="ss1-allow">RM 0</span></div>
+        <div class="ss-row"><span>Passive Income</span><span class="ss-v" id="ss1-passive">RM 0</span></div>
+        <div class="ss-row"><span>Side Income</span><span class="ss-v" id="ss1-side">RM 0</span></div>
+        <div class="ss-div"></div>
+        <div class="ss-row"><span>Gross Inflow</span><span class="ss-v ss-b" id="ss1-gross">RM 0</span></div>
+        <div class="ss-row neg"><span>EPF</span><span class="ss-v" id="ss1-epf">RM 0</span></div>
+        <div class="ss-row neg"><span>EIS</span><span class="ss-v" id="ss1-eis">RM 0</span></div>
+        <div class="ss-row neg"><span>SOCSO</span><span class="ss-v" id="ss1-socso">RM 0</span></div>
+        <div class="ss-row neg"><span>Zakat</span><span class="ss-v" id="ss1-zakat">RM 0</span></div>
+        <div class="ss-row neg"><span>Other Ded.</span><span class="ss-v" id="ss1-othded">RM 0</span></div>
+        <div class="ss-div"></div>
+        <div class="ss-tot"><span>Net Income</span><span class="ss-v ss-b positive" id="ss1-net">RM 0</span></div>
+      </div>
+    </div>
+
+    <!-- Seg 2 Summary -->
+    <div class="seg-sum" id="ss-2">
+      <div class="ss-head" style="background:#8b2020">Segment 2 — Outflow</div>
+      <div class="ss-body">
+        <div class="ss-row"><span>Mortgage</span><span class="ss-v" id="ss2-mtg">RM 0</span></div>
+        <div class="ss-row"><span>Non-Mortgage</span><span class="ss-v" id="ss2-non">RM 0</span></div>
+        <div class="ss-row"><span>Fixed Expenses</span><span class="ss-v" id="ss2-fix">RM 0</span></div>
+        <div class="ss-row"><span>Variable Expenses</span><span class="ss-v" id="ss2-var">RM 0</span></div>
+        <div class="ss-row"><span>Savings / Invest</span><span class="ss-v" id="ss2-sav">RM 0</span></div>
+        <div class="ss-row"><span>Takaful</span><span class="ss-v" id="ss2-tak">RM 0</span></div>
+        <div class="ss-div"></div>
+        <div class="ss-tot"><span>Total Outflow</span><span class="ss-v ss-b negative" id="ss2-tot">RM 0</span></div>
+        <div class="ss-tot" style="margin-top:4px"><span>Net Cashflow</span><span class="ss-v ss-b" id="ss2-cf">RM 0</span></div>
+      </div>
+    </div>
+
+    <!-- Seg 3 Summary -->
+    <div class="seg-sum" id="ss-3">
+      <div class="ss-head" style="background:#1a4a6b">Segment 3 — Assets</div>
+      <div class="ss-body">
+        <div class="ss-row"><span>Cash &amp; Equiv.</span><span class="ss-v" id="ss3-cash">RM 0</span></div>
+        <div class="ss-row"><span>Investments</span><span class="ss-v" id="ss3-inv">RM 0</span></div>
+        <div class="ss-row"><span>Property</span><span class="ss-v" id="ss3-prop">RM 0</span></div>
+        <div class="ss-row"><span>Retirement</span><span class="ss-v" id="ss3-ret">RM 0</span></div>
+        <div class="ss-div"></div>
+        <div class="ss-tot"><span>Total Assets</span><span class="ss-v ss-b neutral" id="ss3-tot">RM 0</span></div>
+      </div>
+    </div>
+
+    <!-- Seg 4 Summary -->
+    <div class="seg-sum" id="ss-4">
+      <div class="ss-head" style="background:#b85c00">Segment 4 — Liabilities</div>
+      <div class="ss-body">
+        <div id="ss4-rows"><div class="ss-row" style="color:var(--text3);font-style:italic"><span>No liabilities added</span></div></div>
+        <div class="ss-div"></div>
+        <div class="ss-tot"><span>Total Liabilities</span><span class="ss-v ss-b negative" id="ss4-tot">RM 0</span></div>
+        <div class="ss-tot" style="margin-top:4px"><span>Net Worth</span><span class="ss-v ss-b" id="ss4-nw">RM 0</span></div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main entry area -->
+  <div class="main-area">
+
+    <!-- SEG 1 -->
+    <div class="segment active" id="seg-1">
+      <div class="seg-hdr">
+        <div><div class="seg-tag t1">Segment 1</div><div class="seg-title">Inflow</div><div class="seg-desc">Income sources and statutory deductions</div></div>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end">
+          <div class="seg-tot-box"><div class="tot-label">Gross Inflow</div><div class="tot-val positive" id="seg1-tot">RM 0.00</div></div>
+          <button class="btn-reset-seg" onclick="resetSeg(1)">↺ Reset All</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="ch" onclick="toggleCard(this)">
+          <div class="ch-left"><div class="ci ci1">💼</div><div><div class="ch-title">Main Salary</div><div class="ch-sub">Primary employment income</div></div></div>
+          <div class="ch-right"><span class="ch-sum" id="sum-salary">RM 0</span><button class="btn-reset-data" onclick="resetSalary(event)">↺ Reset</button><svg class="chev" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+        </div>
+        <div class="cb">
+          <div class="f-static"><div><div class="f-label">Monthly Basic Salary</div><div class="f-sub">Gross before deductions</div></div><div class="pfx-wrap"><span class="pfx">RM</span><input class="inp pl" type="number" placeholder="0.00" id="salary-basic" oninput="recalc()" min="0" step="0.01"></div></div>
+          <div class="f-static"><div><div class="f-label">Annual Bonus</div><div class="f-sub">Monthly equivalent</div></div><div class="pfx-wrap"><span class="pfx">RM</span><input class="inp pl" type="number" placeholder="0.00" id="salary-bonus" oninput="recalc()" min="0" step="0.01"></div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="ch" onclick="toggleCard(this)">
+          <div class="ch-left"><div class="ci ci1">📋</div><div><div class="ch-title">Allowances</div><div class="ch-sub">Transport, meal, housing &amp; others</div></div></div>
+          <div class="ch-right"><span class="ch-sum" id="sum-allow">RM 0</span><button class="btn-reset-data" onclick="resetRows('allow',event)">↺ Reset</button><svg class="chev" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+        </div>
+        <div class="cb"><div class="exp-rows" id="rows-allow"></div><button class="btn-add" onclick="addRow('allow',event)">+ Add allowance</button></div>
+      </div>
+      <div class="card">
+        <div class="ch" onclick="toggleCard(this)">
+          <div class="ch-left"><div class="ci ci1">📈</div><div><div class="ch-title">Passive Income</div><div class="ch-sub">Dividends, rental, interest</div></div></div>
+          <div class="ch-right"><span class="ch-sum" id="sum-passive">RM 0</span><button class="btn-reset-data" onclick="resetRows('passive',event)">↺ Reset</button><svg class="chev" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+        </div>
+        <div class="cb"><div class="exp-rows" id="rows-passive"></div><button class="btn-add" onclick="addRow('passive',event)">+ Add passive income</button></div>
+      </div>
+      <div class="card">
+        <div class="ch" onclick="toggleCard(this)">
+          <div class="ch-left"><div class="ci ci1">💡</div><div><div class="ch-title">Side Income</div><div class="ch-sub">Freelance, part-time, gig</div></div></div>
+          <div class="ch-right"><span class="ch-sum" id="sum-side">RM 0</span><button class="btn-reset-data" onclick="resetRows('side',event)">↺ Reset</button><svg class="chev" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+        </div>
+        <div class="cb"><div class="exp-rows" id="rows-side"></div><button class="btn-add" onclick="addRow('side',event)">+ Add side income</button></div>
+      </div>
+      <div class="ded-section">
+        <div class="ded-lbl">⚖ Statutory Deductions</div>
+        <div class="card">
+          <div class="ch open" style="cursor:default;background:#fdf8f8">
+            <div class="ch-left"><div class="ci ci-r">⚖️</div><div><div class="ch-title">EPF / EIS / SOCSO / Zakat</div><div class="ch-sub">Mandatory &amp; voluntary deductions</div></div></div>
+            <div class="ch-right"><span class="ch-sum negative" id="sum-ded">− RM 0</span><button class="btn-reset-data" onclick="resetDeductions(event)">↺ Reset</button></div>
+          </div>
+          <div class="cb open" style="background:#fdf8f8">
+            <div class="f-static"><div><div class="f-label">EPF (Employee Provident Fund)</div><div class="f-sub">Typically 11% of basic salary</div></div><div class="pfx-wrap"><span class="pfx">RM</span><input class="inp pl" type="number" placeholder="0.00" id="ded-epf" oninput="recalc()" min="0" step="0.01"></div></div>
+            <div class="f-static"><div><div class="f-label">EIS (Employment Insurance System)</div><div class="f-sub">0.2% of salary, capped</div></div><div class="pfx-wrap"><span class="pfx">RM</span><input class="inp pl" type="number" placeholder="0.00" id="ded-eis" oninput="recalc()" min="0" step="0.01"></div></div>
+            <div class="f-static"><div><div class="f-label">SOCSO</div><div class="f-sub">Social security contribution</div></div><div class="pfx-wrap"><span class="pfx">RM</span><input class="inp pl" type="number" placeholder="0.00" id="ded-socso" oninput="recalc()" min="0" step="0.01"></div></div>
+            <div class="f-static"><div><div class="f-label">Zakat</div><div class="f-sub">Islamic tithe (if applicable)</div></div><div class="pfx-wrap"><span class="pfx">RM</span><input class="inp pl" type="number" placeholder="0.00" id="ded-zakat" oninput="recalc()" min="0" step="0.01"></div></div>
+            <div style="margin-top:10px"><div style="font-size:11px;color:var(--text3);margin-bottom:6px;font-weight:500">Other Deductions</div><div class="exp-rows" id="rows-ded"></div><button class="btn-add" onclick="addRow('ded',event)">+ Add other deduction</button></div>
+          </div>
+        </div>
+      </div>
+      <div class="seg-nav"><div></div><button class="btn-nav btn-pri" onclick="goSeg(2)">Next: Outflow →</button></div>
+    </div>
+
+    <!-- SEG 2 -->
+    <div class="segment" id="seg-2">
+      <div class="seg-hdr">
+        <div><div class="seg-tag t2">Segment 2</div><div class="seg-title">Outflow</div><div class="seg-desc">Monthly commitments, expenses &amp; savings</div></div>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end">
+          <div class="seg-tot-box"><div class="tot-label">Total Outflow</div><div class="tot-val negative" id="seg2-tot">RM 0.00</div></div>
+          <button class="btn-reset-seg" onclick="resetSeg(2)">↺ Reset All</button>
+        </div>
+      </div>
+      <div class="card"><div class="ch" onclick="toggleCard(this)"><div class="ch-left"><div class="ci ci2">🏠</div><div><div class="ch-title">Commitment — Mortgage</div><div class="ch-sub">Home loans, property financing</div></div></div><div class="ch-right"><span class="ch-sum" id="sum-mtg">RM 0</span><button class="btn-reset-data" onclick="resetRows('mtg',event)">↺ Reset</button><svg class="chev" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div></div><div class="cb"><div class="exp-rows" id="rows-mtg"></div><button class="btn-add" onclick="addRow('mtg',event)">+ Add mortgage</button></div></div>
+      <div class="card"><div class="ch" onclick="toggleCard(this)"><div class="ch-left"><div class="ci ci2">🚗</div><div><div class="ch-title">Commitment — Non-Mortgage</div><div class="ch-sub">Car loans, personal loans, PTPTN</div></div></div><div class="ch-right"><span class="ch-sum" id="sum-non">RM 0</span><button class="btn-reset-data" onclick="resetRows('non',event)">↺ Reset</button><svg class="chev" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div></div><div class="cb"><div class="exp-rows" id="rows-non"></div><button class="btn-add" onclick="addRow('non',event)">+ Add commitment</button></div></div>
+      <div class="card"><div class="ch" onclick="toggleCard(this)"><div class="ch-left"><div class="ci ci2">📌</div><div><div class="ch-title">Fixed Expenses</div><div class="ch-sub">Utilities, subscriptions, recurring bills</div></div></div><div class="ch-right"><span class="ch-sum" id="sum-fix">RM 0</span><button class="btn-reset-data" onclick="resetRows('fix',event)">↺ Reset</button><svg class="chev" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div></div><div class="cb"><div class="exp-rows" id="rows-fix"></div><button class="btn-add" onclick="addRow('fix',event)">+ Add fixed expense</button></div></div>
+      <div class="card"><div class="ch" onclick="toggleCard(this)"><div class="ch-left"><div class="ci ci2">🛒</div><div><div class="ch-title">Variable Expenses</div><div class="ch-sub">Groceries, dining, entertainment</div></div></div><div class="ch-right"><span class="ch-sum" id="sum-var">RM 0</span><button class="btn-reset-data" onclick="resetRows('var',event)">↺ Reset</button><svg class="chev" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div></div><div class="cb"><div class="exp-rows" id="rows-var"></div><button class="btn-add" onclick="addRow('var',event)">+ Add variable expense</button></div></div>
+      <div class="card"><div class="ch" onclick="toggleCard(this)"><div class="ch-left"><div class="ci ci2">💰</div><div><div class="ch-title">Saving / Investment</div><div class="ch-sub">ASB, unit trust, stocks, tabung</div></div></div><div class="ch-right"><span class="ch-sum" id="sum-sav">RM 0</span><button class="btn-reset-data" onclick="resetRows('sav',event)">↺ Reset</button><svg class="chev" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div></div><div class="cb"><div class="exp-rows" id="rows-sav"></div><button class="btn-add" onclick="addRow('sav',event)">+ Add saving / investment</button></div></div>
+      <div class="card"><div class="ch" onclick="toggleCard(this)"><div class="ch-left"><div class="ci ci2">🛡️</div><div><div class="ch-title">Protection / Takaful</div><div class="ch-sub">Life, medical, family takaful</div></div></div><div class="ch-right"><span class="ch-sum" id="sum-tak">RM 0</span><button class="btn-reset-data" onclick="resetRows('tak',event)">↺ Reset</button><svg class="chev" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div></div><div class="cb"><div class="exp-rows" id="rows-tak"></div><button class="btn-add" onclick="addRow('tak',event)">+ Add protection</button></div></div>
+      <div class="seg-nav"><button class="btn-nav" onclick="goSeg(1)">← Back</button><button class="btn-nav btn-pri" onclick="goSeg(3)">Next: Assets →</button></div>
+    </div>
+
+    <!-- SEG 3 -->
+    <div class="segment" id="seg-3">
+      <div class="seg-hdr">
+        <div><div class="seg-tag t3">Segment 3</div><div class="seg-title">Assets</div><div class="seg-desc">What you own — current market value</div></div>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end">
+          <div class="seg-tot-box"><div class="tot-label">Total Assets</div><div class="tot-val neutral" id="seg3-tot">RM 0.00</div></div>
+          <button class="btn-reset-seg" onclick="resetSeg(3)">↺ Reset All</button>
+        </div>
+      </div>
+      <div class="card"><div class="ch" onclick="toggleCard(this)"><div class="ch-left"><div class="ci ci3">🏦</div><div><div class="ch-title">Cash &amp; Cash Equivalents</div><div class="ch-sub">Bank accounts, fixed deposits, tabung</div></div></div><div class="ch-right"><span class="ch-sum" id="sum-cash">RM 0</span><button class="btn-reset-data" onclick="resetRows('cash',event)">↺ Reset</button><svg class="chev" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div></div><div class="cb"><div class="exp-rows" id="rows-cash"></div><button class="btn-add" onclick="addRow('cash',event)">+ Add cash / account</button></div></div>
+      <div class="card"><div class="ch" onclick="toggleCard(this)"><div class="ch-left"><div class="ci ci3">📊</div><div><div class="ch-title">Investment</div><div class="ch-sub">Stocks, unit trust, crypto, bonds</div></div></div><div class="ch-right"><span class="ch-sum" id="sum-inv">RM 0</span><button class="btn-reset-data" onclick="resetRows('inv',event)">↺ Reset</button><svg class="chev" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div></div><div class="cb"><div class="exp-rows" id="rows-inv"></div><button class="btn-add" onclick="addRow('inv',event)">+ Add investment</button></div></div>
+      <div class="card"><div class="ch" onclick="toggleCard(this)"><div class="ch-left"><div class="ci ci3">🏡</div><div><div class="ch-title">Property &amp; Holdings</div><div class="ch-sub">Real estate, vehicles, business</div></div></div><div class="ch-right"><span class="ch-sum" id="sum-prop">RM 0</span><button class="btn-reset-data" onclick="resetRows('prop',event)">↺ Reset</button><svg class="chev" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div></div><div class="cb"><div class="exp-rows" id="rows-prop"></div><button class="btn-add" onclick="addRow('prop',event)">+ Add property / holding</button></div></div>
+      <div class="card"><div class="ch" onclick="toggleCard(this)"><div class="ch-left"><div class="ci ci3">🌅</div><div><div class="ch-title">Retirement</div><div class="ch-sub">EPF balance, PRS, KWSP</div></div></div><div class="ch-right"><span class="ch-sum" id="sum-ret">RM 0</span><button class="btn-reset-data" onclick="resetRows('ret',event)">↺ Reset</button><svg class="chev" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div></div><div class="cb"><div class="exp-rows" id="rows-ret"></div><button class="btn-add" onclick="addRow('ret',event)">+ Add retirement fund</button></div></div>
+      <div class="seg-nav"><button class="btn-nav" onclick="goSeg(2)">← Back</button><button class="btn-nav btn-pri" onclick="goSeg(4)">Next: Liabilities →</button></div>
+    </div>
+
+    <!-- SEG 4 -->
+    <div class="segment" id="seg-4">
+      <div class="seg-hdr">
+        <div><div class="seg-tag t4">Segment 4</div><div class="seg-title">Liabilities</div><div class="seg-desc">Outstanding debts and obligations</div></div>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end">
+          <div class="seg-tot-box"><div class="tot-label">Total Liabilities</div><div class="tot-val negative" id="seg4-tot">RM 0.00</div></div>
+          <button class="btn-reset-seg" onclick="resetSeg(4)">↺ Reset All</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="ch open" style="cursor:default">
+          <div class="ch-left"><div class="ci ci-g">📝</div><div><div class="ch-title">All Liabilities</div><div class="ch-sub">Add each outstanding debt or obligation</div></div></div>
+          <div class="ch-right"><span class="ch-sum negative" id="sum-liab">RM 0</span><button class="btn-reset-data" onclick="resetRows('liab',event)">↺ Reset</button></div>
+        </div>
+        <div class="cb open">
+          <div style="display:grid;grid-template-columns:130px 1fr 150px 30px;gap:6px;margin-bottom:6px">
+            <div style="font-size:11px;color:var(--text3);padding:0 4px">Category</div>
+            <div style="font-size:11px;color:var(--text3);padding:0 4px">Description</div>
+            <div style="font-size:11px;color:var(--text3);padding:0 4px;text-align:right">Outstanding (RM)</div>
+            <div></div>
+          </div>
+          <div class="exp-rows" id="rows-liab"></div>
+          <button class="btn-add" onclick="addLiabRow(event)">+ Add liability</button>
+        </div>
+      </div>
+      <div class="seg-nav"><button class="btn-nav" onclick="goSeg(3)">← Back</button><button class="btn-nav btn-pri" onclick="showPage('analysis')">View Analysis →</button></div>
+    </div>
+
+  </div><!-- /main-area -->
+</div><!-- /page-entry -->
+
+<!-- ══════════════════════════════════════
+     PAGE: ANALYSIS
+══════════════════════════════════════ -->
+<div class="page" id="page-analysis">
+  <div class="main-area" style="padding:2rem;flex:1">
+
+    <div class="empty-state" id="a-empty">
+      <div style="font-size:36px;margin-bottom:14px">📊</div>
+      <div style="font-size:15px;font-weight:500;color:var(--text);margin-bottom:6px">No data yet</div>
+      <div style="font-size:13px;margin-bottom:16px">Fill in your financial details to see your analysis</div>
+      <a onclick="showPage('entry')">Go to Data Entry →</a>
+    </div>
+
+    <div id="a-content" style="display:none">
+      <div class="a-header">
+        <div class="a-header-left">
+          <div class="a-title">Financial Analysis</div>
+          <div class="a-sub" id="a-date"></div>
+        </div>
+        <button class="btn-pdf" id="btn-pdf" onclick="printAsPDF()">
+          <svg viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" width="14" height="14"><rect x="2" y="4" width="10" height="7" rx="1" stroke="white" stroke-width="1.3"/><path d="M4 4V2.5A.5.5 0 014.5 2h5a.5.5 0 01.5.5V4" stroke="white" stroke-width="1.3"/><path d="M4 10h6M4 7.5h6" stroke="white" stroke-width="1.1" stroke-linecap="round"/></svg>
+          Print as PDF
+        </button>
+      </div>
+
+      <!-- PDF loading overlay -->
+      <div class="pdf-overlay" id="pdf-overlay">
+        <div class="pdf-box">
+          <div class="pdf-spinner"></div>
+          <p id="pdf-status">Preparing your report…</p>
+        </div>
+      </div>
+
+      <!-- ① FINANCIAL OVERVIEW (quadrant + KPIs merged) -->
+      <div class="grp-block">
+        <div class="grp-label" style="margin-top:0">Financial Overview</div>
+
+        <div class="quad-grid" style="margin-bottom:1.5rem">
+          <div class="quad-card" onclick="goToSegment(1)" title="Go to Inflow Data Entry"><div class="q-head qg">Inflow <span class="q-hint">tap to edit →</span></div><div class="q-body">
+            <div class="q-row"><span>Basic Salary</span><span class="q-val" id="aq-sal">RM 0</span></div>
+            <div class="q-row"><span>Allowances</span><span class="q-val" id="aq-all">RM 0</span></div>
+            <div class="q-row"><span>Passive</span><span class="q-val" id="aq-pas">RM 0</span></div>
+            <div class="q-row"><span>Side Income</span><span class="q-val" id="aq-sid">RM 0</span></div>
+            <div class="q-div"></div>
+            <div class="q-row" style="color:var(--red)"><span>Deductions</span><span class="q-val negative" id="aq-ded">RM 0</span></div>
+            <div class="q-div"></div>
+            <div class="q-foot"><span style="color:#1a6b47">Net Income</span><span class="q-fv positive" id="aq-net">RM 0</span></div>
+          </div></div>
+          <div class="quad-card" onclick="goToSegment(2)" title="Go to Outflow Data Entry"><div class="q-head qr">Outflow <span class="q-hint">tap to edit →</span></div><div class="q-body">
+            <div class="q-row"><span>Mortgage</span><span class="q-val" id="aq-mtg">RM 0</span></div>
+            <div class="q-row"><span>Non-Mortgage</span><span class="q-val" id="aq-non">RM 0</span></div>
+            <div class="q-row"><span>Fixed Exp.</span><span class="q-val" id="aq-fix">RM 0</span></div>
+            <div class="q-row"><span>Variable Exp.</span><span class="q-val" id="aq-var">RM 0</span></div>
+            <div class="q-row"><span>Savings/Invest</span><span class="q-val" id="aq-sav">RM 0</span></div>
+            <div class="q-row"><span>Takaful</span><span class="q-val" id="aq-tak">RM 0</span></div>
+            <div class="q-div"></div>
+            <div class="q-foot"><span style="color:#8b2020">Total Outflow</span><span class="q-fv negative" id="aq-out">RM 0</span></div>
+          </div></div>
+          <div class="quad-card" onclick="goToSegment(3)" title="Go to Assets Data Entry"><div class="q-head qb">Assets <span class="q-hint">tap to edit →</span></div><div class="q-body">
+            <div class="q-row"><span>Cash &amp; Equiv.</span><span class="q-val" id="aq-csh">RM 0</span></div>
+            <div class="q-row"><span>Investments</span><span class="q-val" id="aq-inv">RM 0</span></div>
+            <div class="q-row"><span>Property</span><span class="q-val" id="aq-prp">RM 0</span></div>
+            <div class="q-row"><span>Retirement (EPF)</span><span class="q-val" id="aq-ret">RM 0</span></div>
+            <div class="q-div"></div>
+            <div class="q-foot"><span style="color:#1a4a6b">Total Assets</span><span class="q-fv neutral" id="aq-ast">RM 0</span></div>
+          </div></div>
+          <div class="quad-card" onclick="goToSegment(4)" title="Go to Liabilities Data Entry"><div class="q-head qo">Liabilities <span class="q-hint">tap to edit →</span></div><div class="q-body">
+            <div id="aq-liab-rows"><div class="q-row" style="color:var(--text3);font-style:italic"><span>None recorded</span></div></div>
+            <div class="q-div"></div>
+            <div class="q-foot"><span style="color:#b85c00">Total Liabilities</span><span class="q-fv negative" id="aq-lib">RM 0</span></div>
+          </div></div>
+        </div>
+
+        <!-- KPI strip (was Figurative Summary) -->
+        <div class="kpi-grid">
+          <div class="kpi"><div class="kpi-lbl">GROSS INCOME</div><div class="kpi-val neutral" id="kpi-gross">RM 0</div><div class="kpi-sub">Before deductions</div></div>
+          <div class="kpi"><div class="kpi-lbl">NET INCOME</div><div class="kpi-val positive" id="kpi-net">RM 0</div><div class="kpi-sub">After deductions</div></div>
+          <div class="kpi"><div class="kpi-lbl">TOTAL OUTFLOW</div><div class="kpi-val negative" id="kpi-out">RM 0</div><div class="kpi-sub">Monthly expenses</div></div>
+          <div class="kpi"><div class="kpi-lbl" id="kpi-cf-lbl">NET CASHFLOW</div><div class="kpi-val" id="kpi-sur">RM 0</div><div class="kpi-sub" id="kpi-cf-sub">Net Income − Total Outflow</div></div>
+        </div>
+      </div>
+
+      <!-- ② BUDGET BREAKDOWN (no Amount, no Status; with pie chart) -->
+      <div class="grp-block">
+        <div class="grp-label">Budget Breakdown</div>
+        <div class="two-col" style="margin-bottom:0;align-items:start">
+          <div>
+            <div class="grp-sub" style="margin-top:0">Outflow by Category</div>
+            <div class="a-card" style="margin-bottom:1rem">
+              <table class="bk-table">
+                <thead><tr><th>Category</th><th style="text-align:right">% of Net Income</th></tr></thead>
+                <tbody id="bk-body"></tbody>
+              </table>
+            </div>
+            <div class="grp-sub">Income Allocation</div>
+            <div class="a-card" style="margin-bottom:0"><div id="alloc-bars"></div></div>
+          </div>
+          <div>
+            <div class="grp-sub" style="margin-top:0">Outflow Breakdown</div>
+            <div class="a-card" style="margin-bottom:0">
+              <div class="chart-wrap" style="height:300px"><canvas id="chart-donut"></canvas></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ③ NET WORTH DETAIL -->
+      <div class="grp-block">
+        <div class="grp-label">Net Worth Detail</div>
+        <div class="nw-duo-grid">
+          <div class="nw-card">
+            <div class="nw-card-lbl">Net Worth <span class="nw-epf-tag with-epf">with EPF</span></div>
+            <div class="nw-card-fml">Assets − Liabilities</div>
+            <div class="nw-card-val" id="nw-with">RM 0</div>
+          </div>
+          <div class="nw-card">
+            <div class="nw-card-lbl">Net Worth <span class="nw-epf-tag no-epf">without EPF</span></div>
+            <div class="nw-card-fml">(Assets − Retirement) − Liabilities</div>
+            <div class="nw-card-val" id="nw-without">RM 0</div>
+          </div>
+        </div>
+        <div class="two-col" style="margin-top:1.25rem">
+          <div>
+            <div style="font-size:11px;color:var(--text3);margin-bottom:8px;font-weight:500;letter-spacing:.05em">ASSETS BREAKDOWN</div>
+            <div class="bar-list" id="asset-bars"></div>
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--text3);margin-bottom:8px;font-weight:500;letter-spacing:.05em">LIABILITIES BREAKDOWN</div>
+            <div id="liab-detail"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ④ FINANCIAL HEALTH -->
+      <div class="grp-block">
+        <div class="grp-label">Financial Health</div>
+        <div class="fh-grid" id="fh-grid"></div>
+
+        <!-- Investment Ratio — manual input row -->
+        <div class="fh-grid" style="margin-top:1px;border-top:none">
+          <div class="fh-row" style="border-radius:0 0 var(--rl) var(--rl)">
+            <div>
+              <div class="fh-name">Investment Ratio</div>
+              <div class="fh-fml">(Manually entered figure) ÷ Net Worth</div>
+              <div class="fh-bench">Benchmark ≥ 50%</div>
+              <div style="margin-top:8px;display:flex;align-items:center;gap:8px">
+                <div class="pfx-wrap" style="width:200px"><span class="pfx">RM</span><input class="inp pl" type="number" placeholder="Enter investment figure" id="inv-ratio-input" oninput="updateInvRatio()" min="0" step="0.01" style="width:200px;height:32px;font-size:12px"></div>
+              </div>
+              <div class="commentary-wrap" style="margin-top:10px">
+                <div class="commentary-lbl">Commentary <span class="commentary-char" id="cc-inv-ratio">0 / 300</span></div>
+                <textarea class="commentary-box" id="cb-inv-ratio" maxlength="300" placeholder="Add your notes or observations for Investment Ratio…" oninput="saveCommentary('inv-ratio',this)" rows="2"></textarea>
+              </div>
+            </div>
+            <div class="fh-right">
+              <div class="fh-val" id="inv-ratio-val">—</div>
+              <span class="h-tag" id="inv-ratio-tag" style="margin-top:3px"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ⑤ ACTION PLAN -->
+      <div class="grp-block">
+        <div class="grp-label">Action Plan</div>
+        <div style="font-size:13px;color:var(--text2);margin-bottom:10px">Record your financial goals, next steps, and commitments based on the analysis above.</div>
+        <div class="commentary-wrap">
+          <div class="commentary-lbl">Your Action Plan <span class="commentary-char" id="cc-action-plan">0 / 2000</span></div>
+          <textarea class="commentary-box" id="cb-action-plan" maxlength="2000" placeholder="e.g. Reduce variable expenses by 15%&#10;Increase savings rate to 20%&#10;Clear car loan within 24 months&#10;Build 6-month emergency fund…" oninput="saveCommentary('action-plan',this)" rows="8" style="min-height:160px"></textarea>
+          <div class="commentary-print" id="cp-action-plan"></div>
+        </div>
+      </div>
+
+    </div><!-- /a-content -->
+  </div>
+</div><!-- /page-analysis -->
+
+<script>
+/* ── HELPERS ── */
+const R = id => document.getElementById(id);
+const setText = (id, v) => { const e = R(id); if(e) e.textContent = v; };
+const fmtRM = v => 'RM ' + Math.abs(v).toLocaleString('en-MY',{minimumFractionDigits:2,maximumFractionDigits:2});
+const getVal = id => parseFloat(R(id)?.value)||0;
+const sumRows = id => { let s=0; R(id)?.querySelectorAll('.row-amt').forEach(i=>s+=parseFloat(i.value)||0); return s; };
+const sumArr = a => (a||[]).reduce((s,r)=>s+(r.amount||0),0);
+
+/* ── PAGE SWITCHING ── */
+function showPage(p) {
+  document.querySelectorAll('.page').forEach(e=>e.classList.remove('active'));
+  document.querySelectorAll('.pill-btn').forEach(e=>e.classList.remove('active'));
+  R('page-'+p).classList.add('active');
+  R('tab-'+p).classList.add('active');
+  if(p==='analysis') { renderAnalysis(); setTimeout(loadCommentaries, 50); }
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ── GOTO SEGMENT (from Analysis quadrant click) ── */
+function goToSegment(n) {
+  showPage('entry');
+  // slight delay so the page transition completes before scrolling
+  setTimeout(() => goSeg(n), 80);
+}
+
+/* ── SEGMENT NAV ── */
+function goSeg(n) {
+  document.querySelectorAll('.segment').forEach(e=>e.classList.remove('active'));
+  document.querySelectorAll('.sb-item').forEach(e=>e.classList.remove('active'));
+  document.querySelectorAll('.seg-sum').forEach(e=>e.classList.remove('on'));
+  R('seg-'+n).classList.add('active');
+  document.querySelectorAll('.sb-item')[n-1].classList.add('active');
+  R('ss-'+n)?.classList.add('on');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ── CARD TOGGLE ── */
+function toggleCard(h) {
+  const b = h.nextElementSibling;
+  const c = h.querySelector('.chev');
+  const o = b.classList.contains('open');
+  b.classList.toggle('open',!o); h.classList.toggle('open',!o); c?.classList.toggle('open',!o);
+}
+
+/* ── ADD ROW ── */
+function addRow(g, e) {
+  e?.stopPropagation();
+  const c = R('rows-'+g);
+  const row = document.createElement('div');
+  row.className = 'exp-row';
+  row.innerHTML = `<input class="inp-t" type="text" placeholder="Description"><div class="pfx-wrap"><span class="pfx">RM</span><input class="inp pl row-amt" type="number" placeholder="0.00" min="0" step="0.01" oninput="recalc()"></div><button class="btn-rm" onclick="this.closest('.exp-row').remove();recalc()">×</button>`;
+  c.appendChild(row);
+}
+function addLiabRow(e) {
+  e?.stopPropagation();
+  const c = R('rows-liab');
+  const cats = ['Mortgage','Car Loan','Personal Loan','PTPTN','Credit Card','Business Loan','Other'];
+  const row = document.createElement('div');
+  row.className = 'exp-row-4';
+  row.innerHTML = `<select class="inp-t" style="font-size:12px">${cats.map(c=>`<option>${c}</option>`).join('')}</select><input class="inp-t" type="text" placeholder="Description"><div class="pfx-wrap"><span class="pfx">RM</span><input class="inp pl row-amt" type="number" placeholder="0.00" min="0" step="0.01" oninput="recalc()"></div><button class="btn-rm" onclick="this.closest('.exp-row-4').remove();recalc()">×</button>`;
+  c.appendChild(row);
+}
+
+/* ── RESET FUNCTIONS ── */
+function resetRows(group, e) {
+  e?.stopPropagation();
+  if(!confirm('Reset all data in this section?')) return;
+  const el = R('rows-'+group);
+  if(el) el.innerHTML='';
+  recalc();
+}
+function resetSalary(e) {
+  e?.stopPropagation();
+  if(!confirm('Reset salary data?')) return;
+  R('salary-basic').value=''; R('salary-bonus').value='';
+  recalc();
+}
+function resetDeductions(e) {
+  e?.stopPropagation();
+  if(!confirm('Reset all deductions?')) return;
+  ['ded-epf','ded-eis','ded-socso','ded-zakat'].forEach(id=>{ const el=R(id); if(el) el.value=''; });
+  const rd=R('rows-ded'); if(rd) rd.innerHTML='';
+  recalc();
+}
+function resetSeg(n) {
+  const labels = {1:'all Inflow data',2:'all Outflow data',3:'all Asset data',4:'all Liability data'};
+  if(!confirm('Reset '+labels[n]+'? This cannot be undone.')) return;
+  if(n===1) {
+    R('salary-basic').value=''; R('salary-bonus').value='';
+    ['allow','passive','side'].forEach(g=>{ const el=R('rows-'+g); if(el) el.innerHTML=''; });
+    ['ded-epf','ded-eis','ded-socso','ded-zakat'].forEach(id=>{ const el=R(id); if(el) el.value=''; });
+    const rd=R('rows-ded'); if(rd) rd.innerHTML='';
+  } else if(n===2) {
+    ['mtg','non','fix','var','sav','tak'].forEach(g=>{ const el=R('rows-'+g); if(el) el.innerHTML=''; });
+  } else if(n===3) {
+    ['cash','inv','prop','ret'].forEach(g=>{ const el=R('rows-'+g); if(el) el.innerHTML=''; });
+  } else if(n===4) {
+    const el=R('rows-liab'); if(el) el.innerHTML='';
+  }
+  recalc();
+}
+
+/* ── COMMENTARY ── */
+function saveCommentary(key, el) {
+  const val = el.value;
+  const cnt = R('cc-'+key);
+  if(cnt) cnt.textContent = val.length+' / '+el.maxLength;
+}
+function collectCommentaries() {
+  const notes = {};
+  document.querySelectorAll('textarea[id^="cb-"]').forEach(ta => {
+    notes[ta.id.replace('cb-','')] = ta.value || '';
+  });
+  return notes;
+}
+function applyCommentaries(notes) {
+  if(!notes) return;
+  document.querySelectorAll('textarea[id^="cb-"]').forEach(ta => {
+    const key = ta.id.replace('cb-','');
+    const val = notes[key] || '';
+    ta.value = val;
+    const cnt = R('cc-'+key);
+    if(cnt) cnt.textContent = val.length+' / '+ta.maxLength;
+  });
+}
+function loadCommentaries() {
+  // Commentaries are now loaded together with module data from Supabase.
+}
+
+/* ── PRINT AS PDF ── */
+function printAsPDF() {
+  document.querySelectorAll('textarea[id^="cb-"]').forEach(ta => {
+    const key = ta.id.replace('cb-','');
+    let printDiv = R('cp-'+key);
+    if(!printDiv) {
+      printDiv = document.createElement('div');
+      printDiv.className = 'commentary-print';
+      printDiv.id = 'cp-'+key;
+      ta.parentNode.insertBefore(printDiv, ta.nextSibling);
+    }
+    printDiv.textContent = ta.value || '';
+  });
+  window.print();
+}
+
+
+function recalc() {
+  const sal = getVal('salary-basic')+getVal('salary-bonus');
+  const allow = sumRows('rows-allow'), passive = sumRows('rows-passive'), side = sumRows('rows-side');
+  const gross = sal+allow+passive+side;
+  const epf=getVal('ded-epf'), eis=getVal('ded-eis'), socso=getVal('ded-socso'), zakat=getVal('ded-zakat'), othDed=sumRows('rows-ded');
+  const totalDed = epf+eis+socso+zakat+othDed;
+  const netInc = gross - totalDed;
+
+  const mtg=sumRows('rows-mtg'), non=sumRows('rows-non'), fix=sumRows('rows-fix'), vari=sumRows('rows-var'), sav=sumRows('rows-sav'), tak=sumRows('rows-tak');
+  const totalOut = mtg+non+fix+vari+sav+tak;
+
+  const cash=sumRows('rows-cash'), inv=sumRows('rows-inv'), prop=sumRows('rows-prop'), ret=sumRows('rows-ret');
+  const totalAssets = cash+inv+prop+ret;
+  const liab=sumRows('rows-liab');
+
+  // card sums
+  setText('sum-salary',fmtRM(sal)); setText('sum-allow',fmtRM(allow)); setText('sum-passive',fmtRM(passive)); setText('sum-side',fmtRM(side));
+  setText('sum-ded','− '+fmtRM(totalDed)); setText('seg1-tot',fmtRM(gross));
+  setText('sum-mtg',fmtRM(mtg)); setText('sum-non',fmtRM(non)); setText('sum-fix',fmtRM(fix)); setText('sum-var',fmtRM(vari)); setText('sum-sav',fmtRM(sav)); setText('sum-tak',fmtRM(tak));
+  setText('seg2-tot',fmtRM(totalOut));
+  setText('sum-cash',fmtRM(cash)); setText('sum-inv',fmtRM(inv)); setText('sum-prop',fmtRM(prop)); setText('sum-ret',fmtRM(ret));
+  setText('seg3-tot',fmtRM(totalAssets));
+  setText('sum-liab','− '+fmtRM(liab)); setText('seg4-tot',fmtRM(liab));
+
+  // sidebar summaries
+  setText('ss1-salary',fmtRM(sal)); setText('ss1-allow',fmtRM(allow)); setText('ss1-passive',fmtRM(passive)); setText('ss1-side',fmtRM(side));
+  setText('ss1-gross',fmtRM(gross)); setText('ss1-epf',fmtRM(epf)); setText('ss1-eis',fmtRM(eis)); setText('ss1-socso',fmtRM(socso)); setText('ss1-zakat',fmtRM(zakat)); setText('ss1-othded',fmtRM(othDed));
+  const s1n=R('ss1-net'); if(s1n){s1n.textContent=fmtRM(netInc);s1n.className='ss-v ss-b '+(netInc>=0?'positive':'negative');}
+
+  setText('ss2-mtg',fmtRM(mtg)); setText('ss2-non',fmtRM(non)); setText('ss2-fix',fmtRM(fix)); setText('ss2-var',fmtRM(vari)); setText('ss2-sav',fmtRM(sav)); setText('ss2-tak',fmtRM(tak));
+  setText('ss2-tot',fmtRM(totalOut));
+  const cf=netInc-totalOut; const s2cf=R('ss2-cf'); if(s2cf){s2cf.textContent=fmtRM(cf);s2cf.className='ss-v ss-b '+(cf>=0?'positive':'negative');}
+
+  setText('ss3-cash',fmtRM(cash)); setText('ss3-inv',fmtRM(inv)); setText('ss3-prop',fmtRM(prop)); setText('ss3-ret',fmtRM(ret)); setText('ss3-tot',fmtRM(totalAssets));
+
+  const liabData = getRowData('rows-liab');
+  const ss4 = R('ss4-rows');
+  if(ss4) ss4.innerHTML = liabData.length===0
+    ? '<div class="ss-row" style="color:var(--text3);font-style:italic"><span>No liabilities added</span></div>'
+    : liabData.map(r=>`<div class="ss-row"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:110px">${r.desc||'Item'}</span><span class="ss-v">${fmtRM(r.amount)}</span></div>`).join('');
+  setText('ss4-tot',fmtRM(liab));
+  const nw=totalAssets-liab; const s4nw=R('ss4-nw'); if(s4nw){s4nw.textContent=fmtRM(nw);s4nw.className='ss-v ss-b '+(nw>=0?'positive':'negative');}
+
+  // progress
+  const fields=document.querySelectorAll('#page-entry .inp, #page-entry .inp-t');
+  let filled=0; fields.forEach(f=>{if(f.value&&f.value.trim())filled++;});
+  const pct=Math.min(100,Math.round(filled/Math.max(fields.length,1)*100));
+  R('prog-bar').style.width=pct+'%'; R('prog-pct').textContent=pct+'%';
+
+  saveData();
+}
+
+/* ── COLLECT / SAVE / LOAD ── */
+function getRowData(id) {
+  const el=R(id); if(!el) return [];
+  return Array.from(el.querySelectorAll('.exp-row, .exp-row-4')).map(row=>{
+    const texts=row.querySelectorAll('input[type=text],select');
+    const amt=row.querySelector('.row-amt');
+    return {desc:texts[texts.length-1]?.value||texts[0]?.value||'', amount:parseFloat(amt?.value)||0};
+  });
+}
+function collectData() {
+  return {
+    salary:getVal('salary-basic'), bonus:getVal('salary-bonus'),
+    allow:getRowData('rows-allow'), passive:getRowData('rows-passive'), side:getRowData('rows-side'),
+    epf:getVal('ded-epf'), eis:getVal('ded-eis'), socso:getVal('ded-socso'), zakat:getVal('ded-zakat'), othDed:getRowData('rows-ded'),
+    mtg:getRowData('rows-mtg'), non:getRowData('rows-non'), fix:getRowData('rows-fix'), vari:getRowData('rows-var'), sav:getRowData('rows-sav'), tak:getRowData('rows-tak'),
+    cash:getRowData('rows-cash'), inv:getRowData('rows-inv'), prop:getRowData('rows-prop'), ret:getRowData('rows-ret'),
+    liab:getRowData('rows-liab'),
+    commentaries: collectCommentaries(),
+    savedAt: new Date().toISOString()
+  };
+}
+function saveData() { /* Supabase save is triggered only by Save Data button. */ }
+async function saveWealthQuadrantToSupabase() {
+  try {
+    const clientEmail = window.WQPStore?.getClientEmailFromUrl?.();
+    if(!clientEmail) { alert('Client email not found. Please open this module from the Client Planning Page.'); return; }
+    await window.WQPStore.saveModule(clientEmail, 'wealth_quadrant', collectData());
+    alert('Wealth Quadrant data saved.');
+  } catch(error) {
+    console.error('Unable to save Wealth Quadrant data:', error);
+    alert('Unable to save data: ' + (error.message || error));
+  }
+}
+function loadRows(id, rows, isLiab) {
+  if(!rows||!rows.length) return;
+  rows.forEach(r=>{
+    if(isLiab) addLiabRow(); else addRow(id.replace('rows-',''));
+    const c=R(id), last=c.lastElementChild;
+    const ti=last.querySelector('input[type=text]'), ai=last.querySelector('.row-amt');
+    if(ti) ti.value=r.desc||''; if(ai) ai.value=r.amount||'';
+  });
+}
+
+/* ── ANALYSIS RENDERER ── */
+let donutChart;
+let _netWorth = 0;
+
+function updateInvRatio() {
+  const iv = parseFloat(R('inv-ratio-input')?.value)||0;
+  const ratio = _netWorth > 0 ? (iv / _netWorth * 100) : 0;
+  const el = R('inv-ratio-val'), tag = R('inv-ratio-tag');
+  if(el){ el.textContent = ratio.toFixed(2)+'%'; el.className='fh-val '+(ratio>=50?'positive':'negative'); }
+  if(tag){ tag.textContent = ratio>=50?'Good':'Below target'; tag.className='h-tag '+(ratio>=50?'tg':'tb'); }
+}
+
+function renderAnalysis() {
+  const data = collectData();
+  const hasData = data.salary>0||sumArr(data.allow)>0||sumArr(data.passive)>0||sumArr(data.side)>0;
+  R('a-empty').style.display = hasData?'none':'block';
+  R('a-content').style.display = hasData?'block':'none';
+  if(!hasData) return;
+
+  R('a-date').textContent = 'Generated on '+new Date().toLocaleDateString('en-MY',{year:'numeric',month:'long',day:'numeric'});
+
+  /* ── Core figures ── */
+  const sal   = data.salary+data.bonus;
+  const allow = sumArr(data.allow), passive=sumArr(data.passive), side=sumArr(data.side);
+  const gross = sal+allow+passive+side;
+  const totalDed = data.epf+data.eis+data.socso+data.zakat+sumArr(data.othDed);
+  const netInc = gross-totalDed;
+  const mtg=sumArr(data.mtg), non=sumArr(data.non), fix=sumArr(data.fix);
+  const vari=sumArr(data.vari), sav=sumArr(data.sav), tak=sumArr(data.tak);
+  const totalOut = mtg+non+fix+vari+sav+tak;
+  const surplus  = netInc-totalOut;
+  const netCF    = surplus;  // same thing
+  const cash=sumArr(data.cash), inv=sumArr(data.inv), prop=sumArr(data.prop), ret=sumArr(data.ret);
+  const totalAssets = cash+inv+prop+ret;
+  const totalLiab   = sumArr(data.liab);
+  const nwWith      = totalAssets - totalLiab;               // with EPF
+  const nwWithout   = (totalAssets - ret) - totalLiab;      // without EPF
+  _netWorth = nwWith;
+  const expenses = totalOut;
+
+  /* ── Quadrant ── */
+  setText('aq-sal',fmtRM(sal)); setText('aq-all',fmtRM(allow)); setText('aq-pas',fmtRM(passive)); setText('aq-sid',fmtRM(side)); setText('aq-ded',fmtRM(totalDed));
+  const aqn=R('aq-net'); if(aqn){aqn.textContent=fmtRM(netInc);aqn.className='q-fv '+(netInc>=0?'positive':'negative');}
+  setText('aq-mtg',fmtRM(mtg)); setText('aq-non',fmtRM(non)); setText('aq-fix',fmtRM(fix)); setText('aq-var',fmtRM(vari)); setText('aq-sav',fmtRM(sav)); setText('aq-tak',fmtRM(tak)); setText('aq-out',fmtRM(totalOut));
+  setText('aq-csh',fmtRM(cash)); setText('aq-inv',fmtRM(inv)); setText('aq-prp',fmtRM(prop)); setText('aq-ret',fmtRM(ret)); setText('aq-ast',fmtRM(totalAssets));
+  const lr=R('aq-liab-rows'); if(lr) lr.innerHTML=(data.liab||[]).length===0
+    ?'<div class="q-row" style="color:var(--text3);font-style:italic"><span>None recorded</span></div>'
+    :data.liab.map(l=>`<div class="q-row"><span style="max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${l.desc||'Item'}</span><span class="q-val">${fmtRM(l.amount)}</span></div>`).join('');
+  setText('aq-lib',fmtRM(totalLiab));
+
+  /* ── Figurative Summary KPIs ── */
+  setText('kpi-gross',fmtRM(gross)); setText('kpi-net',fmtRM(netInc)); setText('kpi-out',fmtRM(totalOut));
+  const ks=R('kpi-sur');
+  const isSurplus = surplus >= 0;
+  if(ks){
+    ks.textContent = fmtRM(surplus);
+    ks.className = 'kpi-val ' + (isSurplus ? 'surplus' : 'deficit');
+  }
+  setText('kpi-cf-lbl', isSurplus ? 'NET CASHFLOW — SURPLUS' : 'NET CASHFLOW — DEFICIT');
+  setText('kpi-cf-sub', isSurplus ? 'Positive · Net Income − Total Outflow' : 'Negative · Net Income − Total Outflow');
+
+  /* ── Budget Breakdown table (% only, no Amount, no Status) ── */
+  const COLORS={mtg:'#378ADD',non:'#7F77DD',fix:'#1D9E75',vari:'#EF9F27',sav:'#2d9e6b',tak:'#D4537E'};
+  const bkb=R('bk-body'); bkb.innerHTML='';
+  [{cat:'Mortgage Commitment',v:mtg,c:COLORS.mtg},{cat:'Non-Mortgage Commitment',v:non,c:COLORS.non},
+   {cat:'Fixed Expenses',v:fix,c:COLORS.fix},{cat:'Variable Expenses',v:vari,c:COLORS.vari},
+   {cat:'Savings / Investment',v:sav,c:COLORS.sav},{cat:'Protection / Takaful',v:tak,c:COLORS.tak}].forEach(r=>{
+    const p=netInc>0?(r.v/netInc*100):0;
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td><span class="cat-badge"><span class="cat-dot" style="background:${r.c}"></span>${r.cat}</span></td><td style="text-align:right;font-family:'DM Mono',monospace;font-weight:500">${p.toFixed(1)}%</td>`;
+    bkb.appendChild(tr);
+  });
+  const ttr=document.createElement('tr');
+  ttr.innerHTML=`<td style="font-weight:500">Total Outflow</td><td style="text-align:right;font-weight:500;font-family:'DM Mono',monospace">${netInc>0?(totalOut/netInc*100).toFixed(1)+'%':'—'}</td>`;
+  bkb.appendChild(ttr);
+
+  /* ── Income Allocation bars ── */
+  const ab=R('alloc-bars'); ab.innerHTML='';
+  [{l:'Deductions',v:totalDed,c:'#D85A30'},{l:'Mortgage',v:mtg,c:COLORS.mtg},{l:'Non-Mortgage',v:non,c:COLORS.non},
+   {l:'Fixed Exp.',v:fix,c:COLORS.fix},{l:'Variable Exp.',v:vari,c:COLORS.vari},
+   {l:'Savings/Invest',v:sav,c:COLORS.sav},{l:'Takaful',v:tak,c:COLORS.tak},
+   {l: isSurplus ? 'Surplus' : 'Deficit', v:Math.abs(surplus), c: isSurplus ? '#1a6b47' : '#8b2020'}].forEach(a=>{
+    const p=gross>0?Math.min(a.v/gross*100,100):0;
+    const d=document.createElement('div'); d.className='bar-item';
+    d.innerHTML=`<div class="bar-item-top"><span class="bar-lbl">${a.l}</span><span class="bar-val" style="color:${a.c}">${p.toFixed(1)}%</span></div><div class="bar-track"><div class="bar-fill" style="width:${p}%;background:${a.c}"></div></div>`;
+    ab.appendChild(d);
+  });
+
+  /* ── Net Worth Detail ── */
+  const nwwEl=R('nw-with');
+  if(nwwEl){nwwEl.textContent=fmtRM(nwWith);nwwEl.className='nw-card-val '+(nwWith>=0?'positive':'negative');}
+  const nwwoEl=R('nw-without');
+  if(nwwoEl){nwwoEl.textContent=fmtRM(nwWithout);nwwoEl.className='nw-card-val '+(nwWithout>=0?'positive':'negative');}
+
+  const asb=R('asset-bars'); asb.innerHTML='';
+  [{l:'Cash & Equiv.',v:cash,c:'#1D9E75'},{l:'Investments',v:inv,c:'#378ADD'},{l:'Property',v:prop,c:'#6b4e1a'},{l:'Retirement (EPF)',v:ret,c:'#7F77DD'}].forEach(a=>{
+    const p=totalAssets>0?a.v/totalAssets*100:0;
+    const d=document.createElement('div'); d.className='bar-item';
+    d.innerHTML=`<div class="bar-item-top"><span class="bar-lbl">${a.l}</span><span class="bar-val" style="color:${a.c}">${fmtRM(a.v)}</span></div><div class="bar-track"><div class="bar-fill" style="width:${p}%;background:${a.c}"></div></div>`;
+    asb.appendChild(d);
+  });
+
+  const ld=R('liab-detail');
+  if(!data.liab||data.liab.length===0){ld.innerHTML='<div style="font-size:13px;color:var(--text3);padding:8px 0">No liabilities recorded</div>';}
+  else{
+    const ul=document.createElement('div'); ul.className='bar-list';
+    data.liab.forEach(l=>{const d=document.createElement('div');d.className='bar-item';
+      d.innerHTML=`<div class="bar-item-top"><span class="bar-lbl">${l.desc||'Liability'}</span><span class="bar-val negative">${fmtRM(l.amount)}</span></div><div class="bar-track"><div class="bar-fill" style="width:${totalLiab>0?l.amount/totalLiab*100:0}%;background:#D85A30"></div></div>`;
+      ul.appendChild(d);});
+    ld.innerHTML=''; ld.appendChild(ul);
+    const tot=document.createElement('div');
+    tot.style.cssText='margin-top:12px;padding-top:10px;border-top:1px solid var(--border);display:flex;justify-content:space-between;font-size:13px;font-weight:500';
+    tot.innerHTML=`<span>Total Liabilities</span><span class="negative" style="font-family:'DM Mono',monospace">${fmtRM(totalLiab)}</span>`;
+    ld.appendChild(tot);
+  }
+
+  /* ── Financial Health rows ── */
+  const f2 = v => isFinite(v)&&!isNaN(v)?v.toFixed(2):'0.00';
+  const fhGrid=R('fh-grid'); fhGrid.innerHTML='';
+
+  const savRatio     = netInc>0  ? ((sav + netCF) / netInc) * 100          : 0;
+  const liqRatio     = expenses>0 ? cash/expenses                            : 0;
+  const standbyLiq   = expenses>0 ? inv/expenses                             : 0;
+  const debtRatio    = totalAssets>0 ? (totalLiab/totalAssets)*100           : 0;
+  const dsr          = netInc>0  ? ((mtg+non)/netInc)*100                   : 0;
+  const nonMtgDsr    = netInc>0  ? (non/netInc)*100                         : 0;
+  const liqToNW      = nwWith>0  ? (cash/nwWith)*100                        : 0;
+  const solvency     = totalAssets>0 ? (nwWith/totalAssets)*100             : 0;
+  const wrWith       = expenses>0 ? nwWith/expenses                          : 0;
+  const wrWithout    = expenses>0 ? nwWithout/expenses                       : 0;
+
+  const fhRows=[
+    {name:'Wealth Ratio (with EPF)',     fml:'Net Worth (with EPF) ÷ Expenses',              bench:'Higher is better',         val:wrWith,     fmt:v=>f2(v)+'×',  good:v=>v>=1,    warn:v=>v>=0.5},
+    {name:'Wealth Ratio (without EPF)',  fml:'Net Worth (without EPF) ÷ Expenses',           bench:'Higher is better',         val:wrWithout,  fmt:v=>f2(v)+'×',  good:v=>v>=1,    warn:v=>v>=0.5},
+    {name:'Liquidity Ratio',             fml:'Cash & Cash Equiv. ÷ Expenses',                bench:'Benchmark ≥ 3×',           val:liqRatio,   fmt:v=>f2(v)+'×',  good:v=>v>=3,    warn:v=>v>=1},
+    {name:'Standby Liquidity Ratio',     fml:'Investments ÷ Expenses',                       bench:'Benchmark ≥ 3×',           val:standbyLiq, fmt:v=>f2(v)+'×',  good:v=>v>=3,    warn:v=>v>=1},
+    {name:'Saving Ratio',                fml:'(Savings + Net Cashflow) ÷ Net Income',        bench:'Benchmark ≥ 10%',          val:savRatio,   fmt:v=>f2(v)+'%',  good:v=>v>=10,   warn:v=>v>=5},
+    {name:'Debt Ratio',                  fml:'Total Liabilities ÷ Total Assets',             bench:'Benchmark < 50%',          val:debtRatio,  fmt:v=>f2(v)+'%',  good:v=>v<35,    warn:v=>v<50},
+    {name:'DSR (Debt-Service Ratio)',    fml:'(Mortgage + Non-Mortgage) ÷ Net Income',       bench:'Benchmark < 35%',          val:dsr,        fmt:v=>f2(v)+'%',  good:v=>v<35,    warn:v=>v<50},
+    {name:'Non-Mortgage DSR',            fml:'Non-Mortgage Commitment ÷ Net Income',         bench:'Benchmark < 15%',          val:nonMtgDsr,  fmt:v=>f2(v)+'%',  good:v=>v<15,    warn:v=>v<25},
+    {name:'Liquid Asset to Net Worth',   fml:'Cash & Cash Equiv. ÷ Net Worth (with EPF)',   bench:'Benchmark ≥ 15%',          val:liqToNW,    fmt:v=>f2(v)+'%',  good:v=>v>=15,   warn:v=>v>=8},
+    {name:'Solvency Ratio',              fml:'Net Worth (with EPF) ÷ Total Assets',          bench:'Benchmark ≥ 35%',          val:solvency,   fmt:v=>f2(v)+'%',  good:v=>v>=75,   warn:v=>v>=35},
+  ];
+
+  fhRows.forEach((r,i)=>{
+    const isGood=r.good(r.val), isWarn=!isGood&&r.warn(r.val);
+    const cls=isGood?'tg':isWarn?'tw':'tb', tag=isGood?'Good':isWarn?'Fair':'Needs attention';
+    const key = 'fh-'+i;
+    const row=document.createElement('div'); row.className='fh-row';
+    row.innerHTML=`<div><div class="fh-name">${r.name}</div><div class="fh-fml">${r.fml}</div><div class="fh-bench">${r.bench}</div><div class="commentary-wrap" style="margin-top:8px"><div class="commentary-lbl">Commentary <span class="commentary-char" id="cc-${key}">0 / 300</span></div><textarea class="commentary-box" id="cb-${key}" maxlength="300" placeholder="Add notes for ${r.name}…" oninput="saveCommentary('${key}',this)" rows="2"></textarea></div></div><div class="fh-right" style="align-self:flex-start;margin-top:4px"><div class="fh-val ${isGood?'positive':isWarn?'warning':'negative'}">${r.fmt(r.val)}</div><span class="h-tag ${cls}">${tag}</span></div>`;
+    fhGrid.appendChild(row);
+  });
+  updateInvRatio();
+
+  /* ── Outflow Breakdown donut (Budget Breakdown section) ── */
+  const donutData=[{l:'Mortgage',v:mtg,c:COLORS.mtg},{l:'Non-Mortgage',v:non,c:COLORS.non},{l:'Fixed',v:fix,c:COLORS.fix},{l:'Variable',v:vari,c:COLORS.vari},{l:'Savings',v:sav,c:COLORS.sav},{l:'Takaful',v:tak,c:COLORS.tak}].filter(d=>d.v>0);
+  if(donutChart) donutChart.destroy();
+  donutChart = new Chart(R('chart-donut').getContext('2d'),{
+    type:'doughnut',
+    data:{labels:donutData.map(d=>d.l),datasets:[{data:donutData.map(d=>d.v),backgroundColor:donutData.map(d=>d.c),borderWidth:2,borderColor:'#fff'}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'58%',
+      plugins:{legend:{position:'bottom',labels:{font:{size:11,family:'DM Sans'},boxWidth:10,padding:12}},
+               tooltip:{callbacks:{label:ctx=>ctx.label+': '+fmtRM(ctx.raw)}}}}
+  });
+}
+
+
+/* ── PDF DOWNLOAD ── */
+async function downloadPDF() {
+  const btn = R('btn-pdf');
+  const overlay = R('pdf-overlay');
+  const status = R('pdf-status');
+
+  btn.disabled = true;
+
+  // Show overlay AFTER a short delay so it never gets captured
+  const overlayTimer = setTimeout(() => {
+    overlay.classList.add('show');
+    status.textContent = 'Preparing report…';
+  }, 50);
+
+  try {
+    const { jsPDF } = window.jspdf;
+    const content = R('a-content');
+
+    // Hide btn and overlay from capture
+    btn.style.visibility = 'hidden';
+    overlay.classList.remove('show');
+
+    // Let browser settle
+    await new Promise(r => setTimeout(r, 200));
+
+    status.textContent = 'Capturing page…';
+    overlay.classList.add('show');
+
+    await new Promise(r => setTimeout(r, 100));
+
+    const canvas = await html2canvas(content, {
+      scale: 2,
+      useCORS: true,
+      allowTaint: true,
+      backgroundColor: '#f7f6f2',
+      logging: false,
+      ignoreElements: el => {
+        // Skip the overlay, btn, and any fixed/sticky elements
+        return el.id === 'pdf-overlay' ||
+               el.id === 'btn-pdf' ||
+               el.classList?.contains('pdf-overlay') ||
+               el.classList?.contains('topbar') ||
+               getComputedStyle(el).position === 'fixed';
+      }
+    });
+
+    status.textContent = 'Building PDF…';
+    await new Promise(r => setTimeout(r, 100));
+
+    const imgData = canvas.toDataURL('image/jpeg', 0.95);
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+    const pageW  = pdf.internal.pageSize.getWidth();
+    const pageH  = pdf.internal.pageSize.getHeight();
+    const margin = 12;
+    const usableW = pageW - margin * 2;
+
+    // Scale: canvas is at 2× device pixels → divide by 2 for CSS pixels → convert to mm
+    const mmPerPx  = usableW / (canvas.width / 2);
+    const totalMM  = (canvas.height / 2) * mmPerPx;
+    const sliceMMH = pageH - margin * 2 - 8; // usable height per page (leave room for header)
+    const slicePxH = (sliceMMH / mmPerPx) * 2; // in canvas (2×) pixels
+
+    const today = new Date().toLocaleDateString('en-MY', {year:'numeric',month:'long',day:'numeric'});
+    let pageNum = 1;
+    let srcY = 0;
+
+    while (srcY < canvas.height) {
+      if (pageNum > 1) pdf.addPage();
+
+      const srcH = Math.min(slicePxH, canvas.height - srcY);
+      const sliceActualMM = (srcH / 2) * mmPerPx;
+
+      // Slice canvas
+      const slice = document.createElement('canvas');
+      slice.width  = canvas.width;
+      slice.height = srcH;
+      slice.getContext('2d').drawImage(canvas, 0, srcY, canvas.width, srcH, 0, 0, canvas.width, srcH);
+
+      const sliceData = slice.toDataURL('image/jpeg', 0.95);
+
+      // Header bar
+      pdf.setFillColor(247, 246, 242);
+      pdf.rect(0, 0, pageW, 9, 'F');
+      pdf.setFontSize(7);
+      pdf.setTextColor(120, 117, 112);
+      pdf.text('Wealth Quadrant Online — Financial Analysis', margin, 6);
+      pdf.text(`Page ${pageNum}`, pageW - margin, 6, { align: 'right' });
+
+      // Content image
+      pdf.addImage(sliceData, 'JPEG', margin, 10, usableW, sliceActualMM);
+
+      // Footer on last page
+      if (srcY + slicePxH >= canvas.height) {
+        pdf.setFontSize(7);
+        pdf.setTextColor(160, 157, 152);
+        pdf.text(`Generated on ${today} · Wealth Quadrant Online`, margin, pageH - 4);
+      }
+
+      srcY += slicePxH;
+      pageNum++;
+    }
+
+    const filename = `WealthQuadrant_${new Date().toISOString().slice(0,10)}.pdf`;
+    pdf.save(filename);
+
+    status.textContent = '✓ Download complete';
+    await new Promise(r => setTimeout(r, 800));
+
+  } catch(err) {
+    console.error('PDF error:', err);
+    status.textContent = 'Error — please try again.';
+    await new Promise(r => setTimeout(r, 2000));
+  } finally {
+    clearTimeout(overlayTimer);
+    btn.style.visibility = '';
+    btn.disabled = false;
+    overlay.classList.remove('show');
+  }
+}
+
+function applyWealthQuadrantData(d) {
+  if(!d) return;
+  if(d.salary) R('salary-basic').value=d.salary;
+  if(d.bonus)  R('salary-bonus').value=d.bonus;
+  ['allow','passive','side'].forEach(k=>loadRows('rows-'+k,d[k]));
+  if(d.epf)   R('ded-epf').value=d.epf;
+  if(d.eis)   R('ded-eis').value=d.eis;
+  if(d.socso) R('ded-socso').value=d.socso;
+  if(d.zakat) R('ded-zakat').value=d.zakat;
+  loadRows('rows-ded',d.othDed);
+  ['mtg','non','fix','vari','sav','tak','cash','inv','prop','ret'].forEach(k=>loadRows('rows-'+k,d[k]));
+  loadRows('rows-liab',d.liab,true);
+  applyCommentaries(d.commentaries);
+  recalc();
+}
+window.addEventListener('load', async () => {
+  try {
+    const clientEmail = window.WQPStore?.getClientEmailFromUrl?.();
+    const d = clientEmail ? await window.WQPStore.loadModule(clientEmail, 'wealth_quadrant') : null;
+    if(d) applyWealthQuadrantData(d);
+    else recalc();
+  } catch(e){ console.error('Unable to load Wealth Quadrant data:', e); recalc(); }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,37 @@
+.auth-shell {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background: var(--bg);
+}
+.auth-card {
+  width: 100%;
+  max-width: 430px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--rl);
+  box-shadow: var(--shadow);
+  padding: 1.5rem;
+}
+.auth-brand { display:flex; align-items:center; gap:10px; margin-bottom:1.5rem; }
+.auth-title { font-size: 26px; font-weight: 300; letter-spacing: -.03em; margin-bottom: 4px; }
+.auth-sub { font-size: 13px; color: var(--text3); margin-bottom: 1.25rem; }
+.auth-form { display:flex; flex-direction:column; gap: 12px; }
+.auth-field { display:flex; flex-direction:column; gap:5px; }
+.auth-field label { font-size:12px; font-weight:500; color:var(--text2); }
+.auth-field input { height:40px; border:1px solid var(--border); border-radius:var(--r); padding:0 11px; font-family:'DM Sans',sans-serif; font-size:14px; background:var(--surface); color:var(--text); }
+.auth-field input:focus { outline:none; border-color:var(--text); }
+.auth-btn { height:42px; border:1px solid var(--text); border-radius:var(--r); background:var(--text); color:#fff; font-family:'DM Sans',sans-serif; font-size:14px; font-weight:500; cursor:pointer; margin-top:4px; }
+.auth-btn:hover { opacity:.88; }
+.auth-btn.secondary { background:var(--surface); color:var(--text); border-color:var(--border); }
+.auth-row { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-top:14px; font-size:13px; color:var(--text2); }
+.auth-link { color:var(--blue); text-decoration:none; font-weight:500; }
+.auth-msg { display:none; padding:10px 12px; border-radius:var(--r); font-size:12px; line-height:1.5; margin-bottom:12px; }
+.auth-msg.show { display:block; }
+.auth-msg.error { background:var(--red-bg); color:var(--red); border:1px solid #ead0d0; }
+.auth-msg.success { background:var(--green-bg); color:var(--green); border:1px solid #d3eadf; }
+.auth-msg.info { background:var(--blue-bg); color:var(--blue); border:1px solid #d2e2ed; }
+.auth-note { font-size:11px; color:var(--text3); line-height:1.6; margin-top:1rem; }
+.auth-config-warning { background:var(--gold-bg); color:var(--gold); border:1px solid #eadfca; border-radius:var(--r); padding:10px 12px; font-size:12px; line-height:1.5; margin-bottom:12px; }

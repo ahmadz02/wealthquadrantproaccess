@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Register - Wealth Quadrant Pro Access</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/styles.css" />
+  <link rel="stylesheet" href="assets/css/auth.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/supabase-client.js"></script>
+  <script src="assets/js/auth.js"></script>
+</head>
+<body>
+  <main class="auth-shell">
+    <section class="auth-card">
+      <div class="auth-brand">
+        <div class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M6 17L12 5L18 17H6Z" fill="white"/></svg></div>
+        <div>
+          <div class="brand-name">Wealth Quadrant Pro Access</div>
+          <div class="brand-sub">Superadmin Registration</div>
+        </div>
+      </div>
+      <div id="configWarning" class="auth-config-warning" style="display:none">Supabase is not configured yet. Update <strong>assets/js/supabase-client.js</strong> with your Project URL and anon key.</div>
+      <div id="authMessage" class="auth-msg"></div>
+      <h1 class="auth-title">Register</h1>
+      <p class="auth-sub">Create the Superadmin account for this app.</p>
+      <form id="registerForm" class="auth-form">
+        <div class="auth-field"><label for="email">Email</label><input id="email" type="email" autocomplete="email" required /></div>
+        <div class="auth-field"><label for="password">Password</label><input id="password" type="password" autocomplete="new-password" minlength="6" required /></div>
+        <div class="auth-field"><label for="confirmPassword">Confirm Password</label><input id="confirmPassword" type="password" autocomplete="new-password" minlength="6" required /></div>
+        <button class="auth-btn" type="submit">Register Superadmin</button>
+      </form>
+      <div class="auth-row"><span>Already registered?</span><a class="auth-link" href="login.html">Back to Login</a></div>
+      <p class="auth-note">Supabase will send a confirmation email if email confirmation is enabled. The first user profile is auto-approved.</p>
+    </section>
+  </main>
+</body>
+</html>

@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Personal Information Form</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../assets/css/styles.css" />
+  <style>
+    .form-shell { min-height: calc(100vh - 56px); display: flex; }
+    .main-area.form-main { max-width: 980px; margin: 0 auto; width: 100%; }
+    .form-hero { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; margin-bottom: 1.75rem; }
+    .required-note { font-size: 11px; color: var(--text3); margin-top: 6px; }
+    .req { color: var(--red); font-weight: 500; }
+    .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .form-grid.one { grid-template-columns: 1fr; }
+    .field { display: flex; flex-direction: column; gap: 5px; }
+    .field label { font-size: 12px; color: var(--text2); font-weight: 500; }
+    .field input, .field textarea { width: 100%; border: 1px solid var(--border); border-radius: var(--r); padding: 9px 10px; font-size: 13px; font-family: 'DM Sans', sans-serif; color: var(--text); background: var(--surface); transition: border-color .12s; }
+    .field input { height: 38px; }
+    .field textarea { min-height: 86px; resize: vertical; line-height: 1.5; }
+    .field input:focus, .field textarea:focus { outline: none; border-color: var(--text); }
+    .readonly { background: var(--surface2) !important; color: var(--text2) !important; }
+    .section-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; padding: 0 16px 14px; }
+    .person-card { border: 1px solid var(--border); border-radius: var(--rl); background: var(--surface); margin-bottom: 12px; overflow: hidden; }
+    .person-head { display: flex; align-items: center; justify-content: space-between; background: var(--surface2); padding: 10px 12px; border-bottom: 1px solid var(--border); }
+    .person-title { font-size: 12px; font-weight: 500; color: var(--text2); }
+    .person-body { padding: 14px; }
+    .empty-mini { color: var(--text3); font-size: 12px; padding: 0 16px 14px; }
+    .submit-row { display: flex; justify-content: flex-end; gap: 10px; margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border); }
+    .btn-pri:disabled { opacity: .45; cursor: not-allowed; }
+    @media(max-width: 760px) {
+      .form-shell { display: block; }
+      .form-grid { grid-template-columns: 1fr; }
+      .form-hero { flex-direction: column; }
+      .main-area.form-main { padding: 1rem; }
+    }
+  </style>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../../assets/js/supabase-client.js"></script>
+  <script src="../../assets/js/supabase-store.js"></script>
+  <script src="../../assets/js/auth-guard.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14M12 5v14" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
+      </div>
+      <div>
+        <div class="brand-name">Wealth Quadrant Pro Access</div>
+        <div class="brand-sub">Personal Information Form</div>
+      </div>
+    </div>
+    <div class="pill-nav" aria-label="Form parts">
+      <button class="pill-btn active" type="button" data-scroll="clientCard">Client</button>
+      <button class="pill-btn" type="button" data-scroll="spouseCard">Spouse</button>
+      <button class="pill-btn" type="button" data-scroll="childCard">Child</button>
+    </div>
+  </header>
+
+  <main class="form-shell">
+    <aside class="sidebar">
+      <div class="sb-label">Information</div>
+      <a class="sb-item active" href="#clientCard"><span class="sb-dot d1"></span>Client Details</a>
+      <a class="sb-item" href="#spouseCard"><span class="sb-dot d2"></span>Spouse Details</a>
+      <a class="sb-item" href="#childCard"><span class="sb-dot d3"></span>Child Details</a>
+      <div class="prog-wrap">
+        <div class="prog-top"><span>Required progress</span><span id="progressText">0%</span></div>
+        <div class="prog-track"><div class="prog-fill" id="progressFill"></div></div>
+      </div>
+    </aside>
+
+    <section class="main-area form-main">
+      <div class="form-hero">
+        <div>
+          <div class="seg-tag t1">Client Intake</div>
+          <h1 class="seg-title">Personal Information Form</h1>
+          <p class="seg-desc">Fill in client information first. Spouse and child information can be added only when needed.</p>
+          <p class="required-note"><span class="req">*</span> Mandatory fields</p>
+        </div>
+        <div class="seg-tot-box">
+          <div class="tot-label">Sections</div>
+          <div class="tot-val">3</div>
+        </div>
+      </div>
+
+      <form id="personalInfoForm">
+        <section class="card" id="clientCard">
+          <div class="ch open">
+            <div class="ch-left">
+              <div class="ci ci1">1</div>
+              <div>
+                <div class="ch-title">Client's Personal Information</div>
+                <div class="ch-sub">Mandatory to fill</div>
+              </div>
+            </div>
+            <div class="ch-right"><span class="ch-sum" id="clientStatus">Required</span></div>
+          </div>
+          <div class="cb open">
+            <div class="form-grid">
+              <div class="field"><label for="clientName">Name <span class="req">*</span></label><input id="clientName" name="clientName" type="text" required /></div>
+              <div class="field"><label for="clientDob">Date of Birth <span class="req">*</span></label><input id="clientDob" name="clientDob" type="date" required /></div>
+              <div class="field"><label for="clientAge">Current Age <span class="req">*</span></label><input id="clientAge" name="clientAge" class="readonly" type="text" readonly required /></div>
+              <div class="field"><label for="clientPhone">Phone Number <span class="req">*</span></label><input id="clientPhone" name="clientPhone" type="tel" required /></div>
+              <div class="field"><label for="clientEmail">Email Address <span class="req">*</span></label><input id="clientEmail" name="clientEmail" type="email" required /></div>
+              <div class="field"><label for="clientProfession">Profession <span class="req">*</span></label><input id="clientProfession" name="clientProfession" type="text" required /></div>
+            </div>
+            <div class="form-grid one" style="margin-top:12px">
+              <div class="field"><label for="clientAddress">Home Address <span class="req">*</span></label><textarea id="clientAddress" name="clientAddress" required></textarea></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="card" id="spouseCard">
+          <div class="ch open">
+            <div class="ch-left">
+              <div class="ci ci2">2</div>
+              <div>
+                <div class="ch-title">Spouse Personal Information</div>
+                <div class="ch-sub">Optional, expandable up to 4 spouses</div>
+              </div>
+            </div>
+            <div class="ch-right"><span class="ch-sum" id="spouseCount">0 added</span></div>
+          </div>
+          <div class="cb open">
+            <div id="spouseList"><p class="empty-mini">No spouse added yet.</p></div>
+            <div class="section-actions"><button class="btn-add" id="addSpouseBtn" type="button">+ Add Spouse</button></div>
+          </div>
+        </section>
+
+        <section class="card" id="childCard">
+          <div class="ch open">
+            <div class="ch-left">
+              <div class="ci ci3">3</div>
+              <div>
+                <div class="ch-title">Child Information</div>
+                <div class="ch-sub">Optional to fill</div>
+              </div>
+            </div>
+            <div class="ch-right"><span class="ch-sum" id="childCount">0 added</span></div>
+          </div>
+          <div class="cb open">
+            <div id="childList"><p class="empty-mini">No child added yet.</p></div>
+            <div class="section-actions"><button class="btn-add" id="addChildBtn" type="button">+ Add Child</button></div>
+          </div>
+        </section>
+
+        <div class="submit-row">
+          <button class="btn-nav" type="reset">Reset</button>
+          <button class="btn-nav btn-pri" type="submit">Save Information</button>
+          <button class="btn-nav" type="button" onclick="window.print()">Print PDF</button>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <script>
+    const MAX_SPOUSE = 4;
+    let spouseIndex = 0;
+    let childIndex = 0;
+    const spouseList = document.getElementById('spouseList');
+    const childList = document.getElementById('childList');
+    const addSpouseBtn = document.getElementById('addSpouseBtn');
+    const addChildBtn = document.getElementById('addChildBtn');
+
+    function calculateAge(dobValue) {
+      if (!dobValue) return '';
+      const dob = new Date(dobValue);
+      const today = new Date();
+      let age = today.getFullYear() - dob.getFullYear();
+      const monthDiff = today.getMonth() - dob.getMonth();
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) age--;
+      return age >= 0 ? String(age) : '';
+    }
+
+    function updateEmptyState(container, text) {
+      if (!container.querySelector('.person-card')) container.innerHTML = `<p class="empty-mini">${text}</p>`;
+    }
+
+    function wireAge(dobInput, ageInput) {
+      dobInput.addEventListener('change', () => { ageInput.value = calculateAge(dobInput.value); updateProgress(); });
+    }
+
+    function spouseTemplate(number) {
+      return `<div class="person-card" data-type="spouse">
+        <div class="person-head"><div class="person-title">Spouse ${number}</div><button class="btn-rm" type="button" aria-label="Remove spouse">×</button></div>
+        <div class="person-body"><div class="form-grid">
+          <div class="field"><label>Name</label><input name="spouse_${number}_name" type="text" /></div>
+          <div class="field"><label>Date of Birth</label><input class="dob" name="spouse_${number}_dob" type="date" /></div>
+          <div class="field"><label>Current Age</label><input class="age readonly" name="spouse_${number}_age" type="text" readonly /></div>
+          <div class="field"><label>Phone Number</label><input name="spouse_${number}_phone" type="tel" /></div>
+          <div class="field"><label>Email Address</label><input name="spouse_${number}_email" type="email" /></div>
+          <div class="field"><label>Profession</label><input name="spouse_${number}_profession" type="text" /></div>
+        </div></div>
+      </div>`;
+    }
+
+    function childTemplate(number) {
+      return `<div class="person-card" data-type="child">
+        <div class="person-head"><div class="person-title">Child ${number}</div><button class="btn-rm" type="button" aria-label="Remove child">×</button></div>
+        <div class="person-body"><div class="form-grid">
+          <div class="field"><label>Child #</label><input name="child_${number}_number" type="text" value="${number}" /></div>
+          <div class="field"><label>Name</label><input name="child_${number}_name" type="text" /></div>
+          <div class="field"><label>Date of Birth</label><input class="dob" name="child_${number}_dob" type="date" /></div>
+          <div class="field"><label>Current Age</label><input class="age readonly" name="child_${number}_age" type="text" readonly /></div>
+        </div></div>
+      </div>`;
+    }
+
+    function renumberCards(container, type) {
+      [...container.querySelectorAll('.person-card')].forEach((card, i) => {
+        card.querySelector('.person-title').textContent = `${type === 'spouse' ? 'Spouse' : 'Child'} ${i + 1}`;
+        const childNumber = card.querySelector(`[name^="child_"][name$="_number"]`);
+        if (childNumber) childNumber.value = i + 1;
+      });
+    }
+
+    function refreshCounts() {
+      const spouses = spouseList.querySelectorAll('.person-card').length;
+      const children = childList.querySelectorAll('.person-card').length;
+      document.getElementById('spouseCount').textContent = `${spouses} added`;
+      document.getElementById('childCount').textContent = `${children} added`;
+      addSpouseBtn.disabled = spouses >= MAX_SPOUSE;
+      addSpouseBtn.textContent = spouses >= MAX_SPOUSE ? 'Maximum 4 spouses added' : '+ Add Spouse';
+    }
+
+    function addCard(container, html, emptyText, type) {
+      if (container.querySelector('.empty-mini')) container.innerHTML = '';
+      container.insertAdjacentHTML('beforeend', html);
+      const card = container.lastElementChild;
+      wireAge(card.querySelector('.dob'), card.querySelector('.age'));
+      card.querySelector('.btn-rm').addEventListener('click', () => {
+        card.remove();
+        renumberCards(container, type);
+        updateEmptyState(container, emptyText);
+        refreshCounts();
+      });
+      refreshCounts();
+    }
+
+    addSpouseBtn.addEventListener('click', () => {
+      const current = spouseList.querySelectorAll('.person-card').length;
+      if (current < MAX_SPOUSE) addCard(spouseList, spouseTemplate(current + 1), 'No spouse added yet.', 'spouse');
+    });
+
+    addChildBtn.addEventListener('click', () => {
+      const current = childList.querySelectorAll('.person-card').length;
+      addCard(childList, childTemplate(current + 1), 'No child added yet.', 'child');
+    });
+
+    function updateProgress() {
+      const required = [...document.querySelectorAll('#clientCard [required]')];
+      const filled = required.filter(el => el.value.trim()).length;
+      const pct = Math.round((filled / required.length) * 100);
+      document.getElementById('progressFill').style.width = pct + '%';
+      document.getElementById('progressText').textContent = pct + '%';
+      document.getElementById('clientStatus').textContent = pct === 100 ? 'Complete' : 'Required';
+    }
+
+    document.getElementById('clientDob').addEventListener('change', () => {
+      document.getElementById('clientAge').value = calculateAge(document.getElementById('clientDob').value);
+      updateProgress();
+    });
+    document.querySelectorAll('#clientCard input, #clientCard textarea').forEach(el => el.addEventListener('input', updateProgress));
+
+    document.querySelectorAll('[data-scroll]').forEach(btn => btn.addEventListener('click', () => {
+      document.getElementById(btn.dataset.scroll).scrollIntoView({ behavior: 'smooth', block: 'start' });
+      document.querySelectorAll('.pill-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }));
+
+    document.getElementById('personalInfoForm').addEventListener('reset', () => {
+      setTimeout(() => {
+        spouseList.innerHTML = '<p class="empty-mini">No spouse added yet.</p>';
+        childList.innerHTML = '<p class="empty-mini">No child added yet.</p>';
+        refreshCounts();
+        updateProgress();
+      });
+    });
+
+    function getCardData(card, fields) {
+      const data = {};
+      fields.forEach(field => {
+        const input = card.querySelector(`[name$="_${field}"]`);
+        data[field] = input ? input.value : '';
+      });
+      return data;
+    }
+
+    function collectPersonalInfo() {
+      return {
+        client: {
+          name: document.getElementById('clientName').value.trim(),
+          dob: document.getElementById('clientDob').value,
+          age: document.getElementById('clientAge').value,
+          phone: document.getElementById('clientPhone').value.trim(),
+          email: document.getElementById('clientEmail').value.trim(),
+          profession: document.getElementById('clientProfession').value.trim(),
+          address: document.getElementById('clientAddress').value.trim()
+        },
+        spouses: [...spouseList.querySelectorAll('.person-card')].map(card => getCardData(card, ['name', 'dob', 'age', 'phone', 'email', 'profession'])),
+        children: [...childList.querySelectorAll('.person-card')].map(card => getCardData(card, ['number', 'name', 'dob', 'age'])),
+        savedAt: new Date().toISOString()
+      };
+    }
+
+    function setValue(id, value) {
+      const el = document.getElementById(id);
+      if (el) el.value = value || '';
+    }
+
+    function setCardValues(card, data) {
+      Object.entries(data || {}).forEach(([key, value]) => {
+        const input = card.querySelector(`[name$="_${key}"]`);
+        if (input) input.value = value || '';
+      });
+    }
+
+    async function loadPersonalInfo() {
+      const clientEmail = WQPStore.getClientEmailFromUrl();
+      if (!clientEmail) {
+        updateProgress();
+        refreshCounts();
+        return;
+      }
+
+      try {
+        const client = await WQPStore.getClientByEmail(clientEmail);
+        if (client) {
+          setValue('clientName', client.client_name);
+          setValue('clientPhone', client.phone);
+          setValue('clientEmail', client.client_email);
+        }
+
+        const data = await WQPStore.loadModule(clientEmail, 'personal_information');
+        if (!data) {
+          updateProgress();
+          refreshCounts();
+          return;
+        }
+
+        const c = data.client || {};
+        setValue('clientName', c.name);
+        setValue('clientDob', c.dob);
+        setValue('clientAge', c.age || calculateAge(c.dob));
+        setValue('clientPhone', c.phone);
+        setValue('clientEmail', c.email || clientEmail);
+        setValue('clientProfession', c.profession);
+        setValue('clientAddress', c.address);
+
+        spouseList.innerHTML = '<p class="empty-mini">No spouse added yet.</p>';
+        (data.spouses || []).slice(0, MAX_SPOUSE).forEach((item, index) => {
+          addCard(spouseList, spouseTemplate(index + 1), 'No spouse added yet.', 'spouse');
+          setCardValues(spouseList.lastElementChild, item);
+        });
+        updateEmptyState(spouseList, 'No spouse added yet.');
+
+        childList.innerHTML = '<p class="empty-mini">No child added yet.</p>';
+        (data.children || []).forEach((item, index) => {
+          addCard(childList, childTemplate(index + 1), 'No child added yet.', 'child');
+          setCardValues(childList.lastElementChild, item);
+        });
+        updateEmptyState(childList, 'No child added yet.');
+
+      } catch (error) {
+        console.error('Unable to load personal information:', error);
+      }
+      updateProgress();
+      refreshCounts();
+    }
+
+    document.getElementById('personalInfoForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!e.currentTarget.checkValidity()) {
+        e.currentTarget.reportValidity();
+        return;
+      }
+      const clientEmail = WQPStore.getClientEmailFromUrl() || document.getElementById('clientEmail').value.trim();
+      if (!clientEmail) {
+        alert('Client email not found. Please open this module from the Client Planning Page.');
+        return;
+      }
+      try {
+        const payload = collectPersonalInfo();
+        await WQPStore.upsertClient({
+          name: payload.client.name,
+          email: payload.client.email || clientEmail,
+          phone: payload.client.phone
+        });
+        await WQPStore.saveModule(clientEmail, 'personal_information', payload);
+        alert('Personal information saved successfully.');
+      } catch (error) {
+        console.error('Unable to save personal information:', error);
+        alert('Unable to save personal information. Please check Supabase setup.');
+      }
+    });
+
+    loadPersonalInfo();
+  </script>
+</body>
+</html>

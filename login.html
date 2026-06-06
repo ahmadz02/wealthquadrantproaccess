@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login - Wealth Quadrant Pro Access</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/styles.css" />
+  <link rel="stylesheet" href="assets/css/auth.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/supabase-client.js"></script>
+  <script src="assets/js/auth.js"></script>
+</head>
+<body>
+  <main class="auth-shell">
+    <section class="auth-card">
+      <div class="auth-brand">
+        <div class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M6 17L12 5L18 17H6Z" fill="white"/></svg></div>
+        <div>
+          <div class="brand-name">Wealth Quadrant Pro Access</div>
+          <div class="brand-sub">Superadmin Login</div>
+        </div>
+      </div>
+      <div id="configWarning" class="auth-config-warning" style="display:none">Supabase is not configured yet. Update <strong>assets/js/supabase-client.js</strong> with your Project URL and anon key.</div>
+      <div id="authMessage" class="auth-msg"></div>
+      <h1 class="auth-title">Login</h1>
+      <p class="auth-sub">Access your client onboarding and planning workspace.</p>
+      <form id="loginForm" class="auth-form">
+        <div class="auth-field"><label for="email">Email</label><input id="email" type="email" autocomplete="email" required /></div>
+        <div class="auth-field"><label for="password">Password</label><input id="password" type="password" autocomplete="current-password" required /></div>
+        <button class="auth-btn" type="submit">Login</button>
+      </form>
+      <div class="auth-row"><span>New setup?</span><a class="auth-link" href="register.html">Register Superadmin</a></div>
+      <p class="auth-note">The first registered user will be auto-approved as Superadmin after email confirmation. Later users will remain unapproved.</p>
+    </section>
+  </main>
+</body>
+</html>
