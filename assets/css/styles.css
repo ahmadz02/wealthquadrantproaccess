@@ -24,6 +24,7 @@ body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text)
 .pill-nav { display:flex; background:var(--surface2); border-radius:20px; padding:3px; gap:2px; }
 .pill-btn { padding:5px 16px; border-radius:16px; border:none; background:transparent; font-size:12px; font-family:'DM Sans',sans-serif; color:var(--text2); cursor:pointer; font-weight:400; transition:all .15s; }
 .pill-btn.active { background:var(--surface); color:var(--text); font-weight:500; box-shadow:0 1px 2px rgba(0,0,0,.08); }
+/*.topbar {display: flex;align-items: center;justify-content: space-between;}-reserve line*/
 
 /* ── PAGE SHELLS ── */
 .page { display:none; }
@@ -334,3 +335,22 @@ body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text)
 .small-btn.approve { border-color:var(--green); color:var(--green); }
 .small-btn.reject { border-color:var(--red); color:var(--red); }
 #appShell { display:none; }
+
+/*.btn-dashboard {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 16px;
+  border-radius: 10px;
+  background: var(--blue);
+  color: #fff;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.btn-dashboard:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}*/
