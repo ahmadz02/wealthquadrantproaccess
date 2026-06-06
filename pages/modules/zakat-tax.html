@@ -312,6 +312,9 @@
       </div>
     </div>
     <div style="display: flex; align-items: center; gap: 8px;">
+      <button class="btn-reset-data" onclick="saveZakatTaxToSupabase()" style="border-color:var(--green); color:var(--green); padding:8px 14px; font-size:12px;">
+        <i class="fa-solid fa-save"></i> Save Data
+      </button>
       <button class="btn-pdf" onclick="window.print()">
         <i class="fa-solid fa-print"></i> Print Report
       </button>
@@ -818,10 +821,11 @@
       { min: 2000000, max: Infinity, rate: 0.30, taxBase: 528400 }
     ];
 
-    window.onload = function() {
+    window.onload = async function() {
       // Default state initializes both planners
       runCalculations();
       updateProgress();
+      await loadZakatTaxFromSupabase();
     };
 
     // Scroll smoothly to target element
@@ -1153,6 +1157,59 @@
 
       handleCheckboxChange();
     }
+
+    const ZAKAT_TAX_MODULE_NAME = 'zakat_tax';
+
+    function collectZakatTaxModuleData() {
+      const data = {};
+      document.querySelectorAll('input, textarea, select').forEach((el) => {
+        if (!el.id) return;
+        if (el.type === 'checkbox') data[el.id] = el.checked;
+        else data[el.id] = el.value;
+      });
+      return data;
+    }
+
+    function applyZakatTaxModuleData(data) {
+      if (!data) return;
+      Object.entries(data).forEach(([id, value]) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        if (el.type === 'checkbox') el.checked = Boolean(value);
+        else el.value = value;
+      });
+      updateCommentary('tax');
+      updateCommentary('zakat');
+      handleCheckboxChange();
+      runCalculations();
+      updateProgress();
+    }
+
+    async function loadZakatTaxFromSupabase() {
+      try {
+        if (!window.WQPStore) return;
+        const clientEmail = window.WQPStore.getClientEmailFromUrl();
+        if (!clientEmail) return;
+        const data = await window.WQPStore.loadModule(clientEmail, ZAKAT_TAX_MODULE_NAME);
+        applyZakatTaxModuleData(data);
+      } catch (error) {
+        console.warn('Unable to load zakat and tax data:', error);
+      }
+    }
+
+    async function saveZakatTaxToSupabase() {
+      try {
+        if (!window.WQPStore) throw new Error('Supabase store is not ready.');
+        const clientEmail = window.WQPStore.getClientEmailFromUrl();
+        if (!clientEmail) throw new Error('Client email not found in URL. Open this page from Client Planning Page.');
+        await window.WQPStore.saveModule(clientEmail, ZAKAT_TAX_MODULE_NAME, collectZakatTaxModuleData());
+        alert('Zakat & Tax planning data saved to Supabase.');
+      } catch (error) {
+        console.error(error);
+        alert('Unable to save Zakat & Tax planning data. ' + (error.message || ''));
+      }
+    }
+
   </script>
 </body>
 </html>

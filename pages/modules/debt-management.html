@@ -313,6 +313,11 @@
       <button class="pill-btn" onclick="switchPage('analysis')">Strategy Analysis</button>
     </div>
 
+    <button class="btn-reset-data" onclick="saveDebtToSupabase()" style="border-color:var(--green); color:var(--green); padding:8px 14px; font-size:12px;">
+      <i data-lucide="save" style="width: 14px; height: 14px;"></i>
+      Save Data
+    </button>
+
     <!-- Print / Export Action -->
     <button class="btn-pdf" onclick="window.print()">
       <i data-lucide="printer" style="width: 14px; height: 14px;"></i>
@@ -862,11 +867,12 @@
     let selectedConsolidationDebts = ['1', '3']; // Default checked consolidation debts
 
     // On Load Lifecycle
-    window.onload = function() {
+    window.onload = async function() {
       lucide.createIcons();
       renderDebtPlannerList();
       updateGlobalMetrics();
       selectStrategy(activeStrategy);
+      await loadDebtFromSupabase();
     };
 
     // Routing System
@@ -1496,6 +1502,61 @@
         maximumFractionDigits: 2
       }).format(val);
     }
+
+    const DEBT_MODULE_NAME = 'debt';
+
+    function collectDebtModuleData() {
+      return {
+        debts: JSON.parse(JSON.stringify(debts || [])),
+        activeStrategy: activeStrategy,
+        selectedConsolidationDebts: Array.isArray(selectedConsolidationDebts) ? selectedConsolidationDebts.slice() : [],
+        acceleratorAmount: document.getElementById('accelerator-amount') ? document.getElementById('accelerator-amount').value : '',
+        consolidationRate: document.getElementById('consol-input-rate') ? document.getElementById('consol-input-rate').value : '',
+        consolidationTenure: document.getElementById('consol-input-tenure') ? document.getElementById('consol-input-tenure').value : '',
+        commentary: document.getElementById('planner-commentary') ? document.getElementById('planner-commentary').value : ''
+      };
+    }
+
+    function applyDebtModuleData(data) {
+      if (!data) return;
+      if (Array.isArray(data.debts)) debts = data.debts;
+      if (data.activeStrategy) activeStrategy = data.activeStrategy;
+      if (Array.isArray(data.selectedConsolidationDebts)) selectedConsolidationDebts = data.selectedConsolidationDebts;
+      if (document.getElementById('accelerator-amount') && data.acceleratorAmount !== undefined) document.getElementById('accelerator-amount').value = data.acceleratorAmount;
+      if (document.getElementById('consol-input-rate') && data.consolidationRate !== undefined) document.getElementById('consol-input-rate').value = data.consolidationRate;
+      if (document.getElementById('consol-input-tenure') && data.consolidationTenure !== undefined) document.getElementById('consol-input-tenure').value = data.consolidationTenure;
+      if (document.getElementById('planner-commentary') && data.commentary !== undefined) document.getElementById('planner-commentary').value = data.commentary;
+      renderDebtPlannerList();
+      updateGlobalMetrics();
+      selectStrategy(activeStrategy);
+      updateCommentaryCount();
+    }
+
+    async function loadDebtFromSupabase() {
+      try {
+        if (!window.WQPStore) return;
+        const clientEmail = window.WQPStore.getClientEmailFromUrl();
+        if (!clientEmail) return;
+        const data = await window.WQPStore.loadModule(clientEmail, DEBT_MODULE_NAME);
+        applyDebtModuleData(data);
+      } catch (error) {
+        console.warn('Unable to load debt management data:', error);
+      }
+    }
+
+    async function saveDebtToSupabase() {
+      try {
+        if (!window.WQPStore) throw new Error('Supabase store is not ready.');
+        const clientEmail = window.WQPStore.getClientEmailFromUrl();
+        if (!clientEmail) throw new Error('Client email not found in URL. Open this page from Client Planning Page.');
+        await window.WQPStore.saveModule(clientEmail, DEBT_MODULE_NAME, collectDebtModuleData());
+        alert('Debt management data saved to Supabase.');
+      } catch (error) {
+        console.error(error);
+        alert('Unable to save debt management data. ' + (error.message || ''));
+      }
+    }
+
   </script>
 </body>
 </html>
