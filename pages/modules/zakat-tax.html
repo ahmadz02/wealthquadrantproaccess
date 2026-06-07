@@ -261,7 +261,7 @@
     /* buttons */
     .btn-pdf { display:inline-flex; align-items:center; gap:7px; padding:8px 18px; background:var(--text); color:#fff; border:none; border-radius:var(--r); font-size:13px; font-family:'DM Sans',sans-serif; font-weight:500; cursor:pointer; transition:opacity .15s; white-space:nowrap; flex-shrink:0; }
     .btn-pdf:hover { opacity:.85; }
-    .btn-reset-data { display:inline-flex; align-items:center; gap:4px; padding:4px 9px; border:1px solid var(--border); border-radius:var(--r); background:transparent; font-size:11px; font-family:'DM Sans',sans-serif; color:var(--text3); cursor:pointer; transition:all .12s; margin-left:6px; }
+    .btn-reset-data { display:inline-flex; align-items:center; gap:4px; padding:4px 9px; border:1px solid var(--border); border-radius:var(--r); background:transparent; font-size:11px; font-family:'DM Sans',sans-serif; color:var(--text3); cursor:pointer; transition:all .12s; margin-left:auto; }
     .btn-reset-data:hover { border-color:#c0392b; color:#c0392b; background:#fff5f5; }
 
     .action-btn { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; background: var(--text); color: #fff; border: none; border-radius: var(--r); font-size: 12.5px; font-weight: 500; cursor: pointer; transition: background 0.15s; }
@@ -312,15 +312,14 @@
       </div>
     </div>
     <div style="display: flex; align-items: center; gap: 8px;">
-      <button class="btn-reset-data" onclick="saveZakatTaxToSupabase()" style="border-color:var(--green); color:var(--green); padding:8px 14px; font-size:12px;">
+      <button class="btn-pdf" onclick="saveZakatTaxToSupabase()"; padding:8px 14px; font-size:12px;">
         <i class="fa-solid fa-save"></i> Save Data
       </button>
-      <button class="btn-pdf" onclick="window.print()">
-        <i class="fa-solid fa-print"></i> Print Report
-      </button>
-      <button class="btn-reset-data" onclick="resetAll()">
-        <i class="fa-solid fa-rotate-left"></i> Reset Desk
-      </button>
+      <button class="btn-pdf"
+          onclick="window.location.href='../dashboard.html'+window.location.search">
+        Client Dashboard
+      </button>      
+
     </div>
   </div>
 
@@ -385,6 +384,9 @@
       
       <!-- HEADER -->
       <div class="a-header">
+      <button class="btn-reset-data" onclick="resetAll()">
+        <i class="fa-solid fa-rotate-left"></i> Reset Desk
+      </button>        
         <div class="a-header-left">
           <h1 class="a-title">Zakat & Tax Planning Desk</h1>
           <p class="a-sub">Integrate your LHDN Malaysian progressive taxes with regional wealth zakat allocations systematically.</p>
@@ -799,9 +801,14 @@
           </div>
         </div>
       </div>
-
+          <button class="btn-pdf" onclick="window.print()">
+            <i class="fa-solid fa-print"></i> Print Report
+      </button>
     </div>
+    
   </div>
+
+
 
   <script>
     // System Configurations

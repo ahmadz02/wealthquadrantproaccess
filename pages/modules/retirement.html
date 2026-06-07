@@ -260,7 +260,7 @@
     /* Reset buttons */
     .btn-reset-seg { display:inline-flex; align-items:center; gap:5px; padding:5px 12px; border:1px solid var(--border); border-radius:var(--r); background:transparent; font-size:11px; font-family:'DM Sans',sans-serif; color:var(--text3); cursor:pointer; transition:all .12s; }
     .btn-reset-seg:hover { border-color:#c0392b; color:#c0392b; background:#fff5f5; }
-    .btn-reset-data { display:inline-flex; align-items:center; gap:4px; padding:4px 9px; border:1px solid var(--border); border-radius:var(--r); background:transparent; font-size:11px; font-family:'DM Sans',sans-serif; color:var(--text3); cursor:pointer; transition:all .12s; margin-left:6px; }
+    .btn-reset-data { display:inline-flex; align-items:center; gap:4px; padding:4px 9px; border:1px solid var(--border); border-radius:var(--r); background:transparent; font-size:11px; font-family:'DM Sans',sans-serif; color:var(--text3); cursor:pointer; transition:all .12s; margin-left:200px; }
     .btn-reset-data:hover { border-color:#c0392b; color:#c0392b; background:#fff5f5; }
     .seg-hdr-actions { display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
 
@@ -382,13 +382,12 @@
 
     <!-- Global Actions -->
     <div class="seg-hdr-actions">
-      <button class="btn-reset-data" onclick="saveRetirementToSupabase()" style="margin-right:8px; border-color:var(--green); color:var(--green);">
+      <button class="btn-pdf" onclick="saveRetirementToSupabase()" style="margin-right:8px;">
         Save Data
       </button>
-      <button class="btn-reset-data" onclick="resetAllData()">
-        <svg style="width:11px; height:11px; vertical-align:middle; margin-right:3px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8M21 3v5h-5M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16M3 21v-5h5"/></svg>
-        Reset Form
-      </button>
+      <button class="btn-pdf"onclick="window.location.href='../dashboard.html'+window.location.search">
+        Client Dashboard</button>
+      
     </div>
   </header>
 
@@ -490,6 +489,12 @@
       
       <!-- SEGMENT 1: Income Needs & Fund Needed -->
       <section class="segment active" id="segment-1">
+        <div style="display:flex; justify-content:flex-end; margin-bottom:10px;">
+          <button class="btn-reset-data" onclick="resetAllData()">
+            <svg style="width:11px; height:11px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8M21 3v5h-5M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16M3 21v-5h5"/>
+            </svg>Reset Form</button>
+        </div>
         <div class="seg-hdr">
           <div>
             <span class="seg-tag t1">Section 1</span>
@@ -636,7 +641,7 @@
                 <input type="number" class="inp pl" id="inp-inflation-post" step="0.1" value="3.0" oninput="triggerCalculations()">
               </div>
             </div>
-
+<!--
             <div class="formula-card">
               <div class="math-title">Calculated Using Future Value Formulation</div>
               $$FV = PV \times (1 + i_{\text{pre}})^{n}$$
@@ -646,9 +651,10 @@
                 <strong>Rate ($i_{\text{pre}}$)</strong> = <span id="eq-rate">3%</span>.
               </p>
             </div>
+          -->
           </div>
         </div>
-
+      
         <div class="card">
           <div class="ch open">
             <div class="ch-left">
@@ -694,7 +700,7 @@
                 <input type="text" class="inp pl" id="lbl-real-return" readonly value="2.43%" style="background:var(--surface2);">
               </div>
             </div>
-
+<!--
             <div class="formula-card" id="formula-liquidation-block">
               <div class="math-title">Capital Liquidation Formula (Annuity Due / Beginning Mode)</div>
               $$PV_{\text{need}} = PMT \times \left[ \frac{1 - (1 + r_{\text{adj}})^{-N}}{r_{\text{adj}}} \right] \times (1 + r_{\text{adj}})$$
@@ -704,7 +710,7 @@
                 <strong>$N$</strong> = <span id="eq-post-n">25</span> years of retirement (Life Expectancy - Retirement Age).
               </p>
             </div>
-
+          -->
             <div class="formula-card" id="formula-intact-block" style="display:none;">
               <div class="math-title">Capital Intact Formula</div>
               $$PV_{\text{need}} = \frac{PMT}{r_{\text{adj}}}$$
@@ -895,10 +901,11 @@
           <p class="a-sub">Consolidated balance sheet, inflation models, and gap analysis results.</p>
         </div>
         <div class="seg-hdr-actions">
-          <button class="btn-pdf" onclick="triggerPrint()">
+ <!--         <button class="btn-pdf" onclick="triggerPrint()">
             <svg style="width:14px; height:14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
             Print Diagnostics Report
           </button>
+        -->
         </div>
       </div>
 
@@ -1077,6 +1084,11 @@
           </div>
         </div>
       </div>
+
+      <button class="btn-pdf" onclick="triggerPrint()">
+            <svg style="width:14px; height:14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            Print Diagnostics Report
+          </button>
 
       <div class="seg-nav">
         <button class="btn-nav" onclick="switchPage('entry')">

@@ -41,6 +41,8 @@
     .pill-nav { display:flex; background:var(--surface2); border-radius:20px; padding:3px; gap:2px; }
     .pill-btn { padding:5px 16px; border-radius:16px; border:none; background:transparent; font-size:12px; font-family:'DM Sans',sans-serif; color:var(--text2); cursor:pointer; font-weight:400; transition:all .15s; display:flex; align-items:center; gap:6px; }
     .pill-btn.active { background:var(--surface); color:var(--text); font-weight:500; box-shadow:0 1px 2px rgba(0,0,0,.08); }
+    /*.topbar-actions {display: flex; align-items: center; gap: 6px; margin-left: 100px;}
+    /*.topbar-actions .btn-pdf:last-child {margin-left: 12px;}
 
     /* ── PAGE SHELLS ── */
     .page { display:none; }
@@ -321,14 +323,38 @@
       </div>
 
       <!-- System Current Year configuration -->
-      <div class="period-controls">
+ <!--     <div class="period-controls">
         <span style="font-size: 11px; font-weight: 500; color: var(--text3); margin-left: 6px;">Current Year:</span>
         <button class="period-btn" @click="decrementYear" title="Previous Year">−</button>
         <input type="number" v-model.number="currentSystemYear" min="2020" max="2100">
         <button class="period-btn" @click="incrementYear" title="Next Year">+</button>
       </div>
-      <button class="btn-reset-data" @click="saveEducationToSupabase" style="border-color:var(--green); color:var(--green); margin-left:8px;">Save Data</button>
-    </div>
+    -->
+
+      <!--ORIGINAL CODE <button class="btn-pdf" @click="saveEducationToSupabase"; margin-left:auto;">Save Data</button>-->
+<!-- 
+ <div class="seg-hdr-actions">
+  <button class="btn-pdf" onclick="saveEducationToSupabase()">
+    Save Data
+  </button>
+
+  <button class="btn-pdf"
+          onclick="window.location.href='../dashboard.html'+window.location.search">
+    Client Dashboard
+  </button>
+-->
+
+ <div class="seg-hdr-actions">
+  <button class="btn-pdf" onclick="saveEducationToSupabase()">
+    Save Data
+  </button>
+
+  <button class="btn-pdf"
+          onclick="window.location.href='../dashboard.html'+window.location.search">
+    Client Dashboard
+  </button>
+</div>
+</div>
 
     <!-- ── APPLICATION SHELL ── -->
     <div class="page active">
@@ -402,6 +428,16 @@
       
       <!-- PAGE 1: PLAN & SETUP -->
       <div v-if="activeTab === 'setup'" id="page-entry" class="main-area">
+        <div style="display:flex; justify-content:flex-end; margin-bottom:12px;">
+          <div class="period-controls">
+            <span style="font-size:11px; font-weight:500; color:var(--text3); margin-left:6px;">
+            Current Year:</span>
+            <button class="period-btn" @click="decrementYear">−</button>
+              <input type="number" v-model.number="currentSystemYear" min="2020" max="2100">
+                <button class="period-btn" @click="incrementYear">+</button>
+            </div>
+          </div>
+        
         <div class="seg-hdr">
           <div>
             <div class="seg-tag t1">Strategic Financial Planning</div>

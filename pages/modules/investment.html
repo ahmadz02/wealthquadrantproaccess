@@ -312,9 +312,8 @@
       <button class="btn-pdf" onclick="saveInvestmentToSupabase()">
         <i class="fa-solid fa-save"></i> Save Data
       </button>
-      <button class="btn-pdf" onclick="window.print()">
-        <i class="fa-solid fa-print"></i> Print Report
-      </button>
+      <button class="btn-pdf"
+        onclick="window.location.href='../dashboard.html' + window.location.search">Client Dashboard</button>
     </div>
   </header>
 
@@ -404,7 +403,7 @@
         <div class="toggle-wrap">
           <div class="toggle-label-group">
             <span class="toggle-title">Do you have existing investments?</span>
-            <span class="toggle-desc">Toggle on to construct an asset ledger and compute the Weighted Average Cost of Return (WACR/WACC).</span>
+            <span class="toggle-desc">Toggle on to construct an asset ledger and compute the Weighted Average Cost of Capital (WACC).</span>
           </div>
           <label class="switch">
             <input type="checkbox" id="toggle-existing" onchange="toggleExistingContainer()">
@@ -572,7 +571,7 @@
             <div class="mx-sub" id="mx-assets-count">0 Positions</div>
           </div>
           <div class="mx-item">
-            <div class="mx-lbl">Portfolio Return (WACR)</div>
+            <div class="mx-lbl">Portfolio Return (WACC)</div>
             <div class="mx-fml">Weighted Asset Performance</div>
             <div class="mx-val" id="mx-portfolio-return">0.00%</div>
             <div class="mx-sub" id="mx-wacc-comparison">No comparison</div>
@@ -683,6 +682,8 @@
             <!-- Render dynamic editable commentary cards from objectives here -->
           </div>
         </div>
+
+        
 
       </div>
     </main>

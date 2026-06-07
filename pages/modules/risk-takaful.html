@@ -394,14 +394,8 @@
     </div>
 
     <div class="seg-hdr-actions">
-      <button class="btn-reset-data" onclick="resetAllPlannerData()">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 3px;">
-          <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
-        </svg>
-        Reset Workspace
-      </button>
       <button class="btn-pdf" onclick="saveRiskTakafulToSupabase()">Save Data</button>
-      <button class="btn-pdf" onclick="triggerPrint()">Print Report</button>
+      <button class="btn-pdf"onclick="window.location.href='../dashboard.html'+window.location.search">Client Dashboard</button>
     </div>
   </header>
 
@@ -473,9 +467,14 @@
 
     <!-- MAIN EDITING AREA -->
     <section class="main-area">
+      
       <div class="seg-hdr">
         <div>
           <span class="seg-tag t1">Risk Assessment & Takaful Planning</span>
+                <button class="btn-reset-data" onclick="resetAllPlannerData()">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 3px;">
+              <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+            </svg>Reset Workspace</button>
           <h1 class="seg-title">Evaluation of Protection Adequacy</h1>
           <p class="seg-desc">Evaluates fund requirements to guarantee dependents' living expenses, debt settlement, and education goals in the event of Death, TPD, or Critical Illness.</p>
         </div>
@@ -999,7 +998,7 @@
             </svg>
             Review Entry Forms
           </button>
-          <button class="btn-pdf" onclick="triggerPrint()">Compile Complete PDF/Print Report</button>
+          <button class="btn-pdf" onclick="triggerPrint()">Print PDF Report</button>
         </div>
       </div>
 

@@ -41,6 +41,7 @@
     .pill-nav { display:flex; background:var(--surface2); border-radius:20px; padding:3px; gap:2px; }
     .pill-btn { padding:5px 16px; border-radius:16px; border:none; background:transparent; font-size:12px; font-family:'DM Sans',sans-serif; color:var(--text2); cursor:pointer; font-weight:400; transition:all .15s; }
     .pill-btn.active { background:var(--surface); color:var(--text); font-weight:500; box-shadow:0 1px 2px rgba(0,0,0,.08); }
+      
 
     /* ── PAGE SHELLS ── */
     .page { display:none; }
@@ -246,8 +247,11 @@
     .seg-hdr-actions { display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
 
     /* Print button */
-    .btn-pdf { display:inline-flex; align-items:center; gap:7px; padding:8px 18px; background:var(--text); color:#fff; border:none; border-radius:var(--r); font-size:13px; font-family:'DM Sans',sans-serif; font-weight:500; cursor:pointer; transition:opacity .15s; white-space:nowrap; flex-shrink:0; text-decoration: none; }
+    .btn-pdf { display:inline-flex; align-items:center; gap:7px; padding:8px 18px; background:var(--text); color:#fff; border:none; border-radius:var(--r); font-size:13px; font-family:'DM Sans',sans-serif; font-weight:500; cursor:pointer; transition:opacity .15s; white-space:nowrap; flex-shrink:0;  }
     .btn-pdf:hover { opacity:.85; }
+    .btn-pdf {align-self: flex-start; width: fit-content;}
+
+
 
     /* External financing analysis button style */
     .btn-external-link { display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; background: var(--blue); color: #fff; border-radius: var(--r); text-decoration: none; font-size: 13px; font-weight: 500; font-family: 'DM Sans', sans-serif; transition: background 0.15s ease; box-shadow: var(--shadow); }
@@ -313,16 +317,22 @@
       <button class="pill-btn" onclick="switchPage('analysis')">Strategy Analysis</button>
     </div>
 
-    <button class="btn-reset-data" onclick="saveDebtToSupabase()" style="border-color:var(--green); color:var(--green); padding:8px 14px; font-size:12px;">
-      <i data-lucide="save" style="width: 14px; height: 14px;"></i>
-      Save Data
-    </button>
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <button class="btn-pdf" onclick="saveDebtToSupabase()"; padding:8px 14px; font-size:12px;">
+        <i class="fa-solid fa-save"></i> Save Data
+      </button>
+      <button class="btn-pdf"
+          onclick="window.location.href='../dashboard.html'+window.location.search">
+        Client Dashboard
+      </button> 
+
 
     <!-- Print / Export Action -->
-    <button class="btn-pdf" onclick="window.print()">
+ <!--   <button class="btn-pdf" onclick="window.print()">
       <i data-lucide="printer" style="width: 14px; height: 14px;"></i>
       Print Report
     </button>
+  -->
   </header>
 
   <!-- Shell Wrapper -->
@@ -400,14 +410,15 @@
         <div class="seg-hdr">
           <div>
             <div class="seg-tag t1">Debt Management Stage</div>
+             <button class="btn-reset-seg" onclick="resetPlannerData()">
+              <i data-lucide="rotate-ccw" style="width: 12px; height: 12px;"></i>
+              Reset Data
+            </button>
             <h1 class="seg-title">Debt Strategy Planning</h1>
             <p class="seg-desc">Assess the severity of existing debts and develop a structured payoff flow to reduce your repayment burden or settle obligations swiftly.</p>
           </div>
           <div class="seg-hdr-actions">
-            <button class="btn-reset-seg" onclick="resetPlannerData()">
-              <i data-lucide="rotate-ccw" style="width: 12px; height: 12px;"></i>
-              Reset Portfolio
-            </button>
+            
             <div class="seg-tot-box">
               <span class="tot-label">Total Debt Pool</span>
               <div class="tot-val negative" id="planner-total-pool">$0.00</div>
@@ -663,7 +674,12 @@
               <div class="commentary-print" id="planner-commentary-print"></div>
             </div>
           </div>
+          
         </div>
+
+          <button class="btn-pdf" onclick="window.print()">
+          <i data-lucide="printer" style="width: 14px; height: 14px;"></i>
+            Print Report</button>
 
       </div>
 
@@ -846,10 +862,9 @@
             <i data-lucide="printer" style="width: 14px; height: 14px;"></i>
             Print Optimization Report
           </button>
+         
         </div>
-
       </div>
-
     </main>
   </div>
 

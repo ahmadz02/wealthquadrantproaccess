@@ -186,7 +186,7 @@
       border: none;
       border-radius: var(--r);
       background: var(--gold);
-      color: #fff;
+      color: #fbf6f6;
       font-size: 13px;
       font-family: 'DM Sans', sans-serif;
       font-weight: 500;
@@ -244,11 +244,10 @@
     </div>
     
     <div style="display:flex; align-items:center; gap:10px;">
-      <div class="pill-nav">
-        <button class="pill-btn active" onclick="switchPage('planner')">Planner</button>
-        <button class="pill-btn" onclick="switchPage('quickguide')">Quick Guide</button>
-      </div>
-      <button class="btn-reset-data" onclick="saveHajjToSupabase()" style="border-color:var(--green); color:var(--green);">Save Data</button>
+      
+      <button class="btn-action" onclick="saveHajjToSupabase()">Save Data</button>
+      <button class="btn-action" onclick="window.location.href='../dashboard.html' + window.location.search">Client Dashboard</button>
+    
     </div>
   </div>
 
@@ -265,7 +264,16 @@
       <div class="sb-label">Active Goal</div>
       <a class="sb-item active">
         <div class="sb-dot d3"></div>
-        <span>Makkah Journey</span>
+        <a class="sb-item active" style="justify-content:space-between;">
+          <div style="display:flex; align-items:center; gap:10px;">
+          <div class="sb-dot d3"></div>
+      <span>Makkah Journey</span>
+  </div>
+
+  <button class="btn-reset-data" onclick="switchPage('quickguide')">
+    Quick Guide
+  </button>
+</a>
       </a>
 
       <div class="prog-wrap">
@@ -491,11 +499,10 @@
       </div>
 
       <!-- Action Button Area -->
-      <div class="action-btn-container">
-        <button class="btn-action" onclick="triggerGapAnalysis()">
-          <svg style="width: 16px; height: 16px; fill: currentColor;" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z"/></svg>
-          Find The Hajj Fund Gap
-        </button>
+      <div class="action-btn-container" style="display:flex; gap:10px; align-items:center;">
+          <button class="btn-action" onclick="triggerGapAnalysis()">Find The Hajj Fund Gap</button>
+
+          <button class="btn-action" onclick="window.print()">Print PDF</button>
       </div>
 
       <!-- Calculated Gap Result Box (Hidden until action button is triggered) -->
@@ -843,6 +850,8 @@
       const charCount = document.getElementById('commentaryText').value.length;
       document.getElementById('commCharCounter').innerText = charCount + "/500";
     }
+
+    
   </script>
 </body>
 </html>
