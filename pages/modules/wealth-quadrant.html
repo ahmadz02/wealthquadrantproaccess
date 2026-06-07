@@ -733,7 +733,19 @@ function showPage(p) {
   document.querySelectorAll('.pill-btn').forEach(e=>e.classList.remove('active'));
   R('page-'+p).classList.add('active');
   R('tab-'+p).classList.add('active');
-  if(p==='analysis') {renderAnalysis(); setTimeout(() => {applyCommentaries(wqCommentaries);}, 200);}
+  <!--if(p==='analysis') {renderAnalysis(); setTimeout(() => {applyCommentaries(wqCommentaries);}, 200);}-->
+  if(p==='analysis') {
+  renderAnalysis();
+
+  setTimeout(() => {
+    if (savedInvRatioInput) {
+      R('inv-ratio-input').value = savedInvRatioInput;
+    }
+
+    updateInvRatio();
+    applyCommentaries(wqCommentaries);
+  }, 200);
+}
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
@@ -823,6 +835,7 @@ function resetSeg(n) {
 
 /* ── COMMENTARY ── */
 let wqCommentaries = {};
+let savedInvRatioInput = 0;
 
 function saveCommentary(key, el) {
   const val = el.value || '';
@@ -939,6 +952,7 @@ function collectData() {
     mtg:getRowData('rows-mtg'), non:getRowData('rows-non'), fix:getRowData('rows-fix'), vari:getRowData('rows-var'), sav:getRowData('rows-sav'), tak:getRowData('rows-tak'),
     cash:getRowData('rows-cash'), inv:getRowData('rows-inv'), prop:getRowData('rows-prop'), ret:getRowData('rows-ret'),
     liab:getRowData('rows-liab'),
+    invRatioInput: getVal('inv-ratio-input'),
     commentaries: collectCommentaries(),
     savedAt: new Date().toISOString()
   };
@@ -955,7 +969,7 @@ async function saveWealthQuadrantToSupabase() {
 
     // Force collect all visible Analysis commentary boxes before saving
     collectCommentaries();
-
+    savedInvRatioInput = getVal('inv-ratio-input');
     const payload = collectData();
 
     console.log('Saving Wealth Quadrant payload:', payload);
@@ -1283,10 +1297,14 @@ function applyWealthQuadrantData(d) {
   ['mtg','non','fix','vari','sav','tak','cash','inv','prop','ret'].forEach(k=>loadRows('rows-'+k,d[k]));
   loadRows('rows-liab',d.liab,true);
   wqCommentaries = { ...(d.commentaries || {}) };
+  savedInvRatioInput = d.invRatioInput || 0;
+  <!--if (d.invRatioInput) R('inv-ratio-input').value = d.invRatioInput;-->
 
 recalc();
 
 setTimeout(() => {
+  <!--if (d.invRatioInput) R('inv-ratio-input').value = d.invRatioInput;-->
+  updateInvRatio();
   applyCommentaries(wqCommentaries);
 }, 200);
 }
