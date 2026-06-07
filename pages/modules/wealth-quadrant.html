@@ -331,7 +331,7 @@ body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text)
     <button class="btn-pdf"
           onclick="window.location.href='../dashboard.html'+window.location.search">
         Client Dashboard
-    </button>    
+    </button> 
   </div>
 </div>
 
@@ -733,7 +733,7 @@ function showPage(p) {
   document.querySelectorAll('.pill-btn').forEach(e=>e.classList.remove('active'));
   R('page-'+p).classList.add('active');
   R('tab-'+p).classList.add('active');
-  if(p==='analysis') { renderAnalysis(); setTimeout(loadCommentaries, 50); }
+  if(p==='analysis') {renderAnalysis(); setTimeout(() => {applyCommentaries(wqCommentaries);}, 200);}
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
@@ -822,30 +822,35 @@ function resetSeg(n) {
 }
 
 /* ── COMMENTARY ── */
+let wqCommentaries = {};
+
 function saveCommentary(key, el) {
-  const val = el.value;
+  const val = el.value || '';
+  wqCommentaries[key] = val;
   const cnt = R('cc-'+key);
   if(cnt) cnt.textContent = val.length+' / '+el.maxLength;
 }
 function collectCommentaries() {
-  const notes = {};
+  const notes = { ...wqCommentaries };
   document.querySelectorAll('textarea[id^="cb-"]').forEach(ta => {
     notes[ta.id.replace('cb-','')] = ta.value || '';
   });
+  wqCommentaries = { ...notes };
   return notes;
 }
 function applyCommentaries(notes) {
   if(!notes) return;
+  wqCommentaries = { ...wqCommentaries, ...notes };
   document.querySelectorAll('textarea[id^="cb-"]').forEach(ta => {
     const key = ta.id.replace('cb-','');
-    const val = notes[key] || '';
+    const val = wqCommentaries[key] || '';
     ta.value = val;
     const cnt = R('cc-'+key);
     if(cnt) cnt.textContent = val.length+' / '+ta.maxLength;
   });
 }
 function loadCommentaries() {
-  // Commentaries are now loaded together with module data from Supabase.
+  applyCommentaries(wqCommentaries);
 }
 
 /* ── PRINT AS PDF ── */
@@ -942,14 +947,30 @@ function saveData() { /* Supabase save is triggered only by Save Data button. */
 async function saveWealthQuadrantToSupabase() {
   try {
     const clientEmail = window.WQPStore?.getClientEmailFromUrl?.();
-    if(!clientEmail) { alert('Client email not found. Please open this module from the Client Planning Page.'); return; }
-    await window.WQPStore.saveModule(clientEmail, 'wealth_quadrant', collectData());
+
+    if (!clientEmail) {
+      alert('Client email not found. Please open this module from the Client Planning Page.');
+      return;
+    }
+
+    // Force collect all visible Analysis commentary boxes before saving
+    collectCommentaries();
+
+    const payload = collectData();
+
+    console.log('Saving Wealth Quadrant payload:', payload);
+    console.log('Saving commentaries:', payload.commentaries);
+
+    await window.WQPStore.saveModule(clientEmail, 'wealth_quadrant', payload);
+
     alert('Wealth Quadrant data saved.');
-  } catch(error) {
+  } catch (error) {
     console.error('Unable to save Wealth Quadrant data:', error);
     alert('Unable to save data: ' + (error.message || error));
   }
 }
+
+
 function loadRows(id, rows, isLiab) {
   if(!rows||!rows.length) return;
   rows.forEach(r=>{
@@ -1113,6 +1134,7 @@ function renderAnalysis() {
     fhGrid.appendChild(row);
   });
   updateInvRatio();
+  applyCommentaries(wqCommentaries);
 
   /* ── Outflow Breakdown donut (Budget Breakdown section) ── */
   const donutData=[{l:'Mortgage',v:mtg,c:COLORS.mtg},{l:'Non-Mortgage',v:non,c:COLORS.non},{l:'Fixed',v:fix,c:COLORS.fix},{l:'Variable',v:vari,c:COLORS.vari},{l:'Savings',v:sav,c:COLORS.sav},{l:'Takaful',v:tak,c:COLORS.tak}].filter(d=>d.v>0);
@@ -1260,8 +1282,13 @@ function applyWealthQuadrantData(d) {
   loadRows('rows-ded',d.othDed);
   ['mtg','non','fix','vari','sav','tak','cash','inv','prop','ret'].forEach(k=>loadRows('rows-'+k,d[k]));
   loadRows('rows-liab',d.liab,true);
-  applyCommentaries(d.commentaries);
-  recalc();
+  wqCommentaries = { ...(d.commentaries || {}) };
+
+recalc();
+
+setTimeout(() => {
+  applyCommentaries(wqCommentaries);
+}, 200);
 }
 window.addEventListener('load', async () => {
   try {
