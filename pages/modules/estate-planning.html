@@ -1,117 +1,1191 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Estate Planning</title>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Mono&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
-    <style>
-        /* Included your provided styles and appended the necessary structure */
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        :root {
-            --bg: #f7f6f2; --surface: #fff; --surface2: #f2f0eb;
-            --border: #e2dfd8; --border-strong: #c8c4bb;
-            --text: #1a1916; --text2: #6b6860; --text3: #a09d98;
-            --blue: #1a4a6b; --blue-bg: #edf3f7;
-            --r: 6px; --rl: 10px;
-        }
-        body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); font-size:14px; line-height:1.5; padding:2rem; }
-        
-        .container { max-width: 800px; margin: 0 auto; }
-        
-        /* Card-like styling for the section */
-        .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--rl); padding: 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
-        
-        h1 { font-size: 24px; font-weight: 500; margin-bottom: 1rem; }
-        p { color: var(--text2); margin-bottom: 1.5rem; line-height: 1.6; }
-        
-        .btn-link { 
-            display: inline-flex; align-items: center; justify-content: center;
-            background: var(--blue); color: #fff; padding: 10px 20px;
-            border-radius: var(--r); text-decoration: none; font-weight: 500;
-            font-size: 14px; margin-bottom: 2rem; transition: opacity 0.15s;
-        }
-        .btn-link:hover { opacity: 0.9; }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Estate Planning | Faraid Calculator</title>
 
-        /* Commentary styles from your provided CSS */
-        .commentary-block { margin-top: 1.5rem; }
-        .commentary-lbl { font-size: 11px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text3); margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
-        .commentary-box { width: 100%; min-height: 120px; border: 1px solid var(--border); border-radius: var(--rl); padding: 12px 14px; font-size: 13px; font-family: 'DM Sans', sans-serif; color: var(--text); background: var(--surface); resize: vertical; line-height: 1.6; transition: border-color 0.12s; }
-        .commentary-box:focus { outline: none; border-color: var(--text); }
-        .btn-save { display:inline-flex; align-items:center; justify-content:center; background:var(--text); color:#fff; border:1px solid var(--text); border-radius:var(--r); padding:10px 18px; font-family:'DM Sans',sans-serif; font-size:13px; font-weight:500; cursor:pointer; margin-top:1rem; }
-        .btn-save:hover { opacity:.85; }
-        .save-status { font-size:12px; color:#1a6b47; margin-top:.75rem; min-height:18px; }
-    </style>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f7f6f2;
+      --surface: #fff;
+      --surface2: #f2f0eb;
+      --border: #e2dfd8;
+      --border-strong: #c8c4bb;
+      --text: #1a1916;
+      --text2: #6b6860;
+      --text3: #a09d98;
+      --green: #1a6b47;
+      --green-bg: #edf7f2;
+      --blue: #1a4a6b;
+      --blue-bg: #edf3f7;
+      --red: #6b1a1a;
+      --red-bg: #f7eded;
+      --gold: #6b4e1a;
+      --gold-bg: #f7f2ed;
+      --orange: #b85c00;
+      --amber: #c97a1a;
+      --r: 6px;
+      --rl: 10px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 14px;
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+
+    .topbar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 56px;
+      position: sticky;
+      top: 0;
+      z-index: 200;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-mark {
+      width: 28px;
+      height: 28px;
+      background: var(--text);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .brand-mark svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    .brand-name {
+      font-size: 14px;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+    }
+
+    .brand-sub {
+      font-size: 12px;
+      color: var(--text3);
+      margin-left: 2px;
+    }
+
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .save-status {
+      font-size: 11px;
+      color: var(--green);
+      display: none;
+    }
+
+    .main-area {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    .seg-hdr {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .seg-tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 500;
+      margin-bottom: 6px;
+      background: var(--gold-bg);
+      color: var(--gold);
+    }
+
+    .seg-title {
+      font-size: 28px;
+      font-weight: 300;
+      letter-spacing: -0.03em;
+    }
+
+    .seg-desc {
+      font-size: 13px;
+      color: var(--text3);
+      margin-top: 4px;
+      max-width: 720px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.05fr .95fr;
+      gap: 1rem;
+      align-items: start;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--rl);
+      margin-bottom: 1rem;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    .card-pad {
+      padding: 1.25rem;
+    }
+
+    .card-title {
+      font-size: 13px;
+      font-weight: 500;
+      margin-bottom: .35rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-sub {
+      font-size: 12px;
+      color: var(--text3);
+      margin-bottom: 1rem;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--gold);
+      flex-shrink: 0;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: .75rem;
+    }
+
+    .field {
+      margin-bottom: .75rem;
+    }
+
+    .field label {
+      display: block;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      color: var(--text3);
+      margin-bottom: 5px;
+    }
+
+    .inp,
+    .select {
+      width: 100%;
+      height: 36px;
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 0 10px;
+      font-size: 13px;
+      font-family: 'DM Sans', sans-serif;
+      color: var(--text);
+      background: var(--surface);
+      transition: border-color .12s;
+    }
+
+    .inp:focus,
+    .select:focus,
+    .commentary-box:focus {
+      outline: none;
+      border-color: var(--text);
+    }
+
+    .mono {
+      font-family: 'DM Mono', monospace;
+      text-align: right;
+    }
+
+    .pfx-wrap {
+      position: relative;
+    }
+
+    .pfx {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 12px;
+      color: var(--text3);
+      pointer-events: none;
+    }
+
+    .pfx-wrap .inp {
+      padding-left: 34px;
+    }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--text3);
+      padding-top: 1rem;
+      margin-top: .25rem;
+      margin-bottom: .75rem;
+      border-top: 1px dashed var(--border);
+    }
+
+    .btn-row,
+    .bottom-actions {
+      display: flex;
+      gap: .5rem;
+      flex-wrap: wrap;
+      margin-top: .75rem;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 9px 15px;
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      background: transparent;
+      font-size: 13px;
+      font-family: 'DM Sans', sans-serif;
+      color: var(--text2);
+      cursor: pointer;
+      transition: all .12s;
+      text-decoration: none;
+    }
+
+    .btn:hover {
+      border-color: var(--text);
+      color: var(--text);
+      background: var(--surface2);
+    }
+
+    .btn-pri {
+      background: var(--text);
+      color: #fff;
+      border-color: var(--text);
+    }
+
+    .btn-pri:hover {
+      background: #333;
+      color: #fff;
+    }
+
+    .btn-blue {
+      background: var(--blue);
+      color: #fff;
+      border-color: var(--blue);
+    }
+
+    .btn-blue:hover {
+      opacity: .9;
+      color: #fff;
+    }
+
+    .btn-pdf {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      padding: 8px 18px;
+      background: var(--text);
+      color: #fff;
+      border: none;
+      border-radius: var(--r);
+      font-size: 13px;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 500;
+      cursor: pointer;
+      transition: opacity .15s;
+      white-space: nowrap;
+      flex-shrink: 0;
+      text-decoration: none;
+    }
+
+    .btn-pdf:hover,
+    .btn-pdf:visited,
+    .btn-pdf:link {
+      color: #fff;
+      text-decoration: none;
+    }
+
+    .btn-pdf:hover {
+      opacity: .85;
+    }
+
+    .hdr-btn {
+      padding: 7px 12px;
+      border-radius: var(--r);
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text2);
+      white-space: nowrap;
+      text-decoration: none;
+    }
+
+    .hdr-btn:hover {
+      background: var(--surface2);
+      color: var(--text);
+    }
+
+    .summary-box {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--rl);
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      font-size: 12px;
+      padding: 5px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .summary-row:last-child {
+      border-bottom: none;
+    }
+
+    .summary-row span:first-child {
+      color: var(--text2);
+    }
+
+    .summary-row strong {
+      font-family: 'DM Mono', monospace;
+      font-weight: 500;
+    }
+
+    .result-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: .5rem;
+    }
+
+    .result-table th {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text3);
+      text-align: left;
+      padding: 0 0 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .result-table th:last-child,
+    .result-table td:last-child {
+      text-align: right;
+    }
+
+    .result-table td {
+      padding: 9px 0;
+      font-size: 13px;
+      border-bottom: 1px solid var(--surface2);
+      vertical-align: middle;
+    }
+
+    .result-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .result-table .money,
+    .result-table .share {
+      font-family: 'DM Mono', monospace;
+      font-weight: 500;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 2rem 1rem;
+      color: var(--text3);
+      font-size: 13px;
+      background: var(--surface2);
+      border-radius: var(--rl);
+    }
+
+    .notice {
+      font-size: 12px;
+      color: var(--text2);
+      background: var(--blue-bg);
+      border: 1px solid #d7e5ee;
+      border-radius: var(--rl);
+      padding: 12px 14px;
+      margin-top: 1rem;
+    }
+
+    .warning {
+      background: var(--gold-bg);
+      border-color: #eadcc4;
+      color: var(--gold);
+    }
+
+    .commentary-block {
+      margin-top: 1rem;
+    }
+
+    .commentary-lbl {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--text3);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .commentary-box {
+      width: 100%;
+      min-height: 120px;
+      border: 1px solid var(--border);
+      border-radius: var(--rl);
+      padding: 12px 14px;
+      font-size: 13px;
+      font-family: 'DM Sans', sans-serif;
+      color: var(--text);
+      background: var(--surface);
+      resize: vertical;
+      line-height: 1.6;
+      transition: border-color .12s;
+    }
+
+    .small-note {
+      font-size: 11px;
+      color: var(--text3);
+      margin-top: 6px;
+    }
+
+    @media print {
+      .topbar,
+      .btn,
+      .btn-pdf,
+      .hdr-btn,
+      .topbar-actions,
+      .bottom-actions {
+        display: none !important;
+      }
+
+      body {
+        background: #fff;
+      }
+
+      .main-area {
+        padding: 0;
+        max-width: 100%;
+      }
+
+      .card {
+        break-inside: avoid;
+        box-shadow: none;
+      }
+    }
+
+    @media(max-width:860px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .main-area {
+        padding: 1rem;
+      }
+
+      .topbar {
+        height: auto;
+        min-height: 56px;
+        flex-wrap: wrap;
+        gap: 10px;
+        padding: .75rem 1rem;
+      }
+
+      .topbar-actions {
+        width: 100%;
+        justify-content: flex-start;
+      }
+    }
+
+    @media(max-width:560px) {
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .seg-hdr {
+        display: block;
+      }
+
+      .hdr-btn {
+        margin-top: 10px;
+        display: inline-flex;
+      }
+
+    }
+  </style>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../../assets/js/supabase-client.js"></script>
   <script src="../../assets/js/supabase-store.js"></script>
   <script src="../../assets/js/auth-guard.js"></script>
 </head>
+
 <body>
-
-    <div class="container">
-        <div class="card">
-            <h1>Estate Planning</h1>
-            <p>
-                <strong>Objective:</strong> To identify the faraid heirs and their distribution, 
-                and to plan the appointment of an administrator and the intended distribution 
-                of assets.
-            </p>
-
-            <a href="https://as-salihin.com/en/faraid-calculator/" target="_blank" class="btn-link">
-                Go to Faraid Calculator
-            </a>
-
-            <div class="commentary-block">
-                <label class="commentary-lbl">Commentary</label>
-                <textarea id="estateCommentary" class="commentary-box" placeholder="Add your notes or planning details here..."></textarea>
-                <button class="btn-save" type="button" onclick="saveEstateToSupabase()">Save Data</button>
-                <div id="estateSaveStatus" class="save-status"></div>
-            </div>
-        </div>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none">
+          <path d="M5 12h14M12 5l7 7-7 7" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </div>
+      <div>
+        <div class="brand-name">Legacy Planner</div>
+        <div class="brand-sub">Estate Planning Workspace</div>
+      </div>
     </div>
 
+    <div class="topbar-actions">
+      <button type="button" class="btn-pdf" id="saveDataBtn">Save Data</button>
+      <span class="save-status" id="saveStatus">Saved</span>
+      <a class="btn-pdf" id="dashboardLink" href="#">Client Dashboard</a>
+    </div>
+  </header>
 
-<script>
-  const ESTATE_MODULE_NAME = 'estate';
+  <main class="main-area">
+    <section class="seg-hdr">
+      <div>
+        <div class="seg-tag">Estate Planning</div>
 
-  function getEstateData() {
-    return { commentary: document.getElementById('estateCommentary').value || '' };
-  }
+        <h1 class="seg-title">Estate Planning & Faraid Calculator</h1>
+        <p class="seg-desc">
+          Identify faraid heirs, estimate distribution, and record planning notes for administrator appointment, hibah, wasiat, trust, and intended estate distribution.
+        </p>
+      </div>
 
-  function applyEstateData(data) {
-    if (!data) return;
-    document.getElementById('estateCommentary').value = data.commentary || '';
-  }
+      <a class="hdr-btn" href="https://www.kirafaraid.my/" target="_blank" rel="noopener">
+        Reference: KiraFaraid.my
+      </a>
+    </section>
 
-  async function loadEstateFromSupabase() {
-    try {
-      if (!window.WQPStore) return;
-      const clientEmail = window.WQPStore.getClientEmailFromUrl();
-      if (!clientEmail) return;
-      const data = await window.WQPStore.loadModule(clientEmail, ESTATE_MODULE_NAME);
-      applyEstateData(data);
-    } catch (error) {
-      console.warn('Unable to load estate planning data:', error);
+    <div class="grid">
+      <section class="card">
+        <div class="card-pad">
+          <div class="card-title"><span class="dot"></span>Estate Details</div>
+          <p class="card-sub">
+            Enter gross estate, deductions, gender of deceased, and surviving heirs. This calculator gives an estimate for planning discussion only.
+          </p>
+
+          <div class="form-grid">
+            <div class="field">
+              <label for="grossEstate">Gross Estate Value</label>
+              <div class="pfx-wrap">
+                <span class="pfx">RM</span>
+                <input id="grossEstate" class="inp mono calc-input" type="number" min="0" step="0.01" placeholder="0.00" />
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="hartaSepencarian">Harta Sepencarian Claim</label>
+              <div class="pfx-wrap">
+                <span class="pfx">RM</span>
+                <input id="hartaSepencarian" class="inp mono calc-input" type="number" min="0" step="0.01" placeholder="0.00" />
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="debts">Debts / Liabilities</label>
+              <div class="pfx-wrap">
+                <span class="pfx">RM</span>
+                <input id="debts" class="inp mono calc-input" type="number" min="0" step="0.01" placeholder="0.00" />
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="funeralCost">Funeral / Estate Costs</label>
+              <div class="pfx-wrap">
+                <span class="pfx">RM</span>
+                <input id="funeralCost" class="inp mono calc-input" type="number" min="0" step="0.01" placeholder="0.00" />
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="wasiat">Wasiat to Non-Heir</label>
+              <div class="pfx-wrap">
+                <span class="pfx">RM</span>
+                <input id="wasiat" class="inp mono calc-input" type="number" min="0" step="0.01" placeholder="0.00" />
+              </div>
+              <div class="small-note">Auto-capped at 1/3 of estate after priority deductions.</div>
+            </div>
+
+            <div class="field">
+              <label for="gender">Gender of Deceased</label>
+              <select id="gender" class="select calc-input">
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="section-label">Surviving Heirs</div>
+
+          <div class="form-grid">
+            <div class="field">
+              <label for="husband">Husband</label>
+              <select id="husband" class="select calc-input">
+                <option value="0">No</option>
+                <option value="1">Yes</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="wives">Number of Wives</label>
+              <input id="wives" class="inp mono calc-input" type="number" min="0" max="4" step="1" value="0" />
+            </div>
+
+            <div class="field">
+              <label for="father">Father</label>
+              <select id="father" class="select calc-input">
+                <option value="0">No</option>
+                <option value="1">Yes</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="mother">Mother</label>
+              <select id="mother" class="select calc-input">
+                <option value="0">No</option>
+                <option value="1">Yes</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="sons">Sons</label>
+              <input id="sons" class="inp mono calc-input" type="number" min="0" step="1" value="0" />
+            </div>
+
+            <div class="field">
+              <label for="daughters">Daughters</label>
+              <input id="daughters" class="inp mono calc-input" type="number" min="0" step="1" value="0" />
+            </div>
+          </div>
+
+          <div class="btn-row">
+            <button type="button" class="btn btn-pri" id="calculateBtn">Calculate Faraid</button>
+            <button type="button" class="btn" id="resetBtn">Reset</button>
+          </div>
+
+          <div class="notice warning">
+            Note: This simplified calculator covers common primary heirs only: spouse, father, mother, sons, and daughters.
+            For siblings, grandparents, grandchildren, adopted children, missing heirs, renunciation, or disputed assets, verify with a qualified Syariah practitioner.
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-pad">
+          <div class="card-title"><span class="dot"></span>Faraid Result</div>
+          <p class="card-sub">Estimated distribution based on the information entered.</p>
+
+          <div class="summary-box">
+            <div class="summary-row"><span>Gross Estate</span><strong id="sumGross">RM 0.00</strong></div>
+            <div class="summary-row"><span>Total Priority Deductions</span><strong id="sumDeductions">RM 0.00</strong></div>
+            <div class="summary-row"><span>Wasiat Applied</span><strong id="sumWasiat">RM 0.00</strong></div>
+            <div class="summary-row"><span>Net Distributable Estate</span><strong id="sumNet">RM 0.00</strong></div>
+          </div>
+
+          <div id="resultArea" class="empty-state">
+            Fill in the form and click Calculate Faraid to view distribution.
+          </div>
+
+          <div id="methodNote" class="notice" style="display:none;"></div>
+        </div>
+      </section>
+    </div>
+
+    <section class="card">
+      <div class="card-pad">
+        <div class="card-title"><span class="dot"></span>Planning Notes</div>
+
+        <div class="commentary-block">
+          <label class="commentary-lbl" for="commentary">Commentary</label>
+          <textarea id="commentary" class="commentary-box" placeholder="Add administrator appointment, estate liquidity issues, beneficiary discussion, hibah/wasiat/trust recommendation, or follow-up actions here..."></textarea>
+
+          <div class="bottom-actions">
+            <button type="button" class="btn btn-blue" onclick="window.print()">Print PDF</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const ESTATE_MODULE_NAME = 'estate';
+
+    const money = (n) => {
+      return 'RM ' + Number(n || 0).toLocaleString('en-MY', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+    };
+
+    const val = (id) => Math.max(0, Number($(id).value || 0));
+    const intVal = (id) => Math.max(0, Math.floor(Number($(id).value || 0)));
+
+    function gcd(a, b) {
+      a = Math.abs(Math.round(a));
+      b = Math.abs(Math.round(b));
+      return b ? gcd(b, a % b) : a;
     }
-  }
 
-  async function saveEstateToSupabase() {
-    const status = document.getElementById('estateSaveStatus');
-    try {
-      if (!window.WQPStore) throw new Error('Supabase store is not ready.');
-      const clientEmail = window.WQPStore.getClientEmailFromUrl();
-      if (!clientEmail) throw new Error('Client email not found in URL. Open this page from Client Planning Page.');
-      await window.WQPStore.saveModule(clientEmail, ESTATE_MODULE_NAME, getEstateData());
-      status.textContent = 'Estate planning saved to Supabase.';
-    } catch (error) {
-      console.error(error);
-      status.textContent = 'Unable to save estate planning data. ' + (error.message || '');
+    function simplifyFraction(numerator, denominator) {
+      numerator = Math.round(numerator);
+      denominator = Math.round(denominator);
+
+      if (!numerator || !denominator) return '0';
+
+      const g = gcd(numerator, denominator);
+      numerator = numerator / g;
+      denominator = denominator / g;
+
+      return denominator === 1 ? String(numerator) : numerator + '/' + denominator;
     }
-  }
 
-  document.addEventListener('DOMContentLoaded', loadEstateFromSupabase);
-</script>
+    function addResult(results, heir, count, shareText, amount, note) {
+      if (count <= 0 || amount <= 0) return;
+
+      results.push({
+        heir,
+        count,
+        share: shareText,
+        amount,
+        perPerson: amount / count,
+        note
+      });
+    }
+
+    function calculateFaraid() {
+      const gross = val('grossEstate');
+      const sepencarian = val('hartaSepencarian');
+      const debts = val('debts');
+      const funeral = val('funeralCost');
+
+      const baseAfterPriority = Math.max(0, gross - sepencarian - debts - funeral);
+      const wasiatCap = baseAfterPriority / 3;
+      const wasiatApplied = Math.min(val('wasiat'), wasiatCap);
+      const net = Math.max(0, baseAfterPriority - wasiatApplied);
+
+      const gender = $('gender').value;
+      const husband = gender === 'female' ? intVal('husband') : 0;
+      const wives = gender === 'male' ? Math.min(4, intVal('wives')) : 0;
+
+      const father = intVal('father') > 0;
+      const mother = intVal('mother') > 0;
+      const sons = intVal('sons');
+      const daughters = intVal('daughters');
+
+      const hasChildren = sons + daughters > 0;
+      const results = [];
+      const notes = [];
+
+      let allocatedNumerator = 0;
+      const commonDenominator = 24;
+
+      $('sumGross').textContent = money(gross);
+      $('sumDeductions').textContent = money(sepencarian + debts + funeral);
+      $('sumWasiat').textContent = money(wasiatApplied);
+      $('sumNet').textContent = money(net);
+
+      if (gross <= 0 || net <= 0) {
+        $('resultArea').className = 'empty-state';
+        $('resultArea').innerHTML = 'No distributable estate available after deductions.';
+        $('methodNote').style.display = 'none';
+        return;
+      }
+
+      if (husband) {
+        const numerator = hasChildren ? 1 : 1;
+        const denominator = hasChildren ? 4 : 2;
+        const amount = net * numerator / denominator;
+
+        addResult(
+          results,
+          'Husband',
+          1,
+          simplifyFraction(numerator, denominator),
+          amount,
+          hasChildren ? '1/4 because deceased has child.' : '1/2 because no child.'
+        );
+
+        allocatedNumerator += commonDenominator * numerator / denominator;
+      }
+
+      if (wives > 0) {
+        const numerator = hasChildren ? 1 : 1;
+        const denominator = hasChildren ? 8 : 4;
+        const amount = net * numerator / denominator;
+
+        addResult(
+          results,
+          'Wife / Wives',
+          wives,
+          simplifyFraction(numerator, denominator),
+          amount,
+          hasChildren ? '1/8 shared by all wives because deceased has child.' : '1/4 shared by all wives because no child.'
+        );
+
+        allocatedNumerator += commonDenominator * numerator / denominator;
+      }
+
+      if (mother) {
+        const numerator = hasChildren ? 1 : 1;
+        const denominator = hasChildren ? 6 : 3;
+        const amount = net * numerator / denominator;
+
+        addResult(
+          results,
+          'Mother',
+          1,
+          simplifyFraction(numerator, denominator),
+          amount,
+          hasChildren ? '1/6 because deceased has child.' : '1/3 in this simplified model.'
+        );
+
+        allocatedNumerator += commonDenominator * numerator / denominator;
+      }
+
+      if (father && hasChildren) {
+        const numerator = 1;
+        const denominator = 6;
+        const amount = net * numerator / denominator;
+
+        addResult(
+          results,
+          'Father',
+          1,
+          simplifyFraction(numerator, denominator),
+          amount,
+          '1/6 because deceased has child; possible residuary balance also applies in some cases.'
+        );
+
+        allocatedNumerator += commonDenominator * numerator / denominator;
+      }
+
+      let residueNumerator = Math.max(0, commonDenominator - allocatedNumerator);
+      let residueDenominator = commonDenominator;
+
+      if (sons > 0) {
+        const units = sons * 2 + daughters;
+        const residueAmount = net * residueNumerator / residueDenominator;
+
+        const sonShareText = simplifyFraction(residueNumerator * 2, residueDenominator * units);
+        const sonAmount = residueAmount * ((sons * 2) / units);
+
+        addResult(
+          results,
+          'Son(s)',
+          sons,
+          sonShareText,
+          sonAmount,
+          'Residue as asabah; each son receives twice each daughter.'
+        );
+
+        if (daughters > 0) {
+          const daughterShareText = simplifyFraction(residueNumerator, residueDenominator * units);
+          const daughterAmount = residueAmount * (daughters / units);
+
+          addResult(
+            results,
+            'Daughter(s)',
+            daughters,
+            daughterShareText,
+            daughterAmount,
+            'Residue with son(s); each daughter receives one unit.'
+          );
+        }
+
+        residueNumerator = 0;
+      } else if (daughters > 0) {
+        if (daughters === 1) {
+          const daughterNumerator = 1;
+          const daughterDenominator = 2;
+          const daughterAmount = net * daughterNumerator / daughterDenominator;
+
+          addResult(
+            results,
+            'Daughter',
+            1,
+            simplifyFraction(daughterNumerator, daughterDenominator),
+            daughterAmount,
+            '1/2 fixed share where there is no son.'
+          );
+
+          residueNumerator -= residueDenominator * daughterNumerator / daughterDenominator;
+        } else {
+          const daughterNumerator = 2;
+          const daughterDenominator = 3;
+          const daughterAmount = net * daughterNumerator / daughterDenominator;
+
+          addResult(
+            results,
+            'Daughters',
+            daughters,
+            simplifyFraction(daughterNumerator, daughterDenominator),
+            daughterAmount,
+            '2/3 shared equally where there is no son.'
+          );
+
+          residueNumerator -= residueDenominator * daughterNumerator / daughterDenominator;
+        }
+      }
+
+      if (father && sons === 0 && residueNumerator > 0) {
+        const fatherResidueAmount = net * residueNumerator / residueDenominator;
+
+        addResult(
+          results,
+          'Father - Residue',
+          1,
+          simplifyFraction(residueNumerator, residueDenominator),
+          fatherResidueAmount,
+          'Receives remaining residue in this simplified model.'
+        );
+
+        residueNumerator = 0;
+      }
+
+      const totalDistributed = results.reduce((sum, r) => sum + r.amount, 0);
+
+      if (Math.abs(totalDistributed - net) > 0.01) {
+        notes.push('There is an undistributed balance in this simplified model. Please verify with a full faraid reference.');
+      }
+
+      if (!results.length) {
+        $('resultArea').className = 'empty-state';
+        $('resultArea').innerHTML = 'No eligible primary heirs selected. Please add spouse, parent, or children.';
+      } else {
+        $('resultArea').className = '';
+        $('resultArea').innerHTML = `
+          <table class="result-table">
+            <thead>
+              <tr>
+                <th>Heir</th>
+                <th>Count</th>
+                <th>Share</th>
+                <th>Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${results.map(r => `
+                <tr>
+                  <td>
+                    <strong>${r.heir}</strong>
+                    <div class="small-note">${r.note}</div>
+                  </td>
+                  <td>${r.count}</td>
+                  <td class="share">${r.share}</td>
+                  <td class="money">
+                    ${money(r.amount)}
+                    <div class="small-note">Per person: ${money(r.perPerson)}</div>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        `;
+      }
+
+      $('methodNote').style.display = 'block';
+      $('methodNote').innerHTML = `
+        Total estimated distribution: <strong>${money(totalDistributed)}</strong>.
+        ${notes.length ? notes.join(' ') : 'Use this as a planning estimate and verify before execution.'}
+      `;
+    }
+
+    function resetForm() {
+      [
+        'grossEstate',
+        'hartaSepencarian',
+        'debts',
+        'funeralCost',
+        'wasiat',
+        'sons',
+        'daughters'
+      ].forEach(id => {
+        $(id).value = '';
+      });
+
+      $('gender').value = 'male';
+      $('husband').value = '0';
+      $('wives').value = '0';
+      $('father').value = '0';
+      $('mother').value = '0';
+
+      $('sumGross').textContent = money(0);
+      $('sumDeductions').textContent = money(0);
+      $('sumWasiat').textContent = money(0);
+      $('sumNet').textContent = money(0);
+
+      $('resultArea').className = 'empty-state';
+      $('resultArea').innerHTML = 'Fill in the form and click Calculate Faraid to view distribution.';
+      $('methodNote').style.display = 'none';
+    }
+
+    document.querySelectorAll('.calc-input').forEach(el => {
+      el.addEventListener('change', () => {
+        if ($('gender').value === 'male') {
+          $('husband').value = '0';
+        }
+
+        if ($('gender').value === 'female') {
+          $('wives').value = '0';
+        }
+      });
+    });
+
+    function collectEstateData() {
+      const fields = [
+        'grossEstate',
+        'hartaSepencarian',
+        'debts',
+        'funeralCost',
+        'wasiat',
+        'gender',
+        'husband',
+        'wives',
+        'father',
+        'mother',
+        'sons',
+        'daughters',
+        'commentary'
+      ];
+
+      const data = fields.reduce((obj, id) => {
+        obj[id] = $(id).value;
+        return obj;
+      }, {});
+
+      data.summary = {
+        grossEstate: $('sumGross').textContent,
+        totalPriorityDeductions: $('sumDeductions').textContent,
+        wasiatApplied: $('sumWasiat').textContent,
+        netDistributableEstate: $('sumNet').textContent,
+        resultHtml: $('resultArea').innerHTML,
+        methodNote: $('methodNote').innerHTML
+      };
+
+      data.savedAt = new Date().toISOString();
+
+      return data;
+    }
+
+    function applyEstateData(data) {
+      if (!data) return;
+
+      Object.keys(data).forEach(id => {
+        if ($(id) && typeof data[id] !== 'object') {
+          $(id).value = data[id];
+        }
+      });
+
+      calculateFaraid();
+    }
+
+    function setSaveStatus(message, isError = false) {
+      const status = $('saveStatus');
+
+      status.style.display = 'inline';
+      status.style.color = isError ? 'var(--red)' : 'var(--green)';
+      status.textContent = message;
+
+      if (!isError) {
+        setTimeout(() => {
+          status.style.display = 'none';
+        }, 2200);
+      }
+    }
+
+    async function saveEstateData() {
+      try {
+        if (!window.WQPStore) {
+          throw new Error('Supabase store is not ready.');
+        }
+
+        const clientEmail = window.WQPStore.getClientEmailFromUrl();
+
+        if (!clientEmail) {
+          throw new Error('Client email not found in URL. Open this page from Client Planning Dashboard.');
+        }
+
+        await window.WQPStore.saveModule(clientEmail, ESTATE_MODULE_NAME, collectEstateData());
+
+        setSaveStatus('Saved');
+      } catch (err) {
+        console.error('Unable to save estate planning data:', err);
+        setSaveStatus('Save failed', true);
+      }
+    }
+
+    async function loadEstateData() {
+      try {
+        const dashboardLink = $('dashboardLink');
+
+        if (dashboardLink) {
+          dashboardLink.href = '../dashboard.html' + window.location.search;
+        }
+
+        if (!window.WQPStore) return;
+
+        const clientEmail = window.WQPStore.getClientEmailFromUrl();
+
+        if (!clientEmail) return;
+
+        const data = await window.WQPStore.loadModule(clientEmail, ESTATE_MODULE_NAME);
+
+        applyEstateData(data);
+      } catch (err) {
+        console.warn('Unable to load estate planning data:', err);
+      }
+    }
+
+    $('calculateBtn').addEventListener('click', calculateFaraid);
+    $('resetBtn').addEventListener('click', resetForm);
+    $('saveDataBtn').addEventListener('click', saveEstateData);
+    window.addEventListener('DOMContentLoaded', loadEstateData);
+  </script>
 </body>
 </html>
