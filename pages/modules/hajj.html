@@ -219,6 +219,94 @@
       .f-static { grid-template-columns:1fr; gap:4px; align-items:stretch; }
       .inp { text-align: left; }
     }
+
+
+    /* Print additions - improved PDF output */
+    @media print {
+      @page { size: A4; margin: 10mm; }
+      * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+      html, body { background: #f7f6f2 !important; margin: 0 !important; width: 100% !important; min-height: auto !important; }
+
+      .topbar, .sidebar, #appShell, .btn-pdf, .pdf-overlay,
+      .btn-reset-seg, .btn-reset-data, .seg-nav, .commentary-box,
+      .commentary-lbl, .commentary-char, .pill-nav, .btn-add, .btn-rm,
+      .btn-pri, .btn-nav, .btn-action, .action-btn-container,
+      .toggle-container { display: none !important; }
+
+      .page { display: none !important; min-height: auto !important; }
+      .page.active { display: block !important; min-height: auto !important; }
+      .segment.active { display: block !important; }
+
+      .main-area, #page-planner .main-area, #page-quickguide .main-area {
+        padding: 0 !important;
+        max-width: 100% !important;
+        width: 100% !important;
+        margin: 0 !important;
+        overflow: visible !important;
+      }
+
+      .seg-hdr { break-inside: avoid; page-break-inside: avoid; margin-bottom: 12px !important; }
+      .seg-title { font-size: 20px !important; }
+      .seg-desc { font-size: 12px !important; }
+      .seg-tag, .grp-label { break-after: avoid; page-break-after: avoid; font-size: 9px !important; }
+
+      .card, .grp-block, .quad-grid, .quad-card, .fh-row,
+      .a-card, .nw-duo-grid, .kpi-grid, .two-col, .chart-wrap,
+      .gap-result-box, .seg-tot-box, .f-static {
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+      }
+
+      .card {
+        margin-bottom: 8px !important;
+        border: 1px solid #e2dfd8 !important;
+        border-radius: 8px !important;
+        box-shadow: none !important;
+        overflow: visible !important;
+      }
+
+      .ch, .ch.open { padding: 9px 12px !important; border-bottom-color: #e2dfd8 !important; cursor: default !important; }
+      .ch:hover { background: transparent !important; }
+      .cb, .cb.open { display: block !important; padding: 10px 12px !important; }
+      .chev { display: none !important; }
+      .a-header, .ch, .seg-hdr { break-after: avoid !important; page-break-after: avoid !important; }
+
+      .f-static {
+        grid-template-columns: 220px 1fr !important;
+        gap: 10px !important;
+        padding: 7px 0 !important;
+      }
+
+      .inp, .inp-t, textarea {
+        border: 1px solid #e2dfd8 !important;
+        background: #fff !important;
+        color: #1a1916 !important;
+        height: auto !important;
+        min-height: 26px !important;
+        padding: 4px 8px !important;
+        box-shadow: none !important;
+      }
+
+      .pfx { top: 50% !important; }
+      .tot-val { font-size: 18px !important; }
+      .gap-result-box { display: block !important; margin-top: 10px !important; padding: 12px !important; }
+      .gap-big-val { font-size: 22px !important; margin-bottom: 6px !important; }
+      .gap-details { font-size: 12px !important; }
+
+      .commentary-block { margin-top: 10px !important; padding-top: 10px !important; }
+      .commentary-print {
+        display: block !important;
+        white-space: pre-wrap !important;
+        border: 1px solid #e2dfd8 !important;
+        border-radius: 8px !important;
+        padding: 8px 10px !important;
+        background: #fff !important;
+        color: #1a1916 !important;
+        font-size: 12px !important;
+        line-height: 1.45 !important;
+      }
+    }
+
   </style>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -521,6 +609,7 @@
             <span class="commentary-char" id="commCharCounter">0/500</span>
           </div>
           <textarea class="commentary-box" id="commentaryText" placeholder="Provide notes on strategic next steps, such as increasing investment targets, choosing higher-yield portfolios, or extending the performance horizon..." maxlength="500" oninput="updateCharCount()"></textarea>
+          <div class="commentary-print" id="commentaryPrint">No commentary provided.</div>
         </div>
       </div>
 
@@ -846,11 +935,24 @@
 
     // Character Counter on Commentary Textarea
     function updateCharCount() {
-      const charCount = document.getElementById('commentaryText').value.length;
+      const commentaryEl = document.getElementById('commentaryText');
+      const charCount = commentaryEl.value.length;
       document.getElementById('commCharCounter').innerText = charCount + "/500";
+
+      const printEl = document.getElementById('commentaryPrint');
+      if (printEl) {
+        printEl.innerText = commentaryEl.value.trim() || "No commentary provided.";
+      }
     }
 
     
+
+    // Ensure latest calculated values and commentary are reflected before printing.
+    window.addEventListener('beforeprint', function() {
+      calculateProjections();
+      updateCharCount();
+    });
+
   </script>
 </body>
 </html>

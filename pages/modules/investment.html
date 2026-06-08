@@ -268,16 +268,196 @@
       .grid-2 { grid-template-columns: 1fr; }
     }
 
-    /* Print styling support */
+
+
+    /* Print table and chart fit fixes - Investment Planning */
+    .bk-table {
+      table-layout: fixed;
+    }
+    .bk-table th,
+    .bk-table td {
+      overflow-wrap: anywhere;
+      word-break: normal;
+    }
+    .bk-table .mono {
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
     @media print {
-      * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
-      body { background:#f7f6f2 !important; margin:0; }
-      .topbar, .sidebar, .btn-pdf, .pdf-overlay, .btn-reset-seg, .btn-reset-data, .seg-nav, .commentary-box, .commentary-lbl, .commentary-char, .pill-nav, .btn-add, .btn-rm, .btn-pri, button { display:none !important; }
-      .page { display:block !important; min-height:auto !important; }
-      .main-area { padding:12px !important; max-width:100% !important; }
-      .card { break-inside:avoid; page-break-inside:avoid; border: 1px solid #e2dfd8 !important; }
-      .inv-table { min-width: 100% !important; }
-      .commentary-print { display:block !important; border-top: 1px dashed var(--border); padding-top: 10px; }
+      /* Allow print engine to resize content according to A4 paper width */
+      #page-analysis > div,
+      #page-analysis .grid-2,
+      #page-analysis .a-card,
+      #page-analysis .table-container,
+      #page-analysis table {
+        max-width: 100% !important;
+      }
+
+      /* Keep the two chart cards balanced and inside the printable frame */
+      #page-analysis .grid-2 {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+        align-items: start !important;
+      }
+
+      #page-analysis .a-card {
+        min-width: 0 !important;
+        overflow: hidden !important;
+      }
+
+      /* Dynamic table fitting for PDF */
+      .table-container {
+        width: 100% !important;
+        overflow: visible !important;
+      }
+
+      .bk-table {
+        width: 100% !important;
+        min-width: 0 !important;
+        table-layout: fixed !important;
+        border-collapse: collapse !important;
+      }
+
+      .bk-table th,
+      .bk-table td {
+        padding: 5px 4px !important;
+        font-size: clamp(7px, 0.82vw, 9px) !important;
+        line-height: 1.25 !important;
+        white-space: normal !important;
+        overflow-wrap: anywhere !important;
+        word-break: normal !important;
+        vertical-align: top !important;
+      }
+
+      .bk-table td.mono,
+      .bk-table td .mono,
+      .bk-table .mono {
+        font-size: clamp(6.5px, 0.75vw, 8.5px) !important;
+        letter-spacing: -0.04em !important;
+        white-space: nowrap !important;
+      }
+
+      .bk-table .cat-badge {
+        display: flex !important;
+        align-items: flex-start !important;
+        min-width: 0 !important;
+        gap: 3px !important;
+      }
+
+      .bk-table .cat-badge .bold {
+        min-width: 0 !important;
+        overflow-wrap: anywhere !important;
+        word-break: normal !important;
+      }
+
+      .cat-dot {
+        flex: 0 0 5px !important;
+        width: 5px !important;
+        height: 5px !important;
+        margin-top: 4px !important;
+      }
+
+      /* Column width allocation for report tables */
+      #analysis-portfolio-rows,
+      #analysis-goals-rows {
+        width: 100% !important;
+      }
+
+      #analysis-portfolio-rows td:nth-child(1),
+      #analysis-portfolio-rows ~ tr td:nth-child(1) { width: 38% !important; }
+
+      #page-analysis .a-card:first-child .bk-table th:nth-child(1),
+      #page-analysis .a-card:first-child .bk-table td:nth-child(1) { width: 42% !important; }
+      #page-analysis .a-card:first-child .bk-table th:nth-child(2),
+      #page-analysis .a-card:first-child .bk-table td:nth-child(2) { width: 27% !important; }
+      #page-analysis .a-card:first-child .bk-table th:nth-child(3),
+      #page-analysis .a-card:first-child .bk-table td:nth-child(3) { width: 15% !important; }
+      #page-analysis .a-card:first-child .bk-table th:nth-child(4),
+      #page-analysis .a-card:first-child .bk-table td:nth-child(4) { width: 16% !important; }
+
+      #page-analysis .a-card:nth-child(2) .bk-table th:nth-child(1),
+      #page-analysis .a-card:nth-child(2) .bk-table td:nth-child(1) { width: 32% !important; }
+      #page-analysis .a-card:nth-child(2) .bk-table th:nth-child(2),
+      #page-analysis .a-card:nth-child(2) .bk-table td:nth-child(2) { width: 23% !important; }
+      #page-analysis .a-card:nth-child(2) .bk-table th:nth-child(3),
+      #page-analysis .a-card:nth-child(2) .bk-table td:nth-child(3) { width: 23% !important; }
+      #page-analysis .a-card:nth-child(2) .bk-table th:nth-child(4),
+      #page-analysis .a-card:nth-child(2) .bk-table td:nth-child(4) { width: 22% !important; }
+
+      /* Chart canvas print sizing */
+      .chart-wrap {
+        width: 100% !important;
+        min-height: 175px !important;
+        height: 175px !important;
+        margin-bottom: 8px !important;
+        overflow: hidden !important;
+      }
+
+      #portfolioChart,
+      #goalsChart {
+        width: 100% !important;
+        max-width: 100% !important;
+        height: 170px !important;
+        max-height: 170px !important;
+      }
+
+      #portfolioChart {
+        max-width: 185px !important;
+        margin: 0 auto !important;
+      }
+
+      /* Extra protection for the Strategic Target Goals card */
+      #goalsChart {
+        display: block !important;
+      }
+    }
+
+    /* Print additions - optimized Investment Planning PDF output */
+    @page { size: A4; margin: 10mm; }
+
+    @media print {
+      * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+      html, body { width: 100% !important; background: #f7f6f2 !important; margin: 0 !important; }
+
+      /* Hide app navigation and interactive controls */
+      .topbar, .sidebar, #page-entry, .btn-pdf, .pdf-overlay,
+      .btn-reset-seg, .btn-reset-data, .seg-nav, .commentary-box,
+      .commentary-lbl, .commentary-char, .pill-nav, .btn-add,
+      .btn-rm, .btn-pri, .btn-nav, button { display: none !important; }
+
+      /* Force report page to print even if user is currently on Planner tab */
+      #appShell { display: block !important; width: 100% !important; }
+      #page-analysis { display: block !important; min-height: auto !important; overflow: visible !important; }
+      #page-analysis .main-area { padding: 12px !important; max-width: 100% !important; width: 100% !important; overflow: visible !important; }
+      .page, .page.active { display: block !important; min-height: auto !important; }
+
+      /* Compact, clean report layout */
+      .a-header { break-after: avoid; page-break-after: avoid; margin-bottom: 12px !important; }
+      .a-title { font-size: 24px !important; }
+      .a-sub, .seg-desc { font-size: 11px !important; }
+      .seg-tag { font-size: 9px !important; padding: 2px 8px !important; }
+      .sec-title, .grp-label { break-after: avoid; page-break-after: avoid; font-size: 9px !important; }
+
+      .mx-grid, .kpi-grid { grid-template-columns: repeat(4, 1fr) !important; gap: 8px !important; break-inside: avoid; page-break-inside: avoid; }
+      .mx-item, .kpi { padding: 10px !important; break-inside: avoid; page-break-inside: avoid; }
+      .mx-val, .kpi-val { font-size: 16px !important; }
+
+      .grid-2, .two-col { grid-template-columns: 1fr 1fr !important; gap: 10px !important; break-inside: avoid; page-break-inside: avoid; }
+      .a-card, .card, .grp-block { break-inside: avoid; page-break-inside: avoid; margin-bottom: 10px !important; padding: 12px !important; border: 1px solid #e2dfd8 !important; border-radius: 8px !important; box-shadow: none !important; background: #fff !important; }
+      .a-card-title, .ch, .a-header { break-after: avoid; page-break-after: avoid; }
+
+      .chart-wrap { break-inside: avoid; page-break-inside: avoid; min-height: 160px !important; margin-bottom: 8px !important; }
+      canvas { max-height: 190px !important; }
+
+      .table-container { overflow: visible !important; border-color: #e2dfd8 !important; break-inside: avoid; page-break-inside: avoid; }
+      .inv-table, .bk-table { min-width: 100% !important; width: 100% !important; font-size: 10px !important; }
+      .inv-table th, .inv-table td, .bk-table th, .bk-table td { padding: 6px 7px !important; }
+      tr, .fh-row, .ratio-item, .bar-list, .bar-item-top { break-inside: avoid; page-break-inside: avoid; }
+
+      .commentary-block { break-inside: avoid; page-break-inside: avoid; margin-top: 8px !important; padding-top: 8px !important; }
+      .commentary-print { display: block !important; border-top: 1px dashed #e2dfd8 !important; padding-top: 8px !important; margin-top: 6px !important; font-size: 11px !important; color: #6b6860 !important; white-space: pre-wrap !important; font-style: italic; }
+      .ss-body { break-inside: avoid; page-break-inside: avoid; }
     }
   </style>
 
@@ -557,9 +737,6 @@
             <h1 class="a-title">Consolidated Performance & Strategy Analysis</h1>
             <p class="a-sub">Holistic metrics review for target returns, inflation preservation, and strategic portfolio optimization.</p>
           </div>
-          <button class="btn-pdf" onclick="window.print()">
-            <i class="fa-solid fa-print"></i> Print PDF Report
-          </button>
         </div>
 
         <!-- MATRIX CARDS -->
@@ -600,7 +777,7 @@
               Portfolio Composition & Returns Weighting
             </div>
             <div class="chart-wrap" style="margin-bottom: 1.5rem;">
-              <canvas id="portfolioChart" style="max-height: 250px; max-width: 250px;"></canvas>
+              <canvas id="portfolioChart" style="width:100%; height:250px; max-height:250px; max-width:300px;"></canvas>
             </div>
             
             <div class="table-container">
@@ -629,7 +806,7 @@
               Strategic Target Goals & Expected Values
             </div>
             <div class="chart-wrap" style="margin-bottom: 1.5rem;">
-              <canvas id="goalsChart" style="max-height: 250px; width: 100%;"></canvas>
+              <canvas id="goalsChart" style="width:100%; height:250px; max-height:250px;"></canvas>
             </div>
 
             <div class="table-container">
@@ -681,6 +858,9 @@
           <div id="executive-commentary-list">
             <!-- Render dynamic editable commentary cards from objectives here -->
           </div>
+          <button class="btn-pdf" onclick="printInvestmentReport()">
+            <i class="fa-solid fa-print"></i> Print PDF Report
+          </button>          
         </div>
 
         
@@ -1727,6 +1907,7 @@
           },
           options: {
             responsive: true,
+            maintainAspectRatio: false,
             plugins: {
               legend: { display: false }
             },
@@ -1768,6 +1949,7 @@
           },
           options: {
             responsive: true,
+            maintainAspectRatio: false,
             scales: {
               y: {
                 beginAtZero: true,
@@ -1787,6 +1969,30 @@
       }
     }
 
+
+
+    function prepareInvestmentPrintOutput() {
+      document.body.classList.add('is-printing-report');
+      calculateAllExistingCAGR(false);
+      calculateWACC(false);
+      calculateAllNewGoals(false);
+      updateAnalysisDashboard();
+      syncExecutiveCommentaryReport();
+      renderCharts();
+      setTimeout(renderCharts, 50);
+    }
+
+    function printInvestmentReport() {
+      switchMainPage('page-analysis');
+      prepareInvestmentPrintOutput();
+      setTimeout(() => window.print(), 250);
+    }
+
+    window.addEventListener('beforeprint', prepareInvestmentPrintOutput);
+    window.addEventListener('afterprint', () => {
+      document.body.classList.remove('is-printing-report');
+      setTimeout(renderCharts, 100);
+    });
 
     // Formatting tools
     function formatCurrency(v) {
